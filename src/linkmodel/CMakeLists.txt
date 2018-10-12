@@ -8,7 +8,7 @@ add_library(linkmodel src/math.cpp)
 target_include_directories(linkmodel PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        PRIVATE src)
+        PRIVATE src test)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
 install(TARGETS linkmodel EXPORT LinkmodelLibraryConfig
@@ -17,7 +17,7 @@ install(TARGETS linkmodel EXPORT LinkmodelLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(linkmodel mpilib)
+target_link_libraries(linkmodel mpilib spdlog)
 
 enable_testing()
 

@@ -8,7 +8,7 @@ add_library(mpi src/network.cpp src/mpi.h src/queue.h src/hardware_impl.h src/pa
 target_include_directories(mpi PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        PRIVATE src)
+        PRIVATE src test)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
 install(TARGETS mpi EXPORT MPILibraryConfig
@@ -17,4 +17,4 @@ install(TARGETS mpi EXPORT MPILibraryConfig
         RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(mpi mpilib)
+target_link_libraries(mpi mpilib spdlog)

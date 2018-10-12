@@ -4,6 +4,7 @@
 #include <vector>
 #include <random>
 #include <mpilib/geomath.h>
+#include <mpilib/link.h>
 
 #include "constants.h"
 
@@ -54,8 +55,12 @@ double distance_pathloss(double distance);
 
 double distance_pathloss(Location to, Location from);
 
+double distance_pathloss(Link link);
+
 double autocorrelation(double angle);
 
 double autocorrelation(Location to, Location from);
+
+double autocorrelation(Link link);
 
 #endif /* MANETSIMS_MATH_H */

@@ -1,9 +1,14 @@
 #include <catch.hpp>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "linkmodel/cholesky.h"
 #include "linkmodel/math.h"
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
+    auto console = spdlog::stdout_color_mt("test");
+    console->info("HELLO WORLD");
+
     vecvec<double> matrix{{25.0, 15.0, -5.0},
                           {15.0, 18.0, 0.0},
                           {-5.0, 0.0,  11.0}};
@@ -44,12 +49,12 @@ TEST_CASE("Multiply 4x1 and 1x4 matrices", "[math]") {
                    {-3},
                    {3}};
 
-    vecvec<int> m2{{-1, 1,  4,  8}};
+    vecvec<int> m2{{-1, 1, 4, 8}};
 
-    vecvec<int> result{{1, -1, -4, -8},
-                       {-6, 6, 24, 48},
-                       {3, -3, -12, -24},
-                       {-3, 3, 12, 24}};
+    vecvec<int> result{{1,  -1, -4,  -8},
+                       {-6, 6,  24,  48},
+                       {3,  -3, -12, -24},
+                       {-3, 3,  12,  24}};
 
     REQUIRE((m1 * m2) == result);
 }

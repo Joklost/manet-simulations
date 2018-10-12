@@ -8,7 +8,7 @@ add_library(mpilib src/unpacker.cpp src/geomath.cpp)
 target_include_directories(mpilib PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        PRIVATE src)
+        PRIVATE src test)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
 install(TARGETS mpilib EXPORT MPILibLibraryConfig
@@ -16,6 +16,8 @@ install(TARGETS mpilib EXPORT MPILibLibraryConfig
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+target_link_libraries(mpilib spdlog)
 
 enable_testing()
 

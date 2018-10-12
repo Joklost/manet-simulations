@@ -1,4 +1,6 @@
 
+#include <linkmodel/math.h>
+
 #include "linkmodel/math.h"
 
 double distance_pathloss(const double distance) {
@@ -7,6 +9,10 @@ double distance_pathloss(const double distance) {
 
 double distance_pathloss(const Location to, const Location from) {
     return distance_pathloss(distance_between(to, from) * KM);
+}
+
+double distance_pathloss(Link link) {
+    return distance_pathloss(distance_between(link.node1.location, link.node2.location) * KM);
 }
 
 double autocorrelation(const double angle) {
@@ -19,3 +25,7 @@ double autocorrelation(const Location to, const Location from) {
     return 0;
 }
 
+double autocorrelation(Link link) {
+    /* TODO: Implement using angle_between */
+    return 0;
+}
