@@ -17,7 +17,7 @@ ExternalProject_Add(catch2
         ${FETCH_EXTERNAL_CATCH}
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/external/Catch/src/Catch-External/single_include/catch2/catch.hpp ${CMAKE_BINARY_DIR}/external/Catch/include/catch.hpp)
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/external/Catch/src/catch2/single_include/catch2/catch.hpp ${CMAKE_BINARY_DIR}/external/Catch/include/catch.hpp)
 
 add_library(Catch INTERFACE)
 add_dependencies(Catch catch2)

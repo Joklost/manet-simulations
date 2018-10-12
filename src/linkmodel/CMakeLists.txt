@@ -1,6 +1,6 @@
 project(linkmodel VERSION 1.0 LANGUAGES CXX)
 
-add_library(linkmodel src/cholesky.cpp)
+add_library(linkmodel src/math.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -16,6 +16,8 @@ install(TARGETS linkmodel EXPORT LinkmodelLibraryConfig
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+target_link_libraries(linkmodel mpilib)
 
 enable_testing()
 

@@ -3,9 +3,7 @@
 
 #include <vector>
 #include <cmath>
-
-template<typename T>
-using vecvec = std::vector<std::vector<T>>;
+#include "math.h"
 
 template<typename T>
 vecvec<T> slow_cholesky(const vecvec<T> matrix) {
@@ -13,10 +11,10 @@ vecvec<T> slow_cholesky(const vecvec<T> matrix) {
     vecvec<T> vec{};
     vec.resize(size, std::vector<T>(size));
 
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < (i + 1); j++) {
+    for (auto i = 0; i < size; i++) {
+        for (auto j = 0; j < (i + 1); j++) {
             T sum = (T) 0;
-            for (int k = 0; k < j; k++) {
+            for (auto k = 0; k < j; k++) {
                 sum += vec[i][k] * vec[j][k];
             }
 
