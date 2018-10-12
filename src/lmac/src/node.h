@@ -1,5 +1,5 @@
-#ifndef MANETSIMS_NODE_H
-#define MANETSIMS_NODE_H
+#ifndef MANETSIMS_LMAC_NODE_H
+#define MANETSIMS_LMAC_NODE_H
 
 #include <mpilib/geomath.h>
 #include <mpi/hardware.h>
@@ -12,9 +12,9 @@ enum State {
 };
 
 
-class Node {
+class LmacNode {
 public:
-    Node(int id, Hardware<LmacPacket> hardware, Location location, bool gateway);
+    LmacNode(int id, Hardware<LmacPacket> hardware, Location location, bool gateway);
 
     void start();
 
@@ -32,4 +32,4 @@ private:
 };
 
 
-#endif //MANETSIMS_NODE_H
+#endif //MANETSIMS_LMAC_NODE_H

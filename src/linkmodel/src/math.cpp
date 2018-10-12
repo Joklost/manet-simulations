@@ -12,7 +12,7 @@ double distance_pathloss(const Location to, const Location from) {
 }
 
 double distance_pathloss(Link link) {
-    return distance_pathloss(distance_between(link.node1.location, link.node2.location) * KM);
+    return distance_pathloss(link.get_distance() * KM);
 }
 
 double autocorrelation(const double angle) {
@@ -28,4 +28,9 @@ double autocorrelation(const Location to, const Location from) {
 double autocorrelation(Link link) {
     /* TODO: Implement using angle_between */
     return 0;
+}
+
+vecvec<double> generate_correlation_matrix(const std::vector<Link> links) {
+
+    return vecvec<double>();
 }

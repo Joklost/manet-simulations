@@ -51,6 +51,7 @@ std::vector<T> gaussian_vector(const T mean, const T std_deviation, const uint c
     return vec;
 }
 
+
 double distance_pathloss(double distance);
 
 double distance_pathloss(Location to, Location from);
@@ -62,5 +63,7 @@ double autocorrelation(double angle);
 double autocorrelation(Location to, Location from);
 
 double autocorrelation(Link link);
+
+vecvec<double> generate_correlation_matrix(const std::vector<Link> links);
 
 #endif /* MANETSIMS_MATH_H */

@@ -48,28 +48,34 @@ std::ostream &operator<<(std::ostream &os, vecvec<T> vec) {
     if (vec.size() != 0) {
         for (auto it = vec.cbegin(); it != vec.cend(); ++it) {
             os << (*it);
-            /*std::copy((*it).cbegin(), (*it).cend() - 1, std::ostream_iterator<T>(os, ", "));
-            os << (*it).back();*/
             os << "\n";
-            //if (it != vec.cend()) {
-            //}
         }
-/*
-        for (auto v : vec) {
-            os << " {";
 
-            std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(os, ", "));
-            os << v.back();
-
-            os << " }\n";
-
-        }*/
-        //std::copy(vec.begin(), vec.end() - 1, std::ostream_iterator<T>(os, " "));
-        //os << vec.back();
     }
     os << "}";
     return os;
 }
 
+template<typename T>
+bool compare_vectors(std::vector<T> a, std::vector<T> b, T margin) {
+    if (a.size() != b.size()) return false;
+    for (auto i = 0; i < a.size(); i++) {
+        if (a[i] != Approx(b[i]).margin(margin)) {
+            std::cout << a[i] << " Should == " << b[i] << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+
+template<typename T>
+bool compare_vecvecs(vecvec<T> a, vecvec<T> b, T margin) {
+    if (a.size() != b.size()) return false;
+    for (auto i = 0; i < a.size(); i++) {
+        if (!compare_vectors(a[i], b[i]), margin) return false;
+    }
+    return true;
+}
 
 #endif /* MANETSIMS_HELPERS_H */

@@ -1,14 +1,11 @@
 #include <catch.hpp>
-
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <iostream>
+#include <mpilib/helpers.h>
 
 #include "linkmodel/cholesky.h"
 #include "linkmodel/math.h"
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
-    auto console = spdlog::stdout_color_mt("test");
-    console->info("HELLO WORLD");
-
     vecvec<double> matrix{{25.0, 15.0, -5.0},
                           {15.0, 18.0, 0.0},
                           {-5.0, 0.0,  11.0}};
@@ -73,4 +70,28 @@ TEST_CASE("Compute the distance dependent path loss (Location)", "[math]") {
 TEST_CASE("Compute the autocorrelation for an angle (double)", "[math]") {
     REQUIRE(autocorrelation(45.0) == Approx(0.1254).margin(0.0001));
     REQUIRE(autocorrelation(90.0) == Approx(0.0939).margin(0.0001));
+}
+
+
+TEST_CASE("Compute distance dependent path loss", "[network]") {
+    Node n1{1, {57.01266813458001, 9.994625734716218}};
+    Node n2{2, {57.01266813458001, 9.9929758}};
+    Node n3{3, {57.0117698, 9.9929758}};
+    Node n4{4, {57.0117698, 9.994625734716218}};
+
+    Link l1{n1, n2};
+    Link l2{n1, n3};
+    Link l3{n1, n4};
+    Link l4{n2, n3};
+    Link l5{n2, n4};
+    Link l6{n3, n4};
+
+    std::vector links{l1, l2, l3, l4, l5, l6};
+    std::vector<double> links_d{};
+    std::vector<double> links_d_expected{91.2, 99.5, 91.2, 91.2, 99.5, 91.2};
+    std::for_each(links.cbegin(), links.cend(), [&links_d](auto link) {
+        links_d.emplace_back(distance_pathloss(link));
+    });
+
+    REQUIRE(compare_vectors(links_d, links_d_expected, 0.1));
 }
