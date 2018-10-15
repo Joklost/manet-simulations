@@ -1,6 +1,6 @@
 project(mpilib VERSION 1.0 LANGUAGES CXX)
 
-add_library(mpilib src/unpacker.cpp src/geomath.cpp src/link.cpp src/node.cpp)
+add_library(mpilib src/geomath.cpp src/link.cpp src/node.cpp include/mpilib/location.h)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build

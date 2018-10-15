@@ -1,6 +1,6 @@
 project(linkmodel VERSION 1.0 LANGUAGES CXX)
 
-add_library(linkmodel src/math.cpp)
+add_library(linkmodel src/math.cpp src/radiomodel.cpp src/linkmodel.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build

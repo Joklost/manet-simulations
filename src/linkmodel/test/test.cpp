@@ -3,7 +3,8 @@
 #include <mpilib/helpers.h>
 
 #include "linkmodel/cholesky.h"
-#include "linkmodel/math.h"
+#include "linkmodel/radiomodel.h"
+#include "linkmodel/linkmodel.h"
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     vecvec<double> matrix{{25.0, 15.0, -5.0},
@@ -18,8 +19,35 @@ TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
 
 TEST_CASE("Generate a Gaussian Vector with 1 million elements", "[math]") {
     auto size = 1000000u;
-    auto vec = gaussian_vector(0.0, 1.0, size);
+    auto vec = generate_gaussian_vector(0.0, 1.0, size);
     REQUIRE(vec.size() == size);
+}
+
+TEST_CASE("Multiplication operator for 4x3 matrix and scalar value", "[math]") {
+    vecvec<int> m1{{-1, 1,  4},
+                   {6,  -4, 2},
+                   {-3, 5,  0},
+                   {3,  7,  -2}};
+
+    vecvec<int> m1_expected{{-11, 11,  44},
+                            {66,  -44, 22},
+                            {-33, 55,  0},
+                            {33,  77,  -22}};
+
+    REQUIRE((m1 * 11) == m1_expected);
+
+    vecvec<double> m2{{-1, 1,  4},
+                      {6,  -4, 2},
+                      {-3, 5,  0},
+                      {3,  7,  -2}};
+
+    vecvec<double> m2_expected{{-129.96, 129.96,  519.84},
+                               {779.76,  -519.84, 259.92},
+                               {-389.88, 649.8,   0.0},
+                               {389.88,  909.72,  -259.92}};
+
+    REQUIRE(compare_vecvecs((m2 * std::pow(11.4, 2)), m2_expected, 0.00000001));
+
 }
 
 TEST_CASE("Multiplication operator for 4x3 and 3x4 matrices", "[math]") {
@@ -32,15 +60,28 @@ TEST_CASE("Multiplication operator for 4x3 and 3x4 matrices", "[math]") {
                    {6,  9,  10, 2},
                    {11, -4, 5,  -3}};
 
-    vecvec<int> result{{51, -8,  26, -18},
-                       {-8, -38, -6, 34},
-                       {33, 42,  38, -14},
-                       {17, 74,  72, 44}};
+    vecvec<int> expected{{51, -8,  26, -18},
+                         {-8, -38, -6, 34},
+                         {33, 42,  38, -14},
+                         {17, 74,  72, 44}};
 
-    REQUIRE((m1 * m2) == result);
+    REQUIRE((m1 * m2) == expected);
 }
 
-TEST_CASE("Multiply 4x1 and 1x4 matrices", "[math]") {
+TEST_CASE("Multiplication operator for 4x4 and 1x4 matrices", "[math]") {
+    vecvec<int> m1{{1,  -1, -4,  -8},
+                   {-6, 6,  24,  48},
+                   {3,  -3, -12, -24},
+                   {-3, 3,  12,  24}};
+
+    std::vector<int> m2{-1, 1, 4, 8};
+
+    std::vector<int> expected{-82, 492, -246, 246};
+
+    REQUIRE((m1 * m2) == expected);
+}
+
+TEST_CASE("Multiplication operator for 4x1 and 1x4 matrices", "[math]") {
     vecvec<int> m1{{-1},
                    {6},
                    {-3},
@@ -73,20 +114,20 @@ TEST_CASE("Compute the autocorrelation for an angle (double)", "[math]") {
 }
 
 
-TEST_CASE("Compute distance dependent path loss", "[network]") {
+TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
     Node n1{1, {57.01266813458001, 9.994625734716218}};
     Node n2{2, {57.01266813458001, 9.9929758}};
     Node n3{3, {57.0117698, 9.9929758}};
     Node n4{4, {57.0117698, 9.994625734716218}};
 
-    Link l1{n1, n2};
-    Link l2{n1, n3};
-    Link l3{n1, n4};
-    Link l4{n2, n3};
-    Link l5{n2, n4};
-    Link l6{n3, n4};
-
+    Link l6{6, n3, n4};
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l5{5, n2, n4};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
     std::vector links{l1, l2, l3, l4, l5, l6};
+
     std::vector<double> links_d{};
     std::vector<double> links_d_expected{91.2, 99.5, 91.2, 91.2, 99.5, 91.2};
     std::for_each(links.cbegin(), links.cend(), [&links_d](auto link) {
@@ -94,4 +135,102 @@ TEST_CASE("Compute distance dependent path loss", "[network]") {
     });
 
     REQUIRE(compare_vectors(links_d, links_d_expected, 0.1));
+}
+
+TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
+    Node n1{1, {57.01266813458001, 9.994625734716218}};
+    Node n2{2, {57.01266813458001, 9.9929758}};
+    Node n3{3, {57.0117698, 9.9929758}};
+    Node n4{4, {57.0117698, 9.994625734716218}};
+
+    Link l6{6, n3, n4};
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l5{5, n2, n4};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
+    std::vector links{l1, l2, l3, l4, l5, l6};
+
+    vecvec<double> corr = generate_correlation_matrix(links);
+    vecvec<double> corr_expected{{1.0,   0.125, 0.094, 0.094, 0.125, 0.0},
+                                 {0.125, 1.0,   0.125, 0.125, 0.0,   0.125},
+                                 {0.094, 0.125, 1.0,   0.0,   0.125, 0.094},
+                                 {0.094, 0.125, 0.0,   1.0,   0.125, 0.094},
+                                 {0.125, 0.0,   0.125, 0.125, 1.0,   0.125},
+                                 {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}};
+
+    REQUIRE(compare_vecvecs(corr, corr_expected, 0.001));
+}
+
+TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
+    Node n1{1, {57.01266813458001, 9.994625734716218}};
+    Node n2{2, {57.01266813458001, 9.9929758}};
+    Node n3{3, {57.0117698, 9.9929758}};
+    Node n4{4, {57.0117698, 9.994625734716218}};
+
+    Link l6{6, n3, n4};
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l5{5, n2, n4};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
+    std::vector links{l1, l2, l3, l4, l5, l6};
+
+    vecvec<double> sigma_expected{{129.96,   16.245, 12.21624, 12.21624, 16.245, 0.0},
+                                  {16.245,   129.96, 16.245,   16.245,   0.0,    16.245},
+                                  {12.21624, 16.245, 129.96,   0.0,      16.245, 12.21624},
+                                  {12.21624, 16.245, 0.0,      129.96,   16.245, 12.21624},
+                                  {16.245,   0.0,    16.245,   16.245,   129.96, 16.245},
+                                  {0.0,      16.245, 12.21624, 12.21624, 16.245, 129.96}};
+
+    vecvec<double> corr = generate_correlation_matrix(links);
+
+    /* Compute link fading   */
+    auto std_deviation = std::pow(11.4, 2);
+    auto sigma = std_deviation * corr;
+
+    REQUIRE(compare_vecvecs(sigma, sigma_expected, 0.1));
+
+
+    auto gaussian_vector = generate_gaussian_vector(0.0, 1.0, links.size());
+    auto l_fading = slow_cholesky(sigma) * gaussian_vector;
+    REQUIRE(l_fading.size() == links.size());
+}
+
+TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
+    Node n1{1, {57.01266813458001, 9.994625734716218}};
+    Node n2{2, {57.01266813458001, 9.9929758}};
+    Node n3{3, {57.0117698, 9.9929758}};
+    Node n4{4, {57.0117698, 9.994625734716218}};
+
+    Link l6{6, n3, n4};
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l5{5, n2, n4};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
+    std::vector links{l1, l2, l3, l4, l5, l6};
+
+    /* Compute link fading   */
+    auto corr = generate_correlation_matrix(links);
+    auto std_deviation = std::pow(11.4, 2);
+    auto sigma = std_deviation * corr;
+    auto gaussian_vector = generate_gaussian_vector(0.0, 1.0, links.size());
+    auto l_fading = slow_cholesky(sigma) * gaussian_vector;
+
+    /* Compute distance part */
+    std::vector<double> l_distance{};
+    std::for_each(links.cbegin(), links.cend(), [&l_distance](auto link) {
+        l_distance.emplace_back(distance_pathloss(link));
+    });
+
+    auto tx_dbm = 26.0;
+    auto rssi = tx_dbm - (l_distance + l_fading);
+
+    REQUIRE(rssi.size() == links.size());
+}
+
+TEST_CASE("Compute packet probability error", "[radiomodel]") {
+    REQUIRE(packet_error_probability(-105.3, 160) == Approx(0.097154).margin(0.00001));
+    REQUIRE(packet_error_probability(-104.0, 160) == Approx(0.014551).margin(0.00001));
 }

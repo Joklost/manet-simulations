@@ -1,12 +1,9 @@
 #ifndef MANETSIMS_GEOMATH_H
 #define MANETSIMS_GEOMATH_H
 
-#define EARTH_RADIUS_KM 6371.0
+#include "node.h"
 
-struct Location {
-    double latitude;
-    double longitude;
-};
+#define EARTH_RADIUS_KM 6371.0
 
 double deg2rad(double deg);
 
@@ -21,6 +18,8 @@ double distance_between(Location from, Location to);
 double bearing_between(Location from, Location to);
 
 double angle_between(Location origin, Location pos1, Location pos2);
+
+double angle_between(Node origin, Node node1, Node node2);
 
 
 #endif /* MANETSIMS_GEOMATH_H */

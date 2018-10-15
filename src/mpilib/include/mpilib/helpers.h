@@ -57,6 +57,14 @@ std::ostream &operator<<(std::ostream &os, vecvec<T> vec) {
 }
 
 template<typename T>
+std::ostream &operator<<(std::ostream &os, std::pair<T, T> pair) {
+    os << "{" << pair.first << ", " << pair.second << "}";
+
+    return os;
+}
+
+
+template<typename T>
 bool compare_vectors(std::vector<T> a, std::vector<T> b, T margin) {
     if (a.size() != b.size()) return false;
     for (auto i = 0; i < a.size(); i++) {
@@ -73,7 +81,7 @@ template<typename T>
 bool compare_vecvecs(vecvec<T> a, vecvec<T> b, T margin) {
     if (a.size() != b.size()) return false;
     for (auto i = 0; i < a.size(); i++) {
-        if (!compare_vectors(a[i], b[i]), margin) return false;
+        if (!compare_vectors(a[i], b[i], margin)) return false;
     }
     return true;
 }

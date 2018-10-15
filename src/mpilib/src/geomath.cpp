@@ -64,3 +64,7 @@ double angle_between(const Location origin, const Location pos1, const Location 
             std::acos(std::cos(courses[0]) * std::cos(courses[1]) + std::sin(courses[0]) * std::sin(courses[1])));
 }
 
+double angle_between(const Node origin, const Node node1, const Node node2) {
+    return angle_between(origin.get_location(), node1.get_location(), node2.get_location());
+}
+

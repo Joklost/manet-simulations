@@ -9,6 +9,19 @@
 #define PATHLOSS_EXPONENT -5.5
 #endif
 
-#define KM 1000
 
+#ifndef THERMAL_NOISE
+#define THERMAL_NOISE -119.66
+#endif
+
+#ifndef NOISE_FIGURE
+#define NOISE_FIGURE 4.2
+#endif
+
+#ifndef STANDARD_DEVIATION
+#define STANDARD_DEVIATION 11.4
+#endif
+
+
+#define KM 1000
 #endif /* MANETSIMS_LINKMODEL_CONSTANTS_H */
