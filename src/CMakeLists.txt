@@ -28,6 +28,9 @@ find_package(Beast CONFIG REQUIRED)
 hunter_add_package(spdlog)
 find_package(spdlog CONFIG REQUIRED)
 
+hunter_add_package(nlohmann_json)
+find_package(nlohmann_json CONFIG REQUIRED)
+
 #[[
 
 set(FETCH_EXTERNAL_CPPRESTSDK
