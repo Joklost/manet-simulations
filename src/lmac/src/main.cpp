@@ -5,10 +5,10 @@
 int main() {
     Hardware<LmacPacket> hw{};
 
-    LmacNode node1{1, hw, {57.01266813458001, 9.994625734716218}, true};
-    LmacNode node2{2, hw, {57.01266813458001, 9.9929758}, false};
-    LmacNode node3{3, hw, {57.0117698, 9.9929758}, false};
-    LmacNode node4{4, hw, {57.0117698, 9.994625734716218}, false};
+    LmacNode node1{1, hw, {0, 57.01266813458001, 9.994625734716218}, true};
+    LmacNode node2{2, hw, {0, 57.01266813458001, 9.9929758}, false};
+    LmacNode node3{3, hw, {0, 57.0117698, 9.9929758}, false};
+    LmacNode node4{4, hw, {0, 57.0117698, 9.994625734716218}, false};
 
     node1.start();
     node2.start();
