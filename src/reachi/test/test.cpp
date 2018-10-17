@@ -103,8 +103,8 @@ TEST_CASE("Compute the distance dependent path loss (double)", "[math]") {
 }
 
 TEST_CASE("Compute the distance dependent path loss (Location)", "[math]") {
-    Location l1{57.01266813458001, 9.994625734716218};
-    Location l2{57.01266813458001, 9.9929758};
+    Location l1{0, 57.01266813458001, 9.994625734716218};
+    Location l2{0, 57.01266813458001, 9.9929758};
     REQUIRE(distance_pathloss(l1, l2) == Approx(91.2).margin(0.1));
 }
 
@@ -115,10 +115,10 @@ TEST_CASE("Compute the autocorrelation for an angle (double)", "[math]") {
 
 
 TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
-    Node n1{1, {57.01266813458001, 9.994625734716218}};
-    Node n2{2, {57.01266813458001, 9.9929758}};
-    Node n3{3, {57.0117698, 9.9929758}};
-    Node n4{4, {57.0117698, 9.994625734716218}};
+    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{2, {0, 57.01266813458001, 9.9929758}};
+    Node n3{3, {0, 57.0117698, 9.9929758}};
+    Node n4{4, {0, 57.0117698, 9.994625734716218}};
 
     Link l6{6, n3, n4};
     Link l1{1, n1, n2};
@@ -138,10 +138,10 @@ TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
 }
 
 TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
-    Node n1{1, {57.01266813458001, 9.994625734716218}};
-    Node n2{2, {57.01266813458001, 9.9929758}};
-    Node n3{3, {57.0117698, 9.9929758}};
-    Node n4{4, {57.0117698, 9.994625734716218}};
+    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{2, {0, 57.01266813458001, 9.9929758}};
+    Node n3{3, {0, 57.0117698, 9.9929758}};
+    Node n4{4, {0, 57.0117698, 9.994625734716218}};
 
     Link l6{6, n3, n4};
     Link l1{1, n1, n2};
@@ -163,10 +163,10 @@ TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
 }
 
 TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
-    Node n1{1, {57.01266813458001, 9.994625734716218}};
-    Node n2{2, {57.01266813458001, 9.9929758}};
-    Node n3{3, {57.0117698, 9.9929758}};
-    Node n4{4, {57.0117698, 9.994625734716218}};
+    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{2, {0, 57.01266813458001, 9.9929758}};
+    Node n3{3, {0, 57.0117698, 9.9929758}};
+    Node n4{4, {0, 57.0117698, 9.994625734716218}};
 
     Link l6{6, n3, n4};
     Link l1{1, n1, n2};
@@ -200,10 +200,10 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
 }
 
 TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
-    Node n1{1, {57.01266813458001, 9.994625734716218}};
-    Node n2{2, {57.01266813458001, 9.9929758}};
-    Node n3{3, {57.0117698, 9.9929758}};
-    Node n4{4, {57.0117698, 9.994625734716218}};
+    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{2, {0, 57.01266813458001, 9.9929758}};
+    Node n3{3, {0, 57.0117698, 9.9929758}};
+    Node n4{4, {0, 57.0117698, 9.994625734716218}};
 
     Link l6{6, n3, n4};
     Link l1{1, n1, n2};
