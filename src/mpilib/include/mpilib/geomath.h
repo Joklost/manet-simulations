@@ -21,5 +21,7 @@ double angle_between(Location origin, Location pos1, Location pos2);
 
 double angle_between(Node origin, Node node1, Node node2);
 
+Location move_location(const Location &location, double distance /*kilometers */, double bearing /* degrees */);
+
 
 #endif /* MANETSIMS_GEOMATH_H */

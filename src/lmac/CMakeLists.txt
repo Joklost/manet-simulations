@@ -1,4 +1,4 @@
-project(lmac VERSION 1.0 LANGUAGES CXX)
+project(lmac VERSION 1.0 )
 
 
 add_executable(lmac src/main.cpp src/node.cpp src/node.h src/packet.h)

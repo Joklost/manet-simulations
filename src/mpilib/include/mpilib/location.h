@@ -2,47 +2,31 @@
 #define MANETSIMS_LOCATION_H
 
 #include <ostream>
+#include <cmath>
 
 class Location {
 public:
-    int time = 0;
+    int time{};
 
-    double latitude;
-    double longitude;
+    double latitude{};
+    double longitude{};
 
-    bool operator==(const Location &rhs) const {
-        return latitude == rhs.latitude &&
-               longitude == rhs.longitude;
-    }
+    bool operator==(const Location &rhs) const;
 
-    bool operator!=(const Location &rhs) const {
-        return !(rhs == *this);
-    }
+    bool operator!=(const Location &rhs) const;
 
-    bool operator<(const Location &rhs) const {
-        if (latitude < rhs.latitude)
-            return true;
-        if (rhs.latitude < latitude)
-            return false;
-        return longitude < rhs.longitude;
-    }
+    bool operator<(const Location &rhs) const;
 
-    bool operator>(const Location &rhs) const {
-        return rhs < *this;
-    }
+    bool operator>(const Location &rhs) const;
 
-    bool operator<=(const Location &rhs) const {
-        return !(rhs < *this);
-    }
+    bool operator<=(const Location &rhs) const;
 
-    bool operator>=(const Location &rhs) const {
-        return !(*this < rhs);
-    }
+    bool operator>=(const Location &rhs) const;
 
-    friend std::ostream &operator<<(std::ostream &os, const Location &location) {
-        os << "latitude: " << location.latitude << " longitude: " << location.longitude;
-        return os;
-    }
+    friend std::ostream &operator<<(std::ostream &os, const Location &location);
+
+    void move(int time, double distance /*kilometers */, double bearing /* degrees */);
+
 };
 
 #endif //MANETSIMS_LOCATION_H

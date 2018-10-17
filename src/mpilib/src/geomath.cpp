@@ -11,7 +11,7 @@ double deg2rad(const double deg) {
 Location deg2rad(const Location pos) {
     auto lat = deg2rad(pos.latitude);
     auto lon = deg2rad(pos.longitude);
-    return Location{lat, lon};
+    return Location{pos.time, lat, lon};
 }
 
 double rad2deg(const double rad) {
@@ -21,7 +21,7 @@ double rad2deg(const double rad) {
 Location rad2deg(const Location pos) {
     auto lat = rad2deg(pos.latitude);
     auto lon = rad2deg(pos.longitude);
-    return Location{lat, lon};
+    return Location{pos.time, lat, lon};
 }
 
 
@@ -52,7 +52,6 @@ double angle_between(const Location origin, const Location pos1, const Location 
         auto lat_pos = deg2rad(element.latitude);
         auto lon_pos = deg2rad(element.longitude);
 
-        /* Currently unknown magic */
         auto val = std::atan2(std::sin(lon_org - lon_pos) * std::cos(lat_pos),
                               std::cos(lat_org) * std::sin(lat_pos) -
                               std::sin(lat_org) * std::cos(lat_pos) * std::cos(lon_org - lon_pos));

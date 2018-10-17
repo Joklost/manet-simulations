@@ -1,6 +1,6 @@
-project(mpilib VERSION 1.0 LANGUAGES CXX)
+project(mpilib VERSION 1.0 )
 
-add_library(mpilib src/geomath.cpp src/link.cpp src/node.cpp)
+add_library(mpilib src/geomath.cpp src/link.cpp src/node.cpp src/location.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -16,8 +16,8 @@ install(TARGETS mpilib EXPORT MPILibLibraryConfig
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-target_link_libraries(mpilib spdlog reachi)
+# cpprestsdk::cpprest
+target_link_libraries(mpilib reachi Beast::Beast spdlog::spdlog)
 
 enable_testing()
 

@@ -1,4 +1,4 @@
-project(mpi VERSION 1.0 LANGUAGES CXX)
+project(mpi VERSION 1.0 )
 
 add_library(mpi src/network.cpp src/mpi.h src/queue.h src/hardware_impl.h src/packethandler.h)
 
@@ -17,4 +17,4 @@ install(TARGETS mpi EXPORT MPILibraryConfig
         RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(mpi mpilib spdlog)
+target_link_libraries(mpi mpilib )

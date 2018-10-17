@@ -235,7 +235,44 @@ TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
     REQUIRE(compare_vectors(rssi, rssi_expected, 0.1));
 }
 
+TEST_CASE("Compute RSSI using spatial and temporal correlation", "[linkmodel]") {
+    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{2, {0, 57.01266813458001, 9.9929758}};
+    Node n3{3, {0, 57.0117698, 9.9929758}};
+    Node n4{4, {0, 57.0117698, 9.994625734716218}};
+
+    Link l6{6, n3, n4};
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l5{5, n2, n4};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
+    std::vector links{l1, l2, l3, l4, l5, l6};
+
+    /* Compute link fading   */
+    auto corr = generate_correlation_matrix(links);
+    auto std_deviation = std::pow(11.4, 2);
+    auto sigma = std_deviation * corr;
+    std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
+    auto l_fading = slow_cholesky(sigma) * gaussian_vector;
+
+    /* Compute distance part */
+    std::vector<double> l_distance{};
+    std::for_each(links.cbegin(), links.cend(), [&l_distance](auto link) {
+        l_distance.emplace_back(distance_pathloss(link));
+    });
+
+    auto tx_dbm = 26.0;
+    auto rssi = tx_dbm - (l_distance + l_fading);
+    std::vector<double> l_distance_expected{91.2, 99.5, 91.2, 91.2, 99.5, 91.2};
+    std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
+    auto rssi_expected = tx_dbm - (l_distance_expected + l_fading_expected);
+
+    REQUIRE(compare_vectors(rssi, rssi_expected, 0.1));
+}
+
 TEST_CASE("Compute packet probability error", "[radiomodel]") {
     REQUIRE(packet_error_probability(-105.3, 160) == Approx(0.097154).margin(0.00001));
     REQUIRE(packet_error_probability(-104.0, 160) == Approx(0.014551).margin(0.00001));
 }
+
