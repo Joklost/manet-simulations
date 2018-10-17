@@ -39,5 +39,5 @@ target_include_directories(spdlog INTERFACE ${CMAKE_BINARY_DIR}/external/spdlog/
 
 add_subdirectory(mpilib)
 add_subdirectory(mpi)
-add_subdirectory(linkmodel)
+add_subdirectory(reachi)
 add_subdirectory(lmac)

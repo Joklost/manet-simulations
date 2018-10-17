@@ -1,7 +1,6 @@
 #include <future>
 
 #include "node.h"
-#include <linkmodel/math.h>
 
 int main() {
     Hardware<LmacPacket> hw{};

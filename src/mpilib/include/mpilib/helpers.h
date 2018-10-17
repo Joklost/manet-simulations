@@ -78,7 +78,7 @@ bool compare_vectors(std::vector<T> a, std::vector<T> b, T margin) {
 
 
 template<typename T>
-bool compare_vecvecs(vecvec<T> a, vecvec<T> b, T margin) {
+bool compare_vectors(vecvec<T> a, vecvec<T> b, T margin) {
     if (a.size() != b.size()) return false;
     for (auto i = 0; i < a.size(); i++) {
         if (!compare_vectors(a[i], b[i], margin)) return false;

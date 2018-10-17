@@ -1,20 +1,11 @@
 #include <cmath>
 #include <algorithm>
-#include <linkmodel/linkmodel.h>
+#include <reachi/linkmodel.h>
 
 
-#include "linkmodel/linkmodel.h"
-#include "linkmodel/math.h"
-#include "linkmodel/cholesky.h"
-
-std::vector<double> compute_rx_rssi(double tx_power, int time, std::vector<Link> links) {
-    auto l_fading = compute_link_fading(links, time);
-    auto l_distance = compute_link_distance(links);
-
-    if (time == 0) {
-        return tx_power - (l_distance + l_fading);
-    }
-}
+#include "reachi/linkmodel.h"
+#include "reachi/math.h"
+#include "reachi/cholesky.h"
 
 std::vector<double> compute_link_fading(const std::vector<Link> links, int time) {
     auto corr = generate_correlation_matrix(links);
@@ -31,4 +22,11 @@ std::vector<double> compute_link_distance(const std::vector<Link> links) {
     });
 
     return l_distance;
+}
+
+std::vector<double> compute_link_rssi(std::vector<Link> &links, double tx_power, int time) {
+    auto l_fading = compute_link_fading(links, time);
+    auto l_distance = compute_link_distance(links);
+
+    return tx_power - (l_distance + l_fading);
 }

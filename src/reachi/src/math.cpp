@@ -1,7 +1,8 @@
 
-#include <linkmodel/math.h>
 #include <algorithm>
 #include <mpilib/geomath.h>
+
+#include "reachi/math.h"
 
 double distance_pathloss(const double distance) {
     return (-10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;

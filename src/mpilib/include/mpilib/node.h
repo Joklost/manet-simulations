@@ -2,7 +2,7 @@
 #define MANETSIMS_MPILIB_NODE_H
 
 #include <mpilib/location.h>
-#include <ostream>
+#include <vector>
 
 class Node {
 public:
@@ -11,6 +11,8 @@ public:
     int get_id() const;
 
     const Location &get_location() const;
+
+    void update_location(Location &location, int time);
 
     bool operator==(const Node &rhs) const;
 
@@ -28,7 +30,9 @@ public:
 
 private:
     int id;
-    Location location;
+    Location current_location;
+    std::vector<Location> location_history;
+
 };
 
 #endif /* MANETSIMS_MPILIB_NODE_H */

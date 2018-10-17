@@ -2,9 +2,9 @@
 #include <iostream>
 #include <mpilib/helpers.h>
 
-#include "linkmodel/cholesky.h"
-#include "linkmodel/radiomodel.h"
-#include "linkmodel/linkmodel.h"
+#include "reachi/cholesky.h"
+#include "reachi/radiomodel.h"
+#include "reachi/linkmodel.h"
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     vecvec<double> matrix{{25.0, 15.0, -5.0},
@@ -46,7 +46,7 @@ TEST_CASE("Multiplication operator for 4x3 matrix and scalar value", "[math]") {
                                {-389.88, 649.8,   0.0},
                                {389.88,  909.72,  -259.92}};
 
-    REQUIRE(compare_vecvecs((m2 * std::pow(11.4, 2)), m2_expected, 0.00000001));
+    REQUIRE(compare_vectors((m2 * std::pow(11.4, 2)), m2_expected, 0.00000001));
 
 }
 
@@ -128,13 +128,13 @@ TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
     Link l4{4, n2, n3};
     std::vector links{l1, l2, l3, l4, l5, l6};
 
-    std::vector<double> links_d{};
-    std::vector<double> links_d_expected{91.2, 99.5, 91.2, 91.2, 99.5, 91.2};
-    std::for_each(links.cbegin(), links.cend(), [&links_d](auto link) {
-        links_d.emplace_back(distance_pathloss(link));
+    std::vector<double> l_distance{};
+    std::vector<double> l_distance_expected{91.2, 99.5, 91.2, 91.2, 99.5, 91.2};
+    std::for_each(links.cbegin(), links.cend(), [&l_distance](auto link) {
+        l_distance.emplace_back(distance_pathloss(link));
     });
 
-    REQUIRE(compare_vectors(links_d, links_d_expected, 0.1));
+    REQUIRE(compare_vectors(l_distance, l_distance_expected, 0.1));
 }
 
 TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
@@ -159,7 +159,7 @@ TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
                                  {0.125, 0.0,   0.125, 0.125, 1.0,   0.125},
                                  {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}};
 
-    REQUIRE(compare_vecvecs(corr, corr_expected, 0.001));
+    REQUIRE(compare_vectors(corr, corr_expected, 0.001));
 }
 
 TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
@@ -176,6 +176,11 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
     Link l4{4, n2, n3};
     std::vector links{l1, l2, l3, l4, l5, l6};
 
+    vecvec<double> corr = generate_correlation_matrix(links);
+
+    /* Compute link fading   */
+    auto std_deviation = std::pow(11.4, 2);
+    auto sigma = std_deviation * corr;
     vecvec<double> sigma_expected{{129.96,   16.245, 12.21624, 12.21624, 16.245, 0.0},
                                   {16.245,   129.96, 16.245,   16.245,   0.0,    16.245},
                                   {12.21624, 16.245, 129.96,   0.0,      16.245, 12.21624},
@@ -183,18 +188,15 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
                                   {16.245,   0.0,    16.245,   16.245,   129.96, 16.245},
                                   {0.0,      16.245, 12.21624, 12.21624, 16.245, 129.96}};
 
-    vecvec<double> corr = generate_correlation_matrix(links);
 
-    /* Compute link fading   */
-    auto std_deviation = std::pow(11.4, 2);
-    auto sigma = std_deviation * corr;
+    REQUIRE(compare_vectors(sigma, sigma_expected, 0.1));
 
-    REQUIRE(compare_vecvecs(sigma, sigma_expected, 0.1));
+    std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
 
-
-    auto gaussian_vector = generate_gaussian_vector(0.0, 1.0, links.size());
     auto l_fading = slow_cholesky(sigma) * gaussian_vector;
-    REQUIRE(l_fading.size() == links.size());
+    std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
+
+    REQUIRE(compare_vectors(l_fading, l_fading_expected, 0.01));
 }
 
 TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
@@ -215,7 +217,7 @@ TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
     auto corr = generate_correlation_matrix(links);
     auto std_deviation = std::pow(11.4, 2);
     auto sigma = std_deviation * corr;
-    auto gaussian_vector = generate_gaussian_vector(0.0, 1.0, links.size());
+    std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
     auto l_fading = slow_cholesky(sigma) * gaussian_vector;
 
     /* Compute distance part */
@@ -226,8 +228,11 @@ TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
 
     auto tx_dbm = 26.0;
     auto rssi = tx_dbm - (l_distance + l_fading);
+    std::vector<double> l_distance_expected{91.2, 99.5, 91.2, 91.2, 99.5, 91.2};
+    std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
+    auto rssi_expected = tx_dbm - (l_distance_expected + l_fading_expected);
 
-    REQUIRE(rssi.size() == links.size());
+    REQUIRE(compare_vectors(rssi, rssi_expected, 0.1));
 }
 
 TEST_CASE("Compute packet probability error", "[radiomodel]") {

@@ -5,6 +5,8 @@
 
 class Location {
 public:
+    int time = 0;
+
     double latitude;
     double longitude;
 
