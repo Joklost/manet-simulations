@@ -1,49 +1,17 @@
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #include <mpilib/httpclient.h>
 
-
-httpclient::httpclient(const string host, const string port) : resolver(tcp::resolver{ioc}), socket(tcp::socket{ioc}) {
-    this->host = host;
-    this->port = port;
+HttpClient::HttpClient(std::string base_url) {
+    this->host = std::move(base_url);
+    this->console = spdlog::stdout_color_mt("console");
 }
 
-http::response<http::dynamic_body> httpclient::get(string url) {
-    /* build request */
-    http::request<http::string_body> req;
-    req.method(http::verb::get);
-    req.target(url);
-
-    /* connect to url */
-    auto const results = this->resolver.resolve(this->host, this->port);
-    boost::asio::connect(this->socket, results.begin(), results.end());
-
-    /* send request */
-    http::write(this->socket, req);
-
-    boost::beast::flat_buffer buffer;
-    http::response<http::dynamic_body> resp;
-    http::read(this->socket, buffer, resp);
-
-    /* close the connection */
-    this->socket.shutdown(tcp::socket::shutdown_both);
-    return resp;
+cpr::Response HttpClient::post(std::string endpoint, nlohmann::json payload) {
+    auto response = cpr::Post(cpr::Url{this->host + endpoint},
+                              cpr::Body{payload.dump()},
+                              cpr::Header{{"Content-Type", "application/json"}});
+    this->console->info("POST {}: {}", endpoint, response.status_code);
+    return response;
 }
 
-void httpclient::post(string url, json payload) {
-    /* build request */
-    http::request<http::string_body> req;
-    req.method(http::verb::post);
-    req.set(http::field::content_type, "application/json");
-    req.target(url);
-    req.body() = payload.dump();
-
-    /* connect to url */
-    auto const results = this->resolver.resolve(this->host, this->port);
-    boost::asio::connect(this->socket, results.begin(), results.end());
-
-    /* send request */
-    http::write(this->socket, req);
-
-    /* close the connection */
-    this->socket.shutdown(tcp::socket::shutdown_both);
-
-}

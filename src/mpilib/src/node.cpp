@@ -2,6 +2,7 @@
 #include <utility>
 #include <mpilib/node.h>
 
+
 Node::Node(int id, Location location) {
     this->id = id;
     this->current_location = location;
@@ -48,5 +49,15 @@ void Node::update_location(Location &location, const int time) {
     location.time = time;
     this->location_history.emplace_back(this->current_location);
     this->current_location = location;
+}
+
+nlohmann::json Node::serialize() {
+    return {{"id",  this->id},
+            {"lat", std::to_string(this->current_location.latitude)},
+            {"lon", std::to_string(this->current_location.longitude)}};
+}
+
+void Node::move(int time, double distance, double bearing) {
+    this->current_location.move(time, distance, bearing);
 }
 

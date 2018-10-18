@@ -3,6 +3,8 @@
 
 #include <mpilib/location.h>
 #include <vector>
+#include <nlohmann/json.hpp>
+
 
 class Node {
 public:
@@ -27,6 +29,10 @@ public:
     bool operator>=(const Node &rhs) const;
 
     friend std::ostream &operator<<(std::ostream &os, const Node &node);
+
+    nlohmann::json serialize();
+
+    void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
 private:
     int id;

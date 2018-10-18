@@ -17,14 +17,11 @@ include(ExternalProject)
 hunter_add_package(Catch)
 find_package(Catch2 CONFIG REQUIRED)
 
-hunter_add_package(Boost COMPONENTS random system thread filesystem chrono atomic date_time regex)
-find_package(Boost CONFIG REQUIRED random system thread filesystem chrono atomic date_time regex)
-
-hunter_add_package(Beast)
-find_package(Beast CONFIG REQUIRED)
-
 hunter_add_package(spdlog)
 find_package(spdlog CONFIG REQUIRED)
+
+hunter_add_package(cpr)
+find_package(cpr CONFIG REQUIRED)
 
 hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
