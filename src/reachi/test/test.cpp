@@ -1,6 +1,7 @@
 #include <catch.hpp>
 #include <iostream>
 #include <mpilib/helpers.h>
+#include <chrono>
 
 #include "reachi/cholesky.h"
 #include "reachi/radiomodel.h"
@@ -151,7 +152,7 @@ TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
     Link l4{4, n2, n3};
     std::vector links{l1, l2, l3, l4, l5, l6};
 
-    vecvec<double> corr = generate_correlation_matrix(links);
+    vecvec<double> corr = generate_correlation_matrix_slow(links);
     vecvec<double> corr_expected{{1.0,   0.125, 0.094, 0.094, 0.125, 0.0},
                                  {0.125, 1.0,   0.125, 0.125, 0.0,   0.125},
                                  {0.094, 0.125, 1.0,   0.0,   0.125, 0.094},
@@ -176,7 +177,7 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
     Link l4{4, n2, n3};
     std::vector links{l1, l2, l3, l4, l5, l6};
 
-    vecvec<double> corr = generate_correlation_matrix(links);
+    vecvec<double> corr = generate_correlation_matrix_slow(links);
 
     /* Compute link fading   */
     auto std_deviation = std::pow(11.4, 2);
@@ -214,7 +215,7 @@ TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
     std::vector links{l1, l2, l3, l4, l5, l6};
 
     /* Compute link fading   */
-    auto corr = generate_correlation_matrix(links);
+    auto corr = generate_correlation_matrix_slow(links);
     auto std_deviation = std::pow(11.4, 2);
     auto sigma = std_deviation * corr;
     std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
@@ -250,7 +251,7 @@ TEST_CASE("Compute RSSI using spatial and temporal correlation", "[linkmodel]") 
     std::vector links{l1, l2, l3, l4, l5, l6};
 
     /* Compute link fading   */
-    auto corr = generate_correlation_matrix(links);
+    auto corr = generate_correlation_matrix_slow(links);
     auto std_deviation = std::pow(11.4, 2);
     auto sigma = std_deviation * corr;
     std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
@@ -276,3 +277,38 @@ TEST_CASE("Compute packet probability error", "[radiomodel]") {
     REQUIRE(packet_error_probability(-104.0, 160) == Approx(0.014551).margin(0.00001));
 }
 
+TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
+    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{2, {0, 57.01266813458001, 9.9929758}};
+    Node n3{3, {0, 57.0117698, 9.9929758}};
+    Node n4{4, {0, 57.0117698, 9.994625734716218}};
+
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
+    Link l5{5, n2, n4};
+    Link l6{6, n3, n4};
+    std::vector links{l1, l2, l3, l4, l5, l6};
+
+    // std::cout << measure<>::execution(generate_correlation_matrix_slow, links) << std::endl;
+    /* vecvec<double> corr_expected{{1.0,   0.125, 0.094, 0.094, 0.125, 0.0},
+                                 {0.125, 1.0,   0.125, 0.125, 0.0,   0.125},
+                                 {0.094, 0.125, 1.0,   0.0,   0.125, 0.094},
+                                 {0.094, 0.125, 0.0,   1.0,   0.125, 0.094},
+                                 {0.125, 0.0,   0.125, 0.125, 1.0,   0.125},
+                                 {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}}; */
+    std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
+    auto res = generate_correlation_matrix(links);
+
+    /* auto total_sum = 0;
+    std::for_each(corr.cbegin(), corr.cend(), [&total_sum](auto element) {
+        total_sum += element.size();
+    });
+
+    std::cout << total_sum << std::endl; */
+    std::cout << res.size() << std::endl;
+    /* std::for_each(res.cbegin(), res.cend(), [](auto element) {
+       std::cout << element.first << " " << element.second << std::endl;
+    }); */
+}

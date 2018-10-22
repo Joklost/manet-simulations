@@ -8,13 +8,13 @@
 
 class Link {
 public:
-    Link(int id, Node node1, Node node2);
+    Link(uint32_t id, Node node1, Node node2);
 
     const std::pair<Node, Node> &get_nodes() const;
 
     double get_distance() const;
 
-    int get_id() const;
+    uint32_t get_id() const;
 
     bool operator==(const Link &rhs) const;
 
@@ -32,7 +32,7 @@ public:
 
 private:
     double distance;
-    int id;
+    uint32_t id;
     std::pair<Node, Node> nodes;
 
 };

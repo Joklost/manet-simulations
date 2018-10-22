@@ -5,11 +5,13 @@
 #include <random>
 #include <mpilib/geomath.h>
 #include <mpilib/link.h>
+#include <map>
 
 #include "constants.h"
 
 template<typename T>
 using vecvec = std::vector<std::vector<T>>;
+using linkmap = std::map<uint64_t, double>;
 
 /**
  * https://rosettacode.org/wiki/Matrix_multiplication
@@ -60,8 +62,25 @@ std::vector<T> operator*(const vecvec<T> &lhs, const std::vector<T> &rhs) {
 }
 
 template<typename T>
-std::vector<T> operator*(const std::vector<T> &rhs, const vecvec<T> &lhs) {
-    return lhs * rhs;
+std::vector<T> operator*(const std::vector<T> &lhs, const T scalar) {
+    std::vector<T> res;
+    res.resize(lhs.size());
+
+    for (auto i = 0; i < lhs.size(); ++i) {
+        res[i] = lhs[i] * scalar;
+    }
+    return res;
+}
+
+template<typename T>
+std::vector<T> operator*(const T scalar, const std::vector<T> &rhs) {
+    return rhs * scalar;
+}
+
+
+template<typename T>
+std::vector<T> operator*(const std::vector<T> &lhs, const vecvec<T> &rhs) {
+    return rhs * lhs;
 }
 
 template<typename T>
@@ -170,6 +189,9 @@ std::vector<T> operator-(const T scalar, const std::vector<T> &rhs) {
 
     return res;
 }
+linkmap operator*(double scalar, const linkmap &rhs);
+
+linkmap operator*(const linkmap &lhs, double scalar);
 
 
 double distance_pathloss(double distance);
@@ -184,7 +206,9 @@ double autocorrelation(Location to, Location from);
 
 double autocorrelation(Link link);
 
-vecvec<double> generate_correlation_matrix(std::vector<Link> links);
+vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links);
+
+linkmap generate_correlation_matrix(std::vector<Link> links);
 
 bool common_node(Link &k, Link &l);
 

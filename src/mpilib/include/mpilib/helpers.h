@@ -6,6 +6,26 @@
 #include <iostream>
 #include <vector>
 #include <iterator>
+#include <chrono>
+#include <functional>
+
+template<typename TimeT = std::chrono::milliseconds>
+struct measure {
+    template<typename F, typename ...Args>
+    static typename TimeT::rep execution(F&& func, Args&&... args) {
+        auto start = std::chrono::steady_clock::now();
+        std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
+        auto duration = std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
+        return duration.count();
+    }
+
+    template<typename F, typename ...Args>
+    static auto duration(F&& func, Args&&... args) {
+        auto start = std::chrono::steady_clock::now();
+        std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
+        return std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
+    }
+};
 
 template<typename T>
 using vecvec = std::vector<std::vector<T>>;
@@ -85,5 +105,7 @@ bool compare_vectors(vecvec<T> a, vecvec<T> b, T margin) {
     }
     return true;
 }
+
+uint64_t generate_link_id(const uint32_t id1, const uint32_t id2);
 
 #endif /* MANETSIMS_HELPERS_H */

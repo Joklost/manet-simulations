@@ -2,13 +2,12 @@
 #include <utility>
 #include <mpilib/node.h>
 
-
-Node::Node(int id, Location location) {
+Node::Node(uint32_t id, Location location) {
     this->id = id;
     this->current_location = location;
 }
 
-int Node::get_id() const {
+uint32_t Node::get_id() const {
     return this->id;
 }
 

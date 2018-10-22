@@ -8,9 +8,9 @@
 
 class Node {
 public:
-    Node(int id, Location location);
+    Node(uint32_t id, Location location);
 
-    int get_id() const;
+    uint32_t get_id() const;
 
     const Location &get_location() const;
 
@@ -35,7 +35,7 @@ public:
     void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
 private:
-    int id;
+    uint32_t id;
     Location current_location;
     std::vector<Location> location_history;
 
