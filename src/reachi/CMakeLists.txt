@@ -1,6 +1,6 @@
 project(reachi VERSION 1.0 )
 
-add_library(reachi src/math.cpp src/radiomodel.cpp src/linkmodel.cpp src/cholesky.cpp)
+add_library(reachi src/math.cpp src/radiomodel.cpp src/linkmodel.cpp src/cholesky.cpp src/linkmap.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build

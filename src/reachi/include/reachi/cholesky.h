@@ -30,6 +30,6 @@ vecvec<T> slow_cholesky(const vecvec<T> matrix) {
     return vec;
 }
 
-linkmap cholesky(const linkmap &matrix);
+LinkMap cholesky(LinkMap &linkmap);
 
 #endif /* MANETSIMS_CHOLESKY_H */

@@ -4,21 +4,8 @@
 
 #include "reachi/math.h"
 
-linkmap operator*(const double scalar, const linkmap &rhs) {
-    linkmap res;
-    std::for_each(rhs.cbegin(), rhs.cend(), [&res, &scalar](auto element) {
-        res.emplace(element.first, element.second * scalar);
-    });
-
-    return res;
-}
-
-linkmap operator*(const linkmap &lhs, const double scalar) {
-    return scalar * lhs;
-}
-
 double distance_pathloss(const double distance) {
-    return (-10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
+    return (10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
 }
 
 double distance_pathloss(const Location to, const Location from) {
@@ -98,9 +85,9 @@ vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links) {
     return corr;
 }
 
-linkmap generate_correlation_matrix(std::vector<Link> links) {
+LinkMap generate_correlation_matrix(std::vector<Link> links) {
     auto size = links.size();
-    linkmap res;
+    LinkMap res;
 
     for (auto i = 0; i < size; ++i) {
         if (links[i].get_distance() <= CORRELATION_COEFFICIENT_THRESHOLD) {
@@ -108,14 +95,12 @@ linkmap generate_correlation_matrix(std::vector<Link> links) {
         }
 
         for (auto j = 0; j < size; ++j) {
-            auto id = generate_link_id(links[i].get_id(), links[j].get_id());
-            auto search = res.find(id);
             double value = 0.0;
 
-            if (search != res.end()) {
+            if (res.contains(links[i], links[j])) {
                 continue;
-                /* } else if (links[i] == links[j]) {
-                    value = 1.0; */
+            } else if (links[i] == links[j]) {
+                value = 1.0;
             } else if (links[i] != links[j] && has_common_node(links[i], links[j])) {
                 auto common_node = get_common_node(links[i], links[j]);
                 auto li_unique = links[i].get_nodes().first.get_id() == common_node.get_id() ?
@@ -131,7 +116,7 @@ linkmap generate_correlation_matrix(std::vector<Link> links) {
             }
 
             if (value >= CORRELATION_COEFFICIENT_THRESHOLD) {
-                res.emplace(id, value);
+                res.emplace(links[i], links[j], value);
             }
         }
 

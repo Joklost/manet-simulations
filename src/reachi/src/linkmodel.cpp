@@ -8,11 +8,13 @@
 #include "reachi/cholesky.h"
 
 
-vecvec<double> correlation_matrix(const std::vector<Link> &links) {
-    auto corr = generate_correlation_matrix(links);
+LinkMap correlation_matrix(const std::vector<Link> &links) {
+    LinkMap res;
+    return res;
+    /* auto corr = generate_correlation_matrix(links);
     auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
     auto sigma = std_deviation * corr;
-    return cholesky(sigma);
+    return cholesky(sigma);*/
 }
 
 
@@ -34,8 +36,9 @@ std::vector<double> compute_link_distance(const std::vector<Link> &links) {
 
 
 std::vector<double> compute_link_fading(const std::vector<Link> &links, double time) {
-    auto l_fading = correlation_matrix(links) * generate_gaussian_vector(0.0, 1.0, links.size());
-    return time == 0.0 ? l_fading : l_fading * time;
+    /* auto l_fading = correlation_matrix(links) * generate_gaussian_vector(0.0, 1.0, links.size());
+    return time == 0.0 ? l_fading : l_fading * time; */
+    return std::vector<double> {};
 }
 
 

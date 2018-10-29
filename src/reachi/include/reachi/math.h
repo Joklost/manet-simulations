@@ -7,11 +7,11 @@
 #include <mpilib/link.h>
 #include <map>
 
+#include "linkmap.h"
 #include "constants.h"
 
 template<typename T>
 using vecvec = std::vector<std::vector<T>>;
-using linkmap = std::map<uint64_t, double>;
 
 /**
  * https://rosettacode.org/wiki/Matrix_multiplication
@@ -189,10 +189,6 @@ std::vector<T> operator-(const T scalar, const std::vector<T> &rhs) {
 
     return res;
 }
-linkmap operator*(double scalar, const linkmap &rhs);
-
-linkmap operator*(const linkmap &lhs, double scalar);
-
 
 double distance_pathloss(double distance);
 
@@ -208,7 +204,7 @@ double autocorrelation(Link link);
 
 vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links);
 
-linkmap generate_correlation_matrix(std::vector<Link> links);
+LinkMap generate_correlation_matrix(std::vector<Link> links);
 
 bool common_node(Link &k, Link &l);
 

@@ -6,7 +6,7 @@
 #endif
 
 #ifndef PATHLOSS_EXPONENT
-#define PATHLOSS_EXPONENT -5.5
+#define PATHLOSS_EXPONENT 5.5
 #endif
 
 

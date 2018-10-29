@@ -194,6 +194,8 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
 
     std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
 
+    std::cout << slow_cholesky(sigma) << std::endl;
+
     auto l_fading = slow_cholesky(sigma) * gaussian_vector;
     std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
 
@@ -278,17 +280,17 @@ TEST_CASE("Compute packet probability error", "[radiomodel]") {
 }
 
 TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
-    Node n1{1, {0, 57.01266813458001, 9.994625734716218}};
-    Node n2{2, {0, 57.01266813458001, 9.9929758}};
-    Node n3{3, {0, 57.0117698, 9.9929758}};
-    Node n4{4, {0, 57.0117698, 9.994625734716218}};
+    Node n1{0, {0, 57.01266813458001, 9.994625734716218}};
+    Node n2{1, {0, 57.01266813458001, 9.9929758}};
+    Node n3{2, {0, 57.0117698, 9.9929758}};
+    Node n4{3, {0, 57.0117698, 9.994625734716218}};
 
-    Link l1{1, n1, n2};
-    Link l2{2, n1, n3};
-    Link l3{3, n1, n4};
-    Link l4{4, n2, n3};
-    Link l5{5, n2, n4};
-    Link l6{6, n3, n4};
+    Link l1{0, n1, n2};
+    Link l2{1, n1, n3};
+    Link l3{2, n1, n4};
+    Link l4{3, n2, n3};
+    Link l5{4, n2, n4};
+    Link l6{5, n3, n4};
     std::vector links{l1, l2, l3, l4, l5, l6};
 
     // std::cout << measure<>::execution(generate_correlation_matrix_slow, links) << std::endl;
@@ -298,16 +300,26 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
                                  {0.094, 0.125, 0.0,   1.0,   0.125, 0.094},
                                  {0.125, 0.0,   0.125, 0.125, 1.0,   0.125},
                                  {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}}; */
-    std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
-    auto res = generate_correlation_matrix(links);
+    // std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
+    auto corr = generate_correlation_matrix(links);
+    /*for (const auto &item : corr) {
+        std::cout << "id: " << item.first.first.get_id() << ", " << item.first.second.get_id() << "\tvalue: " << item.second << std::endl;
+    }*/
+    auto std_deviation = std::pow(11.4, 2);
+    auto sigma = corr * std_deviation;
 
+    auto temp = cholesky(sigma);
+    std::cout << "" << std::endl;
+    for (const auto &item : temp) {
+        std::cout << "id: " << item.first.first.get_id() << ", " << item.first.second.get_id() << "\tvalue: " << std::to_string(item.second) << std::endl;
+    }
     /* auto total_sum = 0;
     std::for_each(corr.cbegin(), corr.cend(), [&total_sum](auto element) {
         total_sum += element.size();
     });
 
     std::cout << total_sum << std::endl; */
-    std::cout << res.size() << std::endl;
+//    std::cout << res.size() << std::endl;
     /* std::for_each(res.cbegin(), res.cend(), [](auto element) {
        std::cout << element.first << " " << element.second << std::endl;
     }); */
