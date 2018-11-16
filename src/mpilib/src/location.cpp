@@ -2,8 +2,8 @@
 #include <mpilib/location.h>
 
 bool Location::operator==(const Location &rhs) const {
-    return latitude == rhs.latitude &&
-           longitude == rhs.longitude;
+    return latitude == rhs.get_latitude() &&
+           longitude == rhs.get_longitude();
 }
 
 bool Location::operator!=(const Location &rhs) const {
@@ -11,11 +11,11 @@ bool Location::operator!=(const Location &rhs) const {
 }
 
 bool Location::operator<(const Location &rhs) const {
-    if (latitude < rhs.latitude)
+    if (latitude < rhs.get_latitude())
         return true;
-    if (rhs.latitude < latitude)
+    if (rhs.get_latitude() < latitude)
         return false;
-    return longitude < rhs.longitude;
+    return longitude < rhs.get_longitude();
 }
 
 bool Location::operator>(const Location &rhs) const {
@@ -31,7 +31,8 @@ bool Location::operator>=(const Location &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Location &location) {
-    os << "time: " << location.time << " latitude: " << location.latitude << " longitude: " << location.longitude;
+    os << "time: " << location.get_time() << " latitude: " << location.get_latitude() << " longitude: "
+       << location.get_longitude();
     return os;
 }
 
@@ -50,3 +51,24 @@ void Location::move(const int time, const double distance, const double bearing)
     this->latitude = rad2deg(lat_dest);
     this->longitude = rad2deg(lon_dest);
 }
+
+double Location::get_latitude() const {
+    return latitude;
+}
+
+double Location::get_longitude() const {
+    return longitude;
+}
+
+int Location::get_time() const {
+    return time;
+}
+
+void Location::set_time(int time) {
+    Location::time = time;
+}
+
+Location::Location(double latitude, double longitude) : latitude(latitude), longitude(longitude), time(0) {}
+
+Location::Location(int time, double latitude, double longitude) : time(time), latitude(latitude),
+                                                                  longitude(longitude) {}

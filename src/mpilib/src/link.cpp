@@ -3,7 +3,7 @@
 #include <mpilib/helpers.h>
 #include <mpilib/geomath.h>
 
-Link::Link(uint32_t id, Node node1, Node node2) : nodes(std::make_pair(node1, node2)) {
+Link::Link(uint64_t id, Node node1, Node node2) : nodes(std::make_pair(node1, node2)) {
     this->id = id;
     this->distance = distance_between(node1.get_location(), node2.get_location());
 }
@@ -25,7 +25,7 @@ bool Link::operator!=(const Link &rhs) const {
     return !(rhs == *this);
 }
 
-uint32_t Link::get_id() const {
+uint64_t Link::get_id() const {
     return id;
 }
 

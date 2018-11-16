@@ -14,7 +14,9 @@ class HttpClient {
 public:
     explicit HttpClient(std::string base_url);
 
-    cpr::Response post(std::string endpoint, nlohmann::json payload);
+    cpr::Response post(std::string endpoint, nlohmann::json &payload);
+
+    void post_async(std::string endpoint, nlohmann::json &payload);
 };
 
 

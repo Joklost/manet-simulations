@@ -2,9 +2,8 @@
 #include <utility>
 #include <mpilib/node.h>
 
-Node::Node(uint32_t id, Location location) {
+Node::Node(uint32_t id, Location location) : current_location(location) {
     this->id = id;
-    this->current_location = location;
 }
 
 uint32_t Node::get_id() const {
@@ -45,15 +44,15 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
 }
 
 void Node::update_location(Location &location, const int time) {
-    location.time = time;
+    location.set_time(time);
     this->location_history.emplace_back(this->current_location);
     this->current_location = location;
 }
 
 nlohmann::json Node::serialize() {
     return {{"id",  this->id},
-            {"lat", std::to_string(this->current_location.latitude)},
-            {"lon", std::to_string(this->current_location.longitude)}};
+            {"lat", std::to_string(this->current_location.get_latitude())},
+            {"lon", std::to_string(this->current_location.get_longitude())}};
 }
 
 void Node::move(int time, double distance, double bearing) {

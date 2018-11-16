@@ -7,7 +7,7 @@ HttpClient::HttpClient(std::string base_url) {
     this->console = spdlog::stdout_color_mt("console");
 }
 
-cpr::Response HttpClient::post(std::string endpoint, nlohmann::json payload) {
+cpr::Response HttpClient::post(std::string endpoint, nlohmann::json &payload) {
     auto response = cpr::Post(cpr::Url{this->host + endpoint},
                               cpr::Body{payload.dump()},
                               cpr::Header{{"Content-Type", "application/json"}});
@@ -15,3 +15,9 @@ cpr::Response HttpClient::post(std::string endpoint, nlohmann::json payload) {
     return response;
 }
 
+
+void HttpClient::post_async(std::string endpoint, nlohmann::json &payload) {
+    auto response = cpr::PostAsync(cpr::Url{this->host + endpoint},
+                              cpr::Body{payload.dump()},
+                              cpr::Header{{"Content-Type", "application/json"}});
+}

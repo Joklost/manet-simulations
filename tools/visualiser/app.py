@@ -14,10 +14,10 @@ server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
 nodes = {
-    '0': {
-        'lat': '57.00266813458001',
-        'lon': '9.8929758',
-    }
+    #    '0': {
+    #        'lat': '57.00266813458001',
+    #        'lon': '9.8929758',
+    #    }
 }
 
 
@@ -42,16 +42,10 @@ def create_graph(node_data):
         )
     ]
 
-    if lat and lon:
-        center = dict(
-            lat=float(lat[0]),
-            lon=float(lon[0])
-        )
-    else:
-        center = dict(
-            lat=57.00266813458001,
-            lon=9.8929758
-        )
+    center = dict(
+        lon=-108.08941791894722,
+        lat=39.90055263908991
+    )
 
     layout = plotly.graph_objs.Layout(
         title='Reachi nodes',
@@ -64,7 +58,7 @@ def create_graph(node_data):
             accesstoken='pk.eyJ1Ijoiam9rbG9zdCIsImEiOiJjam5kN2V1d3gyNXpvM3FyZm01aGE5emRlIn0.xpGYl9Ayd1FmDS2HS-Uf1A',
             bearing=0,
             pitch=0,
-            zoom=8,
+            zoom=3.59,
             style='light',
             center=center
         ),
@@ -81,6 +75,15 @@ def update():
     nodes[recv['id']]['lon'] = recv['lon']
 
     return "Update received succesfully."
+
+
+@server.route('/updatechunk', methods=['POST'])
+def updatechunk():
+    recv = flask.request.json
+
+    print(recv)
+
+    return "Chunk update received successfully."
 
 
 app.layout = dash_html_components.Div(children=[
@@ -104,6 +107,13 @@ def update_graph_live(n, relayout):
         )
 
     return figure
+
+
+# for i in range(0, 1000):
+#    nodes[str(i)] = {
+#        'lat': random.uniform(-180, 180),
+#        'lon': random.uniform(-90, 90)
+#    }
 
 
 if __name__ == '__main__':

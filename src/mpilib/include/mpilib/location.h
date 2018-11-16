@@ -6,10 +6,9 @@
 
 class Location {
 public:
-    int time{};
+    Location(double latitude, double longitude);
 
-    double latitude{};
-    double longitude{};
+    Location(int time, double latitude, double longitude);
 
     bool operator==(const Location &rhs) const;
 
@@ -27,6 +26,18 @@ public:
 
     void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
+    double get_latitude() const;
+
+    double get_longitude() const;
+
+    int get_time() const;
+
+    void set_time(int time);
+
+private:
+    int time{};
+    double latitude{};
+    double longitude{};
 };
 
 #endif //MANETSIMS_LOCATION_H

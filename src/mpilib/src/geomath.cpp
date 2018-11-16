@@ -9,9 +9,9 @@ double deg2rad(const double deg) {
 }
 
 Location deg2rad(const Location pos) {
-    auto lat = deg2rad(pos.latitude);
-    auto lon = deg2rad(pos.longitude);
-    return Location{pos.time, lat, lon};
+    auto lat = deg2rad(pos.get_latitude());
+    auto lon = deg2rad(pos.get_longitude());
+    return Location{pos.get_time(), lat, lon};
 }
 
 double rad2deg(const double rad) {
@@ -19,9 +19,9 @@ double rad2deg(const double rad) {
 }
 
 Location rad2deg(const Location pos) {
-    auto lat = rad2deg(pos.latitude);
-    auto lon = rad2deg(pos.longitude);
-    return Location{pos.time, lat, lon};
+    auto lat = rad2deg(pos.get_latitude());
+    auto lon = rad2deg(pos.get_longitude());
+    return Location{pos.get_time(), lat, lon};
 }
 
 
@@ -30,10 +30,10 @@ double distance_between(const Node &from, const Node &to) {
 }
 
 double distance_between(const Location &from, const Location &to) {
-    auto u = std::sin((deg2rad(to.latitude) - deg2rad(from.latitude)) / 2);
-    auto v = std::sin((deg2rad(to.longitude) - deg2rad(from.longitude)) / 2);
+    auto u = std::sin((deg2rad(to.get_latitude()) - deg2rad(from.get_latitude())) / 2);
+    auto v = std::sin((deg2rad(to.get_longitude()) - deg2rad(from.get_longitude())) / 2);
     return 2.0 * EARTH_RADIUS_KM *
-           std::asin(std::sqrt(u * u + std::cos(deg2rad(from.latitude)) * std::cos(deg2rad(to.latitude)) * v * v));
+           std::asin(std::sqrt(u * u + std::cos(deg2rad(from.get_latitude())) * std::cos(deg2rad(to.get_latitude())) * v * v));
 }
 
 double bearing_between(const Node &from, const Node &to) {
@@ -41,10 +41,10 @@ double bearing_between(const Node &from, const Node &to) {
 }
 
 double bearing_between(const Location &from, const Location &to) {
-    auto y = std::sin(deg2rad(to.longitude) - deg2rad(from.longitude)) * std::cos(deg2rad(to.latitude));
-    auto x = std::cos(deg2rad(from.latitude)) * std::sin(deg2rad(to.latitude)) -
-             std::sin(deg2rad(from.latitude)) * std::cos(deg2rad(to.latitude)) *
-             std::cos(deg2rad(to.longitude) - deg2rad(from.longitude));
+    auto y = std::sin(deg2rad(to.get_longitude()) - deg2rad(from.get_longitude())) * std::cos(deg2rad(to.get_latitude()));
+    auto x = std::cos(deg2rad(from.get_latitude())) * std::sin(deg2rad(to.get_latitude())) -
+             std::sin(deg2rad(from.get_latitude())) * std::cos(deg2rad(to.get_latitude())) *
+             std::cos(deg2rad(to.get_longitude()) - deg2rad(from.get_longitude()));
     auto brng = rad2deg(std::atan2(y, x));
     return ((int) brng + 180) % 360;
 }
@@ -53,12 +53,12 @@ double angle_between(const Location &origin, const Location &pos1, const Locatio
     std::vector<Location> positions{pos1, pos2};
     std::vector<double> courses;
 
-    auto lat_org = deg2rad(origin.latitude);
-    auto lon_org = deg2rad(origin.longitude);
+    auto lat_org = deg2rad(origin.get_latitude());
+    auto lon_org = deg2rad(origin.get_longitude());
 
     std::for_each(positions.cbegin(), positions.cend(), [&lat_org, &lon_org, &courses](auto element) {
-        auto lat_pos = deg2rad(element.latitude);
-        auto lon_pos = deg2rad(element.longitude);
+        auto lat_pos = deg2rad(element.get_latitude());
+        auto lon_pos = deg2rad(element.get_longitude());
 
         auto val = std::atan2(std::sin(lon_org - lon_pos) * std::cos(lat_pos),
                               std::cos(lat_org) * std::sin(lat_pos) -
