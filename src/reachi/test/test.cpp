@@ -309,18 +309,10 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     auto sigma = corr * std_deviation;
 
     auto temp = cholesky(sigma);
+
     std::cout << "" << std::endl;
     for (const auto &item : temp) {
         std::cout << "id: " << item.first.first.get_id() << ", " << item.first.second.get_id() << "\tvalue: " << std::to_string(item.second) << std::endl;
     }
-    /* auto total_sum = 0;
-    std::for_each(corr.cbegin(), corr.cend(), [&total_sum](auto element) {
-        total_sum += element.size();
-    });
 
-    std::cout << total_sum << std::endl; */
-//    std::cout << res.size() << std::endl;
-    /* std::for_each(res.cbegin(), res.cend(), [](auto element) {
-       std::cout << element.first << " " << element.second << std::endl;
-    }); */
 }

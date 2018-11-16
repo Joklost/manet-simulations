@@ -38,7 +38,7 @@
     return res;
 }*/
 
-LinkMap cholesky(LinkMap &linkmap) {
+/*LinkMap cholesky(LinkMap &linkmap) {
     LinkMap res;
     auto size = (--linkmap.end())->first.first.get_id();
 
@@ -67,7 +67,35 @@ LinkMap cholesky(LinkMap &linkmap) {
         }
     }
     return res;
+}*/
+
+LinkMap cholesky(LinkMap &linkmap) {
+    LinkMap res;
+    auto size = (--linkmap.end())->first.first.get_id();
+
+    for (const auto &element : linkmap) {
+        auto sum = 0.0;
+        auto keypair = element.first;
+
+        for (const auto &row_element : res.get_keypairs(keypair.first.get_id())) {
+            auto t1 = res.get(keypair.first, row_element.first.second);
+            auto t2 = res.get(keypair.second, row_element.first.second);
+            sum += t1 * t2;
+        }
+
+        if (keypair.first.get_id() == keypair.second.get_id()) {
+            auto math = std::sqrt(linkmap.get(keypair.first, keypair.second) - sum);
+            res.emplace(keypair.first, keypair.second, math);
+        } else {
+            auto math = 1.0 / res.get(keypair.second, keypair.second) *
+                        (linkmap.get(keypair.first, keypair.second) - sum);
+            res.emplace(keypair.first, keypair.second, math);
+        }
+    }
+
+    return res;
 }
+
 /* vecvec<T> slow_cholesky(const vecvec<T> matrix) {
     auto size = matrix.size();
     vecvec<T> vec{};

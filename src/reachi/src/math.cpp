@@ -90,10 +90,6 @@ LinkMap generate_correlation_matrix(std::vector<Link> links) {
     LinkMap res;
 
     for (auto i = 0; i < size; ++i) {
-        if (links[i].get_distance() <= CORRELATION_COEFFICIENT_THRESHOLD) {
-            continue;
-        }
-
         for (auto j = 0; j < size; ++j) {
             double value = 0.0;
 
