@@ -33,7 +33,8 @@ double distance_between(const Location &from, const Location &to) {
     auto u = std::sin((deg2rad(to.get_latitude()) - deg2rad(from.get_latitude())) / 2);
     auto v = std::sin((deg2rad(to.get_longitude()) - deg2rad(from.get_longitude())) / 2);
     return 2.0 * EARTH_RADIUS_KM *
-           std::asin(std::sqrt(u * u + std::cos(deg2rad(from.get_latitude())) * std::cos(deg2rad(to.get_latitude())) * v * v));
+           std::asin(std::sqrt(
+                   u * u + std::cos(deg2rad(from.get_latitude())) * std::cos(deg2rad(to.get_latitude())) * v * v));
 }
 
 double bearing_between(const Node &from, const Node &to) {
@@ -41,7 +42,8 @@ double bearing_between(const Node &from, const Node &to) {
 }
 
 double bearing_between(const Location &from, const Location &to) {
-    auto y = std::sin(deg2rad(to.get_longitude()) - deg2rad(from.get_longitude())) * std::cos(deg2rad(to.get_latitude()));
+    auto y = std::sin(deg2rad(to.get_longitude()) - deg2rad(from.get_longitude())) *
+             std::cos(deg2rad(to.get_latitude()));
     auto x = std::cos(deg2rad(from.get_latitude())) * std::sin(deg2rad(to.get_latitude())) -
              std::sin(deg2rad(from.get_latitude())) * std::cos(deg2rad(to.get_latitude())) *
              std::cos(deg2rad(to.get_longitude()) - deg2rad(from.get_longitude()));
@@ -56,7 +58,7 @@ double angle_between(const Location &origin, const Location &pos1, const Locatio
     auto lat_org = deg2rad(origin.get_latitude());
     auto lon_org = deg2rad(origin.get_longitude());
 
-    std::for_each(positions.cbegin(), positions.cend(), [&lat_org, &lon_org, &courses](auto element) {
+    for (const auto &element : positions) {
         auto lat_pos = deg2rad(element.get_latitude());
         auto lon_pos = deg2rad(element.get_longitude());
 
@@ -65,7 +67,7 @@ double angle_between(const Location &origin, const Location &pos1, const Locatio
                               std::sin(lat_org) * std::cos(lat_pos) * std::cos(lon_org - lon_pos));
 
         courses.emplace_back(std::fmod(val, 2 * M_PI));
-    });
+    }
 
     return rad2deg(
             std::acos(std::cos(courses[0]) * std::cos(courses[1]) + std::sin(courses[0]) * std::sin(courses[1])));

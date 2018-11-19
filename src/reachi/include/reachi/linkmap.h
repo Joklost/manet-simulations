@@ -8,7 +8,9 @@
 
 class LinkMap {
 public:
-    bool contains(const Link &l1, const Link &l2) const;
+    //bool contains(const Link &l1, const Link &l2) const;
+
+    bool contains(const uint64_t &row_key, const uint64_t &column_key) const;
 
     auto begin() { return this->map.begin(); };
 
@@ -20,22 +22,20 @@ public:
 
     LinkMap operator*(double scalar) const;
 
-    void emplace(const Link &l1, const Link &l2, double value);
+    void emplace(const uint64_t &l1, const uint64_t &l2, double value);
 
     double &operator[](linkpair key);
 
-    double &get(const Link &l1, const Link &l2);
+    double &get(const uint64_t &l1, const uint64_t &l2);
 
     unsigned long size() const;
 
-    std::vector<std::pair<linkpair, double>> get_keypairs(const Link &l, uint32_t upper_limit) const;
-
-    std::vector<std::pair<linkpair, double>> get_keypairs(uint32_t row_key) const;
+    std::vector<uint64_t> get_keypairs(const uint64_t &row_key) const;
 
 private:
     std::map<linkpair, double> map;
 
-    linkpair make_pair(const Link &l1, const Link &l2) const;
+    linkpair make_pair(const uint64_t &l1, const uint64_t &l2) const;
 };
 
 #endif //MANETSIMS_LINKMAP_H

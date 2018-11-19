@@ -38,9 +38,9 @@ private:
 
 };
 
-using linkpair = std::pair<Link, Link>;
+using linkpair = std::pair<uint32_t, uint32_t>;
 
-namespace std {
+/* namespace std {
     template<>
     struct hash<Link> {
         std::size_t operator()(const Link &k) const {
@@ -57,6 +57,6 @@ namespace std {
             return lp.first < lp.second ? h1 ^ (h2 << 1) : h2 ^ (h1 << 1);
         }
     };
-}
+} */
 
 #endif /* MANETSIMS_LINK_H */

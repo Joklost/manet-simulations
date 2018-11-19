@@ -90,12 +90,17 @@ LinkMap generate_correlation_matrix(std::vector<Link> links) {
     LinkMap res;
 
     for (auto i = 0; i < size; ++i) {
-        for (auto j = 0; j < size; ++j) {
-            double value = 0.0;
+        if (links[i].get_distance() >= MAX_LINK_DISTANCE) {
+            continue;
+        }
 
-            if (res.contains(links[i], links[j])) {
+        for (auto j = 0; j < size; ++j) {
+            if (res.contains(links[i].get_id(), links[j].get_id())) {
                 continue;
-            } else if (links[i] == links[j]) {
+            }
+
+            double value = 0.0;
+            if (links[i] == links[j]) {
                 value = 1.0;
             } else if (links[i] != links[j] && has_common_node(links[i], links[j])) {
                 auto common_node = get_common_node(links[i], links[j]);
@@ -112,7 +117,7 @@ LinkMap generate_correlation_matrix(std::vector<Link> links) {
             }
 
             if (value >= CORRELATION_COEFFICIENT_THRESHOLD) {
-                res.emplace(links[i], links[j], value);
+                res.emplace(links[i].get_id(), links[j].get_id(), value);
             }
         }
 
