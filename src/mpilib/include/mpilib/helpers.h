@@ -12,7 +12,7 @@
 template<typename TimeT = std::chrono::milliseconds>
 struct measure {
     template<typename F, typename ...Args>
-    static typename TimeT::rep execution(F&& func, Args&&... args) {
+    static typename TimeT::rep execution(F &&func, Args &&... args) {
         auto start = std::chrono::steady_clock::now();
         std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
         auto duration = std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
@@ -20,7 +20,7 @@ struct measure {
     }
 
     template<typename F, typename ...Args>
-    static auto duration(F&& func, Args&&... args) {
+    static auto duration(F &&func, Args &&... args) {
         auto start = std::chrono::steady_clock::now();
         std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
         return std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
@@ -50,6 +50,23 @@ void enumerate(const InputIt first, const InputIt last, int start, const BinaryF
         counter++;
     });
 };
+
+template<class InputIt, class BinaryFunction>
+void for_each_interval(const InputIt first, const InputIt last, size_t interval_size, const BinaryFunction &func) {
+    auto to = first;
+
+    while (to != last) {
+        auto from = to;
+
+        auto counter = interval_size;
+        while (counter > 0 && to != last) {
+            ++to;
+            --counter;
+        }
+
+        func(from, to);
+    }
+}
 
 template<typename T>
 std::ostream &operator<<(std::ostream &os, std::vector<T> vec) {

@@ -7,7 +7,7 @@
 #include "reachi/radiomodel.h"
 #include "reachi/linkmodel.h"
 
-#include "../src/datagen.h"
+#include <reachi/datagen.h>
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     vecvec<double> matrix{{25.0, 15.0, -5.0},
@@ -305,7 +305,7 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     auto upper = Location{57.01266813458001, 9.994625734716218};
     auto lower = Location{57.0117698, 9.9929758};
     auto nodes = generate_nodes(50, upper, lower);
-    auto links = generate_links(nodes);
+    auto links = create_link_vector(nodes, 0.101);
 
     auto corr = generate_correlation_matrix(links);
     /*for (const auto &item : corr) {

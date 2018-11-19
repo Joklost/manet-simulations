@@ -27,4 +27,5 @@
 #endif
 
 #define KM 1000
+#define UNDEFINED -0.1
 #endif /* MANETSIMS_LINKMODEL_CONSTANTS_H */

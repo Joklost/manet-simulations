@@ -34,3 +34,4 @@ TEST_CASE("Compute distance between two GPS coordinates after moving one 1.5 km"
     n2.move(10, 1.5, 270.0);
     REQUIRE(distance_between(n1, n2) == Approx(1.600).margin(0.01));
 }
+

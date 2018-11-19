@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <random>
+#include <map>
 #include <mpilib/geomath.h>
 #include <mpilib/link.h>
-#include <map>
 
 #include "linkmap.h"
 #include "constants.h"
@@ -189,6 +189,8 @@ std::vector<T> operator-(const T scalar, const std::vector<T> &rhs) {
 
     return res;
 }
+
+bool is_equal(double a, double b);
 
 double distance_pathloss(double distance);
 

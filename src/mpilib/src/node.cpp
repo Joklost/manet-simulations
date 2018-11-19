@@ -59,3 +59,35 @@ void Node::move(int time, double distance, double bearing) {
     this->current_location.move(time, distance, bearing);
 }
 
+unsigned int Node::get_index() const {
+    return index;
+}
+
+void Node::set_index(unsigned int index) {
+    Node::index = index;
+}
+
+double Node::get_reachability_distance() const {
+    return reachability_distance;
+}
+
+void Node::set_reachability_distance(double reachability_distance) {
+    Node::reachability_distance = reachability_distance;
+}
+
+double Node::get_core_distance() const {
+    return core_distance;
+}
+
+void Node::set_core_distance(double core_distance) {
+    Node::core_distance = core_distance;
+}
+
+bool Node::is_processed() const {
+    return processed;
+}
+
+void Node::set_processed(bool processed) {
+    Node::processed = processed;
+}
+

@@ -1,15 +1,15 @@
 #include <algorithm>
+#include <limits>
 #include <mpilib/geomath.h>
 #include <mpilib/helpers.h>
-
-#include "reachi/math.h"
+#include <reachi/math.h>
 
 double distance_pathloss(const double distance) {
     return (10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
 }
 
 double distance_pathloss(const Location to, const Location from) {
-    return distance_pathloss(distance_between(to, from) * KM);
+    return distance_pathloss(distance_between(from, to) * KM);
 }
 
 double distance_pathloss(Link link) {
@@ -118,6 +118,10 @@ LinkMap generate_correlation_matrix(std::vector<Link> links) {
 
     }
     return res;
+}
+
+bool is_equal(double a, double b) {
+    return fabs(a - b) < std::numeric_limits<double>::epsilon();
 }
 
 

@@ -1,10 +1,13 @@
 #include <random>
 #include <mpilib/httpclient.h>
 #include <mpilib/helpers.h>
-#include "datagen.h"
+#include <nlohmann/json.hpp>
 
+#include <reachi/datagen.h>
 
-std::vector<Node>   generate_nodes(unsigned long count, Location &upper, Location &lower) {
+using json = nlohmann::json;
+
+std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location &lower) {
     std::vector<Node> nodes{};
     nodes.reserve(count);
 
@@ -31,17 +34,19 @@ std::vector<Node>   generate_nodes(unsigned long count, Location &upper, Locatio
     return nodes;
 }
 
-std::vector<Link> generate_links(std::vector<Node> &nodes) {
+std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold /* kilometers */) {
     std::vector<Link> links{};
-    links.reserve((nodes.size() * (nodes.size() + 1)) / 2 - nodes.size());
 
     for (uint32_t i = 0; i < nodes.size(); ++i) {
         for (uint32_t j = i; j < nodes.size(); ++j) {
             if (i == j) {
                 continue;
             }
+
             Link l{generate_link_id(i, j), nodes[i], nodes[j]};
-            links.emplace_back(l);
+            if (l.get_distance() < threshold or threshold <= 0.01) {
+                links.emplace_back(l);
+            }
         }
     }
 
@@ -49,6 +54,23 @@ std::vector<Link> generate_links(std::vector<Node> &nodes) {
 }
 
 void visualise_nodes(std::vector<Node> &nodes) {
-    HttpClient httpclient{"http://localhost:8050"};
+    visualise_nodes(nodes, 10000);
+}
 
+void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size) {
+    auto console = spdlog::stdout_color_mt("consolev");
+    HttpClient httpclient{"http://localhost:8050"};
+    httpclient.get("/clear");
+
+    for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &console, &chunk_size](auto from, auto to) {
+        std::vector<json> serialized_nodes{};
+        serialized_nodes.reserve(chunk_size);
+
+        std::for_each(from, to, [&httpclient, &console, &serialized_nodes](Node el) {
+           serialized_nodes.emplace_back(el.serialize());
+        });
+
+        json j = serialized_nodes;
+        httpclient.post_async("/updatechunk", j);
+    });
 }

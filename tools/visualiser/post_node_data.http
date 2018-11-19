@@ -46,3 +46,13 @@ Content-Type: application/json
 }
 
 ###
+POST http://localhost:8050/update
+Content-Type: application/json
+
+{
+"id": 4,
+"lat": 57.0107698,
+"lon": 9.995525734716218
+}
+
+###

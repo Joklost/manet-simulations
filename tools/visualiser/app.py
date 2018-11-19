@@ -1,24 +1,14 @@
-import json
-import random
-from collections import deque
-
 import flask
 import dash
 import dash_core_components
 import dash_html_components
-import pandas
 import plotly
 from dash.dependencies import Input, Output
 
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
-nodes = {
-    #    '0': {
-    #        'lat': '57.00266813458001',
-    #        'lon': '9.8929758',
-    #    }
-}
+nodes = {}
 
 
 def create_graph(node_data):
@@ -36,6 +26,8 @@ def create_graph(node_data):
             lon=lon,
             text=id,
             mode='markers',
+            # xaxis=dict(fixedrange=True),
+            # yaxis=dict(fixedrange=True),
             marker=dict(
                 size=5,
             )
@@ -43,13 +35,12 @@ def create_graph(node_data):
     ]
 
     center = dict(
-        lon=-108.08941791894722,
-        lat=39.90055263908991
+        lon=8.725199732511442,
+        lat=56.81765649206909
     )
 
     layout = plotly.graph_objs.Layout(
-        title='Reachi nodes',
-        height=800,
+        height=700,
         autosize=True,
         hovermode='closest',
         showlegend=False,
@@ -58,7 +49,7 @@ def create_graph(node_data):
             accesstoken='pk.eyJ1Ijoiam9rbG9zdCIsImEiOiJjam5kN2V1d3gyNXpvM3FyZm01aGE5emRlIn0.xpGYl9Ayd1FmDS2HS-Uf1A',
             bearing=0,
             pitch=0,
-            zoom=3.59,
+            zoom=10.50,
             style='light',
             center=center
         ),
@@ -81,24 +72,46 @@ def update():
 def updatechunk():
     recv = flask.request.json
 
-    print(recv)
+    for node in recv:
+        nodes[node['id']] = {}
+        nodes[node['id']]['lat'] = node['lat']
+        nodes[node['id']]['lon'] = node['lon']
 
     return "Chunk update received successfully."
 
 
+@server.route('/clear')
+def clear():
+    global nodes
+    nodes = {}
+    return "Nodes cleared successfully."
+
+
 app.layout = dash_html_components.Div(children=[
     dash_core_components.Graph(id='live-update-graph', figure=create_graph(nodes)),
-    dash_core_components.Interval(id='interval-component', interval=1000, n_intervals=0),
+    dash_core_components.Interval(id='interval-component', interval=2000),
+
+    dash_core_components.Slider(
+        id='zoom-slider',
+        min=1,
+        max=10,
+        value=10,
+        marks={str(i): str(i) for i in range(0, 11)}
+    ),
 ])
 
 
 @app.callback(Output('live-update-graph', 'figure'),
-              [Input('interval-component', 'n_intervals'), Input('live-update-graph', 'relayoutData')])
-def update_graph_live(n, relayout):
+              [Input('interval-component', 'n_intervals'),
+               Input('live-update-graph', 'relayoutData'),
+               Input('zoom-slider', 'value')])
+def update_graph_live(n, relayout, value):
     figure = create_graph(nodes)
     print(relayout)
-    if relayout and 'mapbox.zoom' in relayout:
-        figure['layout']['mapbox']['zoom'] = relayout['mapbox.zoom']
+    print(value)
+
+    if value is not None:
+        figure['layout']['mapbox']['zoom'] = value
 
     if relayout and 'mapbox.center' in relayout:
         figure['layout']['mapbox']['center'] = dict(
@@ -107,13 +120,6 @@ def update_graph_live(n, relayout):
         )
 
     return figure
-
-
-# for i in range(0, 1000):
-#    nodes[str(i)] = {
-#        'lat': random.uniform(-180, 180),
-#        'lon': random.uniform(-90, 90)
-#    }
 
 
 if __name__ == '__main__':

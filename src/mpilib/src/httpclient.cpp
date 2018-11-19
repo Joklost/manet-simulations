@@ -4,7 +4,7 @@
 
 HttpClient::HttpClient(std::string base_url) {
     this->host = std::move(base_url);
-    this->console = spdlog::stdout_color_mt("console");
+    this->console = spdlog::stdout_color_mt("httpclient");
 }
 
 cpr::Response HttpClient::post(std::string endpoint, nlohmann::json &payload) {
@@ -16,8 +16,22 @@ cpr::Response HttpClient::post(std::string endpoint, nlohmann::json &payload) {
 }
 
 
-void HttpClient::post_async(std::string endpoint, nlohmann::json &payload) {
+cpr::AsyncResponse HttpClient::post_async(std::string endpoint, nlohmann::json &payload) {
     auto response = cpr::PostAsync(cpr::Url{this->host + endpoint},
                               cpr::Body{payload.dump()},
                               cpr::Header{{"Content-Type", "application/json"}});
+    this->console->info("Async POST {}", endpoint);
+    return response;
+}
+
+cpr::Response HttpClient::get(std::string endpoint) {
+    auto response = cpr::Get(cpr::Url{this->host + endpoint});
+    this->console->info("GET {}: {}", endpoint, response.status_code);
+    return response;
+}
+
+cpr::AsyncResponse HttpClient::getAsync(std::string endpoint) {
+    auto response = cpr::GetAsync(cpr::Url{this->host + endpoint});
+    this->console->info("Async GET {}", endpoint);
+    return response;
 }
