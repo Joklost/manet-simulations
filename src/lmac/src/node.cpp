@@ -48,7 +48,7 @@ void LmacNode::protocol() {
     }*/
 }
 
-LmacNode::LmacNode(int id, Hardware<LmacPacket> hardware, Location location, bool gateway) {
+LmacNode::LmacNode(int id, Hardware<LmacPacket> hardware, Location location, bool gateway) : location(location){
     this->hardware = std::move(hardware);
     this->id = id;
     //this->id = register_node(Location.get_latitude(), Location.get_longitude());

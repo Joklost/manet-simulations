@@ -8,7 +8,7 @@ add_library(reachi src/math.cpp src/radiomodel.cpp src/linkmodel.cpp src/cholesk
 target_include_directories(reachi PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        PRIVATE src test)
+        PRIVATE src test benchmark)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
 install(TARGETS reachi EXPORT ReachiLibraryConfig
@@ -18,7 +18,7 @@ install(TARGETS reachi EXPORT ReachiLibraryConfig
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 target_link_libraries(reachi mpilib)
-
+add_subdirectory(benchmark)
 enable_testing()
 
 add_subdirectory(test)

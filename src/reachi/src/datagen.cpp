@@ -4,7 +4,7 @@
 #include "datagen.h"
 
 
-std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location &lower) {
+std::vector<Node>   generate_nodes(unsigned long count, Location &upper, Location &lower) {
     std::vector<Node> nodes{};
     nodes.reserve(count);
 

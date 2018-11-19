@@ -7,7 +7,7 @@
 #include "reachi/radiomodel.h"
 #include "reachi/linkmodel.h"
 
-#include "datagen.h"
+#include "../src/datagen.h"
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     vecvec<double> matrix{{25.0, 15.0, -5.0},
@@ -282,7 +282,7 @@ TEST_CASE("Compute packet probability error", "[radiomodel]") {
 }
 
 TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
-    Node n1{0, {57.01266813458001, 9.994625734716218}};
+    /*Node n1{0, {57.01266813458001, 9.994625734716218}};
     Node n2{1, {57.01266813458001, 9.9929758}};
     Node n3{2, {57.0117698, 9.9929758}};
     Node n4{3, {57.0117698, 9.994625734716218}};
@@ -293,7 +293,7 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     Link l4{3, n2, n3};
     Link l5{4, n2, n4};
     Link l6{5, n3, n4};
-    std::vector links{l1, l2, l3, l4, l5, l6};
+    std::vector links{l1, l2, l3, l4, l5, l6};*/
 
     // std::cout << measure<>::execution(generate_correlation_matrix_slow, links) << std::endl;
     /* vecvec<double> corr_expected{{1.0,   0.125, 0.094, 0.094, 0.125, 0.0},
@@ -301,8 +301,12 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
                                  {0.094, 0.125, 1.0,   0.0,   0.125, 0.094},
                                  {0.094, 0.125, 0.0,   1.0,   0.125, 0.094},
                                  {0.125, 0.0,   0.125, 0.125, 1.0,   0.125},
-                                 {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}}; */
-    // std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
+                                 {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}}; */// std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
+    auto upper = Location{57.01266813458001, 9.994625734716218};
+    auto lower = Location{57.0117698, 9.9929758};
+    auto nodes = generate_nodes(50, upper, lower);
+    auto links = generate_links(nodes);
+
     auto corr = generate_correlation_matrix(links);
     /*for (const auto &item : corr) {
         std::cout << "id: " << item.first.first.get_id() << ", " << item.first.second.get_id() << "\tvalue: " << item.second << std::endl;
@@ -310,11 +314,12 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     auto std_deviation = std::pow(11.4, 2);
     auto sigma = corr * std_deviation;
 
-    auto temp = cholesky(sigma);
+    //auto temp = cholesky(sigma);
 
-    std::cout << "" << std::endl;
+    std::cout << measure<>::execution(cholesky, sigma) << std::endl;
+/*    std::cout << "" << std::endl;
     for (const auto &item : temp) {
         std::cout << "id: " << item.first.first.get_id() << ", " << item.first.second.get_id() << "\tvalue: " << std::to_string(item.second) << std::endl;
-    }
+    }*/
 
 }

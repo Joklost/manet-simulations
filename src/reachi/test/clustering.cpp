@@ -1,7 +1,7 @@
 
 #include <catch.hpp>
 #include <mpilib/location.h>
-#include "datagen.h"
+#include "../src/datagen.h"
 
 TEST_CASE("Random Number Generator with Mapping", "[clustering]") {
     Location upper{48.0, -92.0};
