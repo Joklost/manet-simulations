@@ -17,7 +17,7 @@ install(TARGETS mpilib EXPORT MPILibLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # cpprestsdk::cpprest
-target_link_libraries(mpilib reachi spdlog::spdlog nlohmann_json::nlohmann_json cpr::cpr)
+target_link_libraries(mpilib reachi spdlog cpr)
 
 enable_testing()
 

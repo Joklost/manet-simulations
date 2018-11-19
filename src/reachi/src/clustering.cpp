@@ -1,5 +1,5 @@
 #include <reachi/clustering.h>
-
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 bool cmp_reachability(const Node &left, const Node &right) {
     return left.get_reachability_distance() > right.get_reachability_distance();

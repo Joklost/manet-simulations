@@ -1,7 +1,7 @@
 #include <cpr/cpr.h>
 #include <cpr/payload.h>
 #include <catch.hpp>
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 
 #include "mpilib/geomath.h"
 #include "mpilib/helpers.h"

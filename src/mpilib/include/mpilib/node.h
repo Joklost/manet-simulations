@@ -3,7 +3,7 @@
 
 #include <mpilib/location.h>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 #include <reachi/constants.h>
 
 

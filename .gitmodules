@@ -1,0 +1,12 @@
+[submodule "src/libs/cpr"]
+	path = src/libs/cpr
+	url = git@github.com:whoshuu/cpr.git
+[submodule "src/libs/json"]
+	path = src/libs/json
+	url = git@github.com:nlohmann/json.git
+[submodule "src/libs/Catch2"]
+	path = src/libs/Catch2
+	url = git@github.com:catchorg/Catch2.git
+[submodule "src/libs/spdlog"]
+	path = src/libs/spdlog
+	url = git@github.com:gabime/spdlog.git

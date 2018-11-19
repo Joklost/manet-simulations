@@ -1,5 +1,5 @@
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_sinks.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <mpilib/httpclient.h>
 
 HttpClient::HttpClient(std::string base_url) {

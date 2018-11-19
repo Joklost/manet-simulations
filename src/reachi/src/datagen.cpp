@@ -1,7 +1,7 @@
 #include <random>
 #include <mpilib/httpclient.h>
 #include <mpilib/helpers.h>
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 
 #include <reachi/datagen.h>
 
@@ -58,15 +58,14 @@ void visualise_nodes(std::vector<Node> &nodes) {
 }
 
 void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size) {
-    auto console = spdlog::stdout_color_mt("consolev");
     HttpClient httpclient{"http://localhost:8050"};
     httpclient.get("/clear");
 
-    for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &console, &chunk_size](auto from, auto to) {
+    for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &chunk_size](auto from, auto to) {
         std::vector<json> serialized_nodes{};
         serialized_nodes.reserve(chunk_size);
 
-        std::for_each(from, to, [&httpclient, &console, &serialized_nodes](Node el) {
+        std::for_each(from, to, [&httpclient, &serialized_nodes](Node el) {
            serialized_nodes.emplace_back(el.serialize());
         });
 
