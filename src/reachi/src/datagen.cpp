@@ -1,7 +1,6 @@
 #include <random>
 #include <mpilib/httpclient.h>
 #include <mpilib/helpers.h>
-#include <json.hpp>
 
 #include <reachi/datagen.h>
 
@@ -34,6 +33,33 @@ std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location 
     return nodes;
 }
 
+std::vector<Node>
+generate_cluster(Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */) {
+    std::vector<Node> nodes{};
+    nodes.reserve(count);
+
+    std::random_device rd;
+    std::default_random_engine eng(rd());
+    std::uniform_real_distribution dist{0.0, 1.0};
+    auto gen = std::bind(dist, eng);
+
+    for (uint32_t i = begin; i < begin + count; ++i) {
+        auto r = radius / KM_PER_DEGREE; /* Convert radius to degrees */
+        auto u = gen();
+        auto v = gen();
+
+        auto w = r * std::sqrt(u);
+        auto t = 2 * M_PI * v;
+        auto x = (w * std::cos(t)) / std::cos(center.get_longitude());
+        auto y = w * std::sin(t);
+
+        Node n{i, {center.get_latitude() + x, center.get_longitude() + y}};
+        nodes.emplace_back(n);
+    }
+
+    return nodes;
+};
+
 std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold /* kilometers */) {
     std::vector<Link> links{};
 
@@ -62,14 +88,38 @@ void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size) {
     httpclient.get("/clear");
 
     for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &chunk_size](auto from, auto to) {
-        std::vector<json> serialized_nodes{};
+/*        std::vector<json> serialized_nodes{};
         serialized_nodes.reserve(chunk_size);
 
         std::for_each(from, to, [&httpclient, &serialized_nodes](Node el) {
-           serialized_nodes.emplace_back(el.serialize());
+            serialized_nodes.emplace_back(el.serialize());
         });
+        */
+        std::vector<Node> node_chunk{from, to};
 
-        json j = serialized_nodes;
+        json j = node_chunk;
         httpclient.post_async("/updatechunk", j);
     });
+}
+
+void visualise_clusters(std::vector<Optics::Cluster> clusters) {
+    HttpClient httpclient{"http://localhost:8050"};
+
+    std::vector<json> serialized_clusters{};
+    serialized_clusters.reserve(clusters.size());
+
+    for (auto &cluster : clusters) {
+        std::vector<int> nodes{};
+        nodes.reserve(cluster.get_nodes().size());
+
+        for (auto &node : cluster.get_nodes()) {
+            nodes.emplace_back(node.get_id());
+        }
+
+        json c = nodes;
+        serialized_clusters.emplace_back(c);
+    }
+
+    json j = serialized_clusters;
+    httpclient.post_async("/colornodes", j);
 }

@@ -12,7 +12,7 @@
 template<typename TimeT = std::chrono::milliseconds>
 struct measure {
     template<typename F, typename ...Args>
-    static typename TimeT::rep execution(F &&func, Args &&... args) {
+    static typename TimeT::rep execution(const F &&func, Args &&... args) {
         auto start = std::chrono::steady_clock::now();
         std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
         auto duration = std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
@@ -20,7 +20,7 @@ struct measure {
     }
 
     template<typename F, typename ...Args>
-    static auto duration(F &&func, Args &&... args) {
+    static auto duration(const F &&func, Args &&... args) {
         auto start = std::chrono::steady_clock::now();
         std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
         return std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);

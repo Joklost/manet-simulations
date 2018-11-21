@@ -1,9 +1,6 @@
 #include <reachi/clustering.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-
-bool cmp_reachability(const Node &left, const Node &right) {
-    return left.get_reachability_distance() > right.get_reachability_distance();
-}
+#include <mpilib/helpers.h>
 
 double core_distance(neighbourhood_t &neighbours, Node &node, double eps, int minpts) {
     if (!is_equal(node.get_core_distance(), UNDEFINED)) {
@@ -94,7 +91,7 @@ std::vector<Node> optics(std::vector<Node> &nodes, double eps, int minpts) {
 
         while (!seeds.empty()) {
             //console->info("Seeds: {}", seeds.size());
-            std::sort(seeds.begin(), seeds.end(), cmp_reachability);
+            //std::sort(seeds.begin(), seeds.end(), [this](){});
             auto q = seeds.back();
             seeds.pop_back();
 
@@ -138,21 +135,21 @@ double Optics::core_distance(Node &p) {
 
 std::vector<Optics::Neighbour> &Optics::compute_neighbours(Node &p) {
     if (this->neighbourhoods.find(p) != this->neighbourhoods.end()) {
-        this->console->info("Neighbourhood for {} found in cache", p.get_id());
+        //this->console->info("Neighbourhood for {} found in cache", p.get_id());
         return this->neighbourhoods[p];
     }
 
     this->neighbourhoods[p] = std::vector<Optics::Neighbour>{};
 
     for (auto &q : graph) {
-        if (p == q) {
+        if (p == q.second) {
             continue;
         }
 
-        auto distance = distance_between(p, q);
+        auto distance = distance_between(p, q.second);
 
         if (distance <= this->eps) {
-            Neighbour n{q, distance};
+            Neighbour n{q.second.get_id(), distance};
             this->neighbourhoods[p].push_back(n);
         }
     }
@@ -160,21 +157,22 @@ std::vector<Optics::Neighbour> &Optics::compute_neighbours(Node &p) {
     return this->neighbourhoods[p];
 }
 
-void Optics::update_seeds(Node &p, std::vector<Node> &seeds) {
+void Optics::update_seeds(Node &p, std::vector<uint32_t> &seeds) {
     auto &p_neighbours = this->compute_neighbours(p);
     auto coredist = this->core_distance(p);
 
-    for (auto &neighbour : p_neighbours) {
-        if (neighbour.node.is_processed()) {
+    for (Neighbour &neighbour : p_neighbours) {
+
+        Node &o = this->graph[neighbour.node];
+        if (o.is_processed()) {
             continue;
         }
 
-        auto &o = neighbour.node;
         auto reachdist = std::max(coredist, distance_between(p, o));
         if (is_equal(o.get_reachability_distance(), UNDEFINED)) {
             /* 'o' is not in seeds */
             o.set_reachability_distance(reachdist);
-            seeds.push_back(o);
+            seeds.emplace_back(o.get_id());
         } else {
             /* 'o' is already in seeds, check for improvement */
             if (reachdist < o.get_reachability_distance()) {
@@ -184,32 +182,44 @@ void Optics::update_seeds(Node &p, std::vector<Node> &seeds) {
     }
 }
 
-std::vector<Node> Optics::compute_clusters(std::vector<Node> &nodes, const double eps, const int minpts) {
-    this->graph = std::vector<Node>(nodes);
-    this->unprocessed = std::vector<Node>(nodes);
+std::vector<Node> Optics::compute_ordering(std::vector<Node> &nodes, double eps, int minpts) {
+    this->graph.clear();
+    this->unprocessed.clear();
+    this->ordered.clear();
+    this->neighbourhoods.clear();
+
+    for (auto &node : nodes) {
+        this->graph.insert(std::make_pair(node.get_id(), node));
+        //this->graph[node.get_id()] = node;
+        this->unprocessed.emplace_back(node.get_id());
+    }
+
     this->eps = eps;
     this->minpts = minpts;
 
     for (auto &p : this->graph) {
-        p.set_reachability_distance(UNDEFINED);
-        p.set_processed(false);
+        p.second.set_reachability_distance(UNDEFINED);
+        p.second.set_processed(false);
     }
 
     while (!this->unprocessed.empty()) {
-        auto &p = this->unprocessed.front();
-
+        auto &p = this->graph[this->unprocessed.front()];
         this->processed(p);
+
+        //auto p_neighbours = this->compute_neighbours(p);
 
         if (is_equal(this->core_distance(p), UNDEFINED)) {
             continue;
         }
 
-        std::vector<Node> seeds{};
+        std::vector<uint32_t> seeds{};
         update_seeds(p, seeds);
 
         while (!seeds.empty()) {
-            std::sort(seeds.begin(), seeds.end(), cmp_reachability);
-            auto &q = seeds.back();
+            std::sort(seeds.begin(), seeds.end(), [this](const int left, const int right) -> bool {
+                return this->graph[left].get_reachability_distance() > this->graph[right].get_reachability_distance();
+            });
+            auto &q = this->graph[seeds.back()];
             seeds.pop_back();
 
             this->processed(q);
@@ -225,8 +235,77 @@ std::vector<Node> Optics::compute_clusters(std::vector<Node> &nodes, const doubl
 
 void Optics::processed(Node &p) {
     p.set_processed(true);
-    this->unprocessed.erase(std::remove(this->unprocessed.begin(), this->unprocessed.end(), p),
+    this->unprocessed.erase(std::remove(this->unprocessed.begin(), this->unprocessed.end(), p.get_id()),
                             this->unprocessed.end());
-    this->ordered.push_back(p);
+    Node n(p); // copy
+    this->ordered.push_back(n);
 }
 
+std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering) {
+    std::vector<Optics::Cluster> clusters{};
+    std::vector<int> separators{};
+    auto eps_threshold = this->eps;
+
+    enumerate(ordering.begin(), ordering.end(), 0, [&eps_threshold, &separators](int i, Node &p) {
+
+        double reachdist{};
+
+        if (is_equal(p.get_reachability_distance(), UNDEFINED)) {
+            reachdist = std::numeric_limits<double>::infinity();
+        } else {
+            reachdist = p.get_reachability_distance();
+        }
+
+        if (reachdist > eps_threshold) {
+            separators.emplace_back(i);
+        }
+    });
+
+    separators.emplace_back(ordering.size());
+
+    for (uint32_t j = 0; j < (separators.size() - 1); ++j) {
+        auto start = separators[j];
+        auto end = separators[j + 1];
+        if (end - start >= this->minpts) {
+            std::vector<Node> cluster{ordering.begin() + start, ordering.begin() + end};
+            Cluster c{j, cluster};
+            clusters.emplace_back(c);
+        }
+    }
+
+    return clusters;
+}
+
+Location Optics::Cluster::centroid() const {
+    auto lat = 0.0;
+    auto id = 0;
+    for (auto &node : this->nodes) {
+        lat += node.get_location().get_latitude();
+        id += node.get_id();
+    }
+
+    lat = lat / this->nodes.size();
+
+    auto lon = 0.0;
+    for (auto &node : this->nodes) {
+        lon += node.get_location().get_longitude();
+    }
+
+    lon = lon / this->nodes.size();
+
+    Location l{lat, lon};
+
+    return l;
+}
+
+unsigned long Optics::Cluster::size() const {
+    return this->nodes.size();
+}
+
+const std::vector<Node> &Optics::Cluster::get_nodes() const {
+    return nodes;
+}
+
+uint32_t Optics::Cluster::get_id() const {
+    return id;
+}

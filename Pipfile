@@ -9,6 +9,7 @@ dash-html-components = "*"
 dash-core-components = "*"
 plotly = "*"
 pandas = "*"
+psutil = "*"
 
 [dev-packages]
 

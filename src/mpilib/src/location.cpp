@@ -72,3 +72,7 @@ Location::Location(double latitude, double longitude) : latitude(latitude), long
 
 Location::Location(int time, double latitude, double longitude) : time(time), latitude(latitude),
                                                                   longitude(longitude) {}
+
+Location::Location() {
+
+}

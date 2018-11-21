@@ -1,126 +1,89 @@
+import concurrent.futures
+
 import flask
-import dash
-import dash_core_components
-import dash_html_components
+import random
+import os
+
 import plotly
-from dash.dependencies import Input, Output
 
-server = flask.Flask(__name__)
-app = dash.Dash(__name__, server=server)
+import create_graph
 
+graph_path = 'graphs'
+app = flask.Flask(__name__, template_folder=graph_path)
+executor = None
 nodes = {}
+mb_access = 'pk.eyJ1Ijoiam9rbG9zdCIsImEiOiJjam5kN2V1d3gyNXpvM3FyZm01aGE5emRlIn0.xpGYl9Ayd1FmDS2HS-Uf1A'
+
+if not os.path.exists(graph_path):
+    os.mkdir(graph_path)
 
 
-def create_graph(node_data):
-    id = []
-    lat = []
-    lon = []
-    for i, v in node_data.items():
-        id.append(i)
-        lat.append(v['lat'])
-        lon.append(v['lon'])
-
-    data = [
-        plotly.graph_objs.Scattermapbox(
-            lat=lat,
-            lon=lon,
-            text=id,
-            mode='markers',
-            # xaxis=dict(fixedrange=True),
-            # yaxis=dict(fixedrange=True),
-            marker=dict(
-                size=5,
-            )
-        )
-    ]
-
-    center = dict(
-        lon=8.725199732511442,
-        lat=56.81765649206909
-    )
-
-    layout = plotly.graph_objs.Layout(
-        height=700,
-        autosize=True,
-        hovermode='closest',
-        showlegend=False,
-        dragmode='pan',
-        mapbox=dict(
-            accesstoken='pk.eyJ1Ijoiam9rbG9zdCIsImEiOiJjam5kN2V1d3gyNXpvM3FyZm01aGE5emRlIn0.xpGYl9Ayd1FmDS2HS-Uf1A',
-            bearing=0,
-            pitch=0,
-            zoom=10.50,
-            style='light',
-            center=center
-        ),
-    )
-
-    return dict(data=data, layout=layout)
+def generate_color() -> str:
+    return f'rgb({random.choice(range(256))}, {random.choice(range(256))}, {random.choice(range(256))})'
 
 
-@server.route('/update', methods=['POST'])
-def update():
+@app.errorhandler(404)
+def page_not_found(e):
+    return flask.render_template('404.html', item='Page')
+
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+
+@app.route('/graphs/<fig>')
+def graphs(fig):
+    graph = f'fig{fig}.html'
+    if os.path.isfile(f'{graph_path}/{graph}'):
+        return flask.render_template(graph)
+    else:
+        return flask.render_template('404.html', item='Graph'), 404
+
+
+@app.route('/add-nodes', methods=['POST'])
+def add_nodes():
+    global nodes
     recv = flask.request.json
-    nodes[recv['id']] = {}
-    nodes[recv['id']]['lat'] = recv['lat']
-    nodes[recv['id']]['lon'] = recv['lon']
-
-    return "Update received succesfully."
-
-
-@server.route('/updatechunk', methods=['POST'])
-def updatechunk():
-    recv = flask.request.json
+    nodes = {}
 
     for node in recv:
         nodes[node['id']] = {}
         nodes[node['id']]['lat'] = node['lat']
         nodes[node['id']]['lon'] = node['lon']
+        nodes[node['id']]['color'] = 'rgb(255, 255, 255)'
 
-    return "Chunk update received successfully."
-
-
-@server.route('/clear')
-def clear():
-    global nodes
-    nodes = {}
-    return "Nodes cleared successfully."
+    return 'Nodes added successfully'
 
 
-app.layout = dash_html_components.Div(children=[
-    dash_core_components.Graph(id='live-update-graph', figure=create_graph(nodes)),
-    dash_core_components.Interval(id='interval-component', interval=2000),
+@app.route('/request-graph', methods=['POST'])
+def request_graph():
+    recv = flask.request.json
+    params = recv['params']
+    clusters = recv['clusters']
+    graph_nodes = nodes.copy()
 
-    dash_core_components.Slider(
-        id='zoom-slider',
-        min=1,
-        max=10,
-        value=10,
-        marks={str(i): str(i) for i in range(0, 11)}
-    ),
-])
+    graph_id = params['id'] - 1
+    eps = params['eps']
+    minpts = params['minpts']
+    count = params['count']
+    title = f'eps: {eps}, minpts: {minpts}, count: {count}'
 
+    for cluster in clusters:
+        color = generate_color()
+        for node_id in cluster:
+            graph_nodes[node_id]['color'] = color
 
-@app.callback(Output('live-update-graph', 'figure'),
-              [Input('interval-component', 'n_intervals'),
-               Input('live-update-graph', 'relayoutData'),
-               Input('zoom-slider', 'value')])
-def update_graph_live(n, relayout, value):
-    figure = create_graph(nodes)
-    print(relayout)
-    print(value)
+    # nodes: dict, graph_id: int, token: str, path: str, title: str = 'Reachi'
+    executor.submit(create_graph.create_graph,
+                    nodes=graph_nodes, graph_id=graph_id, token=mb_access, path=os.path.abspath(graph_path),
+                    title=title)
 
-    if value is not None:
-        figure['layout']['mapbox']['zoom'] = value
-
-    if relayout and 'mapbox.center' in relayout:
-        figure['layout']['mapbox']['center'] = dict(
-            lat=relayout['mapbox.center']['lat'],
-            lon=relayout['mapbox.center']['lon']
-        )
-
-    return figure
+    return 'Graph request added successfully'
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    plotly.io.orca.config.mapbox_access_token = mb_access
+    executor = concurrent.futures.ProcessPoolExecutor()
+    app.run(debug=True)
+    executor.shutdown()

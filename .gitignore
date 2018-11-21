@@ -326,3 +326,6 @@ pip-selfcheck.json
 
 
 # End of https://www.gitignore.io/api/c,c++,python,clion+all,pycharm+all
+
+*.png
+fig*.html

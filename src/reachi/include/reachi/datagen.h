@@ -2,6 +2,7 @@
 #define MANETSIMS_GPSGEN_H
 
 #include <mpilib/link.h>
+#include "clustering.h"
 
 /**
  * Generate a vector of nodes (a graph) within a set of geographical bounds.
@@ -14,6 +15,8 @@
  * @return A vector of nodes (a graph)
  */
 std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location &lower);
+
+std::vector<Node> generate_cluster(Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */);
 
 /**
  * Create a vector of unique (undirected) links from a set of nodes (a graph).
@@ -42,5 +45,7 @@ void visualise_nodes(std::vector<Node> &nodes);
  * @param chunk_size Size of chunks to send
  */
 void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size);
+
+void visualise_clusters(std::vector<Optics::Cluster> clusters);
 
 #endif /* MANETSIMS_GPSGEN_H */

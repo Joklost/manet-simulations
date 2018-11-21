@@ -43,28 +43,28 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
     return os;
 }
 
+void to_json(json &j, const Node &p) {
+    j = json{{"id",  p.get_id()},
+             {"lat", p.get_location().get_latitude()},
+             {"lon", p.get_location().get_longitude()}};
+}
+
+void from_json(const json &j, Node &p) {
+    auto id = j.at("id").get<uint32_t>();
+    auto lat = j.at("lat").get<double>();
+    auto lon = j.at("lon").get<double>();
+
+    p = {id, {lat, lon}};
+}
+
 void Node::update_location(Location &location, const int time) {
     location.set_time(time);
     this->location_history.emplace_back(this->current_location);
     this->current_location = location;
 }
 
-nlohmann::json Node::serialize() {
-    return {{"id",  this->id},
-            {"lat", std::to_string(this->current_location.get_latitude())},
-            {"lon", std::to_string(this->current_location.get_longitude())}};
-}
-
 void Node::move(int time, double distance, double bearing) {
     this->current_location.move(time, distance, bearing);
-}
-
-unsigned int Node::get_index() const {
-    return index;
-}
-
-void Node::set_index(unsigned int index) {
-    Node::index = index;
 }
 
 double Node::get_reachability_distance() const {
@@ -89,5 +89,9 @@ bool Node::is_processed() const {
 
 void Node::set_processed(bool processed) {
     Node::processed = processed;
+}
+
+Node::Node() {
+
 }
 

@@ -6,9 +6,12 @@
 #include <json.hpp>
 #include <reachi/constants.h>
 
+using json = nlohmann::json;
 
 class Node {
 public:
+    Node();
+
     Node(uint32_t id, Location location);
 
     uint32_t get_id() const;
@@ -31,15 +34,9 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Node &node);
 
-    nlohmann::json serialize();
-
     void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
     /* OPTICS */
-
-    unsigned int get_index() const;
-
-    void set_index(unsigned int index);
 
     double get_reachability_distance() const;
 
@@ -59,7 +56,6 @@ private:
     std::vector<Location> location_history;
 
     /* OPTICS */
-    unsigned int index{};
     double reachability_distance{UNDEFINED};
     double core_distance{UNDEFINED};
     bool processed{};
@@ -74,5 +70,9 @@ namespace std {
         }
     };
 }
+
+void to_json(json &j, const Node &p);
+
+void from_json(const json &j, Node &p);
 
 #endif /* MANETSIMS_MPILIB_NODE_H */

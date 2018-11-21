@@ -6,6 +6,8 @@
 
 class Location {
 public:
+    Location();
+
     Location(double latitude, double longitude);
 
     Location(int time, double latitude, double longitude);

@@ -32,5 +32,9 @@
 
 
 #define KM 1000
+#define KM_PER_DEGREE 111.320
 #define UNDEFINED -0.1
+
+#define VISUALISER_ADDRESS "http://localhost:8050"
+
 #endif /* MANETSIMS_LINKMODEL_CONSTANTS_H */
