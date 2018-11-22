@@ -11,7 +11,6 @@ import create_graph
 static_path = os.path.abspath('static')
 graph_path = os.path.abspath('graphs')
 app = flask.Flask(__name__, template_folder=graph_path, static_folder=static_path)
-executor = None
 nodes = {}
 mb_access = 'pk.eyJ1Ijoiam9rbG9zdCIsImEiOiJjam5kN2V1d3gyNXpvM3FyZm01aGE5emRlIn0.xpGYl9Ayd1FmDS2HS-Uf1A'
 
@@ -76,14 +75,17 @@ def request_graph():
             graph_nodes[node_id]['color'] = color
 
     # nodes: dict, graph_id: int, token: str, path: str, title: str = 'Reachi'
-    executor.submit(create_graph.create_graph,
-                    nodes=graph_nodes, graph_id=graph_id, token=mb_access, path=os.path.abspath(graph_path),
-                    title=title)
+    create_graph.create_graph(nodes=graph_nodes, graph_id=graph_id, token=mb_access,
+                              path=os.path.abspath(graph_path), title=title)
+
+    # executor.submit(create_graph.create_graph,
+    #                nodes=graph_nodes, graph_id=graph_id, token=mb_access, path=os.path.abspath(graph_path),
+    #                title=title)
 
     return 'Graph request added successfully'
 
+
 plotly.io.orca.config.mapbox_access_token = mb_access
-executor = concurrent.futures.ProcessPoolExecutor()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
