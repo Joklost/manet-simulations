@@ -8,8 +8,9 @@ import plotly
 
 import create_graph
 
-graph_path = 'graphs'
-app = flask.Flask(__name__, template_folder=graph_path)
+static_path = os.path.abspath('static')
+graph_path = os.path.abspath('graphs')
+app = flask.Flask(__name__, template_folder=graph_path, static_folder=static_path)
 executor = None
 nodes = {}
 mb_access = 'pk.eyJ1Ijoiam9rbG9zdCIsImEiOiJjam5kN2V1d3gyNXpvM3FyZm01aGE5emRlIn0.xpGYl9Ayd1FmDS2HS-Uf1A'
@@ -27,12 +28,12 @@ def page_not_found(e):
     return flask.render_template('404.html', item='Page')
 
 
-@app.route('/')
+@app.route('/vis/')
 def hello_world():
     return 'Hello, World!'
 
 
-@app.route('/graphs/<fig>')
+@app.route('/vis/graphs/<fig>')
 def graphs(fig):
     graph = f'fig{fig}.html'
     if os.path.isfile(f'{graph_path}/{graph}'):
@@ -41,7 +42,7 @@ def graphs(fig):
         return flask.render_template('404.html', item='Graph'), 404
 
 
-@app.route('/add-nodes', methods=['POST'])
+@app.route('/vis/add-nodes', methods=['POST'])
 def add_nodes():
     global nodes
     recv = flask.request.json
@@ -56,7 +57,7 @@ def add_nodes():
     return 'Nodes added successfully'
 
 
-@app.route('/request-graph', methods=['POST'])
+@app.route('/vis/request-graph', methods=['POST'])
 def request_graph():
     recv = flask.request.json
     params = recv['params']
@@ -81,9 +82,8 @@ def request_graph():
 
     return 'Graph request added successfully'
 
+plotly.io.orca.config.mapbox_access_token = mb_access
+executor = concurrent.futures.ProcessPoolExecutor()
 
 if __name__ == '__main__':
-    plotly.io.orca.config.mapbox_access_token = mb_access
-    executor = concurrent.futures.ProcessPoolExecutor()
-    app.run(debug=True)
-    executor.shutdown()
+    app.run(host='0.0.0.0')
