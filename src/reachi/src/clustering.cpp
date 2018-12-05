@@ -2,115 +2,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <mpilib/helpers.h>
 
-double core_distance(neighbourhood_t &neighbours, Node &node, double eps, int minpts) {
-    if (!is_equal(node.get_core_distance(), UNDEFINED)) {
-        return node.get_core_distance();
-    }
-
-    if (neighbours.size() >= minpts - 1) {
-        /* Sort by distance */
-        std::sort(neighbours.begin(), neighbours.end(), [](neighbour_t left, neighbour_t right) {
-            return left.second > right.second;
-        });
-
-        /* -2? */
-        auto coredist = neighbours[minpts - 2].second;
-        node.set_core_distance(coredist);
-        return coredist;
-    }
-
-    return UNDEFINED;
-}
-
-neighbourhood_t get_neighbours(std::vector<Node> &nodes, Node &p, double eps) {
-    neighbourhood_t neighbours{};
-
-    std::for_each(nodes.begin(), nodes.end(), [&p, &eps, &neighbours](Node &n) {
-        if (p == n) {
-            return;
-        }
-
-        auto distance = distance_between(p, n);
-
-        //console->info("Distance between {} and {}: {}", p.get_id(), n.get_id(), distance);
-        if (distance <= eps) {
-            neighbours.emplace_back(std::make_pair(std::ref(n), distance));
-        }
-    });
-
-    return neighbours;
-}
-
-void update(neighbourhood_t &neighbours, Node &p, std::vector<Node> &seeds, double eps, int minpts) {
-    auto coredist = core_distance(neighbours, p, eps, minpts);
-
-    std::for_each(neighbours.begin(), neighbours.end(), [&p, &seeds, &coredist](neighbour_t &pair) {
-        auto o = pair.first;
-        if (o.is_processed()) {
-            return;
-        }
-
-        auto new_reachdist = std::max(coredist, distance_between(p, o));
-        if (is_equal(o.get_reachability_distance(), UNDEFINED)) {
-            /* o is not in seeds */
-            o.set_reachability_distance(new_reachdist);
-            seeds.emplace_back(o);
-        } else {
-            /* o is in seeds, check for improvement */
-            if (new_reachdist < o.get_reachability_distance()) {
-                o.set_reachability_distance(new_reachdist);
-            }
-        }
-    });
-}
-
-std::vector<Node> optics(std::vector<Node> &nodes, double eps, int minpts) {
-    std::vector<Node> ordered_list{};
-
-    std::for_each(nodes.begin(), nodes.end(), [](Node node) {
-        node.set_reachability_distance(UNDEFINED);
-    });
-
-    std::for_each(nodes.begin(), nodes.end(), [&nodes, &eps, &minpts, &ordered_list](Node p) {
-        if (p.is_processed()) {
-            return;
-        }
-
-        auto pneighbours = get_neighbours(nodes, p, eps);
-
-        p.set_processed(true);
-
-        ordered_list.push_back(p);
-
-        if (is_equal(core_distance(pneighbours, p, eps, minpts), UNDEFINED)) {
-            return;
-        }
-
-        std::vector<Node> seeds{};
-        update(pneighbours, p, seeds, eps, minpts);
-
-        while (!seeds.empty()) {
-            //console->info("Seeds: {}", seeds.size());
-            //std::sort(seeds.begin(), seeds.end(), [this](){});
-            auto q = seeds.back();
-            seeds.pop_back();
-
-            auto qneighbours = get_neighbours(nodes, q, eps);
-
-            q.set_processed(true);
-
-            ordered_list.push_back(q);
-            if (!is_equal(core_distance(qneighbours, q, eps, minpts), UNDEFINED)) {
-                update(qneighbours, q, seeds, eps, minpts);
-            }
-        }
-    });
-
-    return ordered_list;
-}
-
 Optics::Optics() {
-    this->console = spdlog::stdout_color_mt("optics");
+    //this->console = spdlog::stdout_color_mt("optics");
 }
 
 double Optics::core_distance(Node &p) {
@@ -123,7 +16,7 @@ double Optics::core_distance(Node &p) {
 
         /* Sort by distance */
         std::sort(neighbours.begin(), neighbours.end(), [](Neighbour &left, Neighbour &right) {
-            return left.distance > right.distance;
+            return left.distance < right.distance;
         });
 
         p.set_core_distance(neighbours[this->minpts - 2].distance);
@@ -242,11 +135,14 @@ void Optics::processed(Node &p) {
 }
 
 std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering) {
+    return this->cluster(ordering, this->eps - 0.01);
+}
+
+std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering, double threshold) {
     std::vector<Optics::Cluster> clusters{};
     std::vector<int> separators{};
-    auto eps_threshold = this->eps;
 
-    enumerate(ordering.begin(), ordering.end(), 0, [&eps_threshold, &separators](int i, Node &p) {
+    enumerate(ordering.begin(), ordering.end(), 0, [&threshold, &separators](int i, Node &p) {
 
         double reachdist{};
 
@@ -256,7 +152,7 @@ std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering) {
             reachdist = p.get_reachability_distance();
         }
 
-        if (reachdist > eps_threshold) {
+        if (reachdist > threshold) {
             separators.emplace_back(i);
         }
     });
@@ -278,19 +174,13 @@ std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering) {
 
 Location Optics::Cluster::centroid() const {
     auto lat = 0.0;
-    auto id = 0;
-    for (auto &node : this->nodes) {
-        lat += node.get_location().get_latitude();
-        id += node.get_id();
-    }
-
-    lat = lat / this->nodes.size();
-
     auto lon = 0.0;
     for (auto &node : this->nodes) {
+        lat += node.get_location().get_latitude();
         lon += node.get_location().get_longitude();
     }
 
+    lat = lat / this->nodes.size();
     lon = lon / this->nodes.size();
 
     Location l{lat, lon};
@@ -306,6 +196,28 @@ const std::vector<Node> &Optics::Cluster::get_nodes() const {
     return nodes;
 }
 
-uint32_t Optics::Cluster::get_id() const {
-    return id;
+double Optics::Cluster::radius() const {
+    Location centroid = this->centroid();
+    auto radius = 0.0;
+
+    for (auto &node : this->nodes) {
+        auto distance = distance_between(centroid, node.get_location());
+        if (distance > radius) {
+            radius = distance;
+        }
+    }
+
+    return radius;
+}
+
+double Optics::Cluster::cost() const {
+    Location centroid = this->centroid();
+    auto cost = 0.0;
+
+    for (auto &node : this->nodes) {
+        auto distance = distance_between(centroid, node.get_location());
+        cost += distance;
+    }
+
+    return cost;
 }

@@ -45,6 +45,8 @@ public:
 
     std::vector<Cluster> cluster(std::vector<Node> &ordering);
 
+    std::vector<Cluster> cluster(std::vector<Node> &ordering, double threshold);
+
 private:
 
     void processed(Node &p);
@@ -65,15 +67,5 @@ private:
     std::shared_ptr<spdlog::logger> console;
 };
 
-
-bool cmp_reachability(const Node &left, const Node &right);
-
-double core_distance(neighbourhood_t &neighbours, Node &node, double eps, int minpts);
-
-neighbourhood_t get_neighbours(std::vector<Node> &nodes, Node &p, double eps);
-
-void update(neighbourhood_t &neighbours, Node &p, std::vector<Node> &seeds, double eps, int minpts);
-
-std::vector<Node> optics(std::vector<Node> &nodes, double eps /* kilometers */, int minpts);
 
 #endif /* MANETSIMS_CLUSTERING_H */

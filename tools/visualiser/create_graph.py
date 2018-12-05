@@ -2,7 +2,22 @@ import plotly
 import plotly.offline
 
 
+def compute_centroid(nodes: dict):
+    lat = 0
+    lon = 0
+
+    for node in nodes.values():
+        lat += node['lat']
+        lon += node['lon']
+
+    lat = lat / len(nodes)
+    lon = lon / len(nodes)
+
+    return lat, lon
+
+
 def create_graph(nodes: dict, graph_id: int, token: str, path: str, title: str = 'Reachi'):
+
     clusters = {}
 
     for i, v in nodes.items():
@@ -42,9 +57,10 @@ def create_graph(nodes: dict, graph_id: int, token: str, path: str, title: str =
             )
         ))
 
+    centroid = compute_centroid(nodes)
     center = dict(
-        lon=8.725199732511442,
-        lat=56.81765649206909
+        lat=centroid[0],
+        lon=centroid[1],
     )
 
     layout = plotly.graph_objs.Layout(
@@ -69,4 +85,3 @@ def create_graph(nodes: dict, graph_id: int, token: str, path: str, title: str =
     print(f'Saving graph as "{filename}"')
 
     plotly.offline.plot(figure, filename=filename, auto_open=False, include_plotlyjs='cdn', show_link=False)
-

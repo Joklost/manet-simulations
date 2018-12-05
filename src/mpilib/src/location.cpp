@@ -31,7 +31,7 @@ bool Location::operator>=(const Location &rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Location &location) {
-    os << "time: " << location.get_time() << " latitude: " << location.get_latitude() << " longitude: "
+    os << " latitude: " << location.get_latitude() << ", longitude: "
        << location.get_longitude();
     return os;
 }

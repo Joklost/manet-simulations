@@ -77,3 +77,17 @@ double angle_between(const Node &origin, const Node &node1, const Node &node2) {
     return angle_between(origin.get_location(), node1.get_location(), node2.get_location());
 }
 
+Location move_location(const Location &location, double distance, double bearing) {
+    auto old_lat = deg2rad(location.get_latitude());
+    auto old_lon = deg2rad(location.get_longitude());
+    auto brng = deg2rad(bearing);
+
+    auto d_r = distance / EARTH_RADIUS_KM;
+    auto new_lat = std::asin(std::sin(old_lat) * std::cos(d_r) +
+                             std::cos(old_lat) * std::sin(d_r) * std::cos(brng));
+    auto new_lon = old_lon + std::atan2(std::sin(brng) * std::sin(d_r) * std::cos(old_lat),
+                                        std::cos(d_r) - std::sin(old_lat) * std::sin(new_lat));
+
+    return Location{rad2deg(new_lat), rad2deg(new_lon)};
+}
+

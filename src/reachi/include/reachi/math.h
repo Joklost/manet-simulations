@@ -109,7 +109,8 @@ std::vector<T> generate_gaussian_vector(const T mean, const T std_deviation, con
     std::vector<T> vec{};
     vec.reserve(count);
 
-    std::default_random_engine generator;
+    std::random_device rd;
+    std::default_random_engine generator{rd};
     std::normal_distribution<T> distribution{mean, std_deviation};
     for (auto i = 0; i < count; i++) {
         vec.emplace_back(distribution(generator));
