@@ -1,6 +1,7 @@
 #include <reachi/cholesky.h>
 #include <algorithm>
 #include <iostream>
+#include <future>
 
 /*LinkMap cholesky(LinkMap &linkmap) {
     LinkMap res;
@@ -70,15 +71,29 @@
 }*/
 
 LinkMap cholesky(LinkMap &linkmap) {
+    auto chunk_size = 100;
     LinkMap res;
 
     for (const auto &element : linkmap) {
         auto sum = 0.0;
         auto keypair = element.first;
 
-        for (const auto &column : res.get_keypairs(keypair.first)) {
-            sum += res.get(keypair.first, column) * res.get(keypair.second, column);
+        auto columns = res.get_keypairs(keypair.first);
+
+        if (columns.size() < chunk_size) {
+            for (const auto &column : columns) {
+                sum += res.get(keypair.first, column) * res.get(keypair.second, column);
+            }
+        } else {
+            std::vector<std::future<double>> futures {};
+
+
+
+            for (const auto &column : columns) {
+
+            }
         }
+
 
         if (keypair.first == keypair.second) {
             auto value = std::sqrt(linkmap.get(keypair.first, keypair.second) - sum);

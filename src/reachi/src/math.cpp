@@ -85,6 +85,39 @@ vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links) {
     return corr;
 }
 
+vecvec<double> generate_correlation_matrix_vector(std::vector<Link> links) {
+    auto size = links.size();
+    vecvec<double> corr{};
+    corr.resize(size, std::vector<double>(size));
+
+    std::sort(links.begin(), links.end());
+
+    for (auto i = 0; i < size; ++i) {
+        for (auto j = 0; j < i + 1; ++j) {
+
+            if (links[i] == links[j]) {
+                corr[i][j] = 1.0;
+            } else if (links[i] != links[j] && has_common_node(links[i], links[j])) {
+                auto common_node = get_common_node(links[i], links[j]);
+                auto li_unique = links[i].get_nodes().first.get_id() == common_node.get_id() ?
+                                 links[i].get_nodes().second :
+                                 links[i].get_nodes().first;
+
+                auto lj_unique = links[j].get_nodes().first.get_id() == common_node.get_id() ?
+                                 links[j].get_nodes().second :
+                                 links[j].get_nodes().first;
+
+                auto angle = angle_between(common_node, li_unique, lj_unique);
+                auto value = autocorrelation(angle);
+                corr[i][j] = value >= CORRELATION_COEFFICIENT_THRESHOLD ? value : 0.0;
+            }
+        }
+    }
+
+    return corr;
+}
+
+
 LinkMap generate_correlation_matrix(std::vector<Link> links) {
     auto size = links.size();
     LinkMap res;

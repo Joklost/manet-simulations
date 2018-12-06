@@ -20,6 +20,39 @@ TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     REQUIRE(result == slow_cholesky(matrix));
 }
 
+TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
+    auto upper = Location{57.01266813458001, 10.994625734716218};
+    auto lower = Location{57.0117698, 10.9929758};
+    auto nodes = generate_nodes(25, upper, lower);
+    auto links = create_link_vector(nodes, 1);
+
+
+    // testing original implementation
+    auto begin = std::chrono::steady_clock::now();
+
+    auto corr_org = generate_correlation_matrix_slow(links);
+    auto std_deviation_org = std::pow(11.4, 2);
+    auto sigma_org = corr_org * std_deviation_org;
+    auto cholesky_res_org = slow_cholesky(sigma_org);
+
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "Original code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << std::endl;
+
+
+    // testing our implementation
+    begin = std::chrono::steady_clock::now();
+
+    auto corr_our = generate_correlation_matrix_vector(links);
+    auto std_deviation_our = std::pow(11.4, 2);
+    auto sigma_our = corr_our * std_deviation_our;
+    auto cholesky_res_our = our_cholesky(sigma_our);
+
+    end = std::chrono::steady_clock::now();
+    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << std::endl;
+
+    REQUIRE(compare_vectors(cholesky_res_org, cholesky_res_our, 0.00001));
+}
+
 TEST_CASE("Generate a Gaussian Vector with 1 million elements", "[math]") {
     auto size = 1000000u;
     auto vec = generate_gaussian_vector(0.0, 1.0, size);
@@ -196,7 +229,7 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
 
     std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
 
-    std::cout << slow_cholesky(sigma) << std::endl;
+    //std::cout << slow_cholesky(sigma) << std::endl;
 
     auto l_fading = slow_cholesky(sigma) * gaussian_vector;
     std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
@@ -312,11 +345,11 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     auto upper = Location{57.01266813458001, 9.994625734716218};
     auto lower = Location{57.0117698, 9.9929758};
     auto nodes = generate_nodes(15, upper, lower);
-    auto links = create_link_vector(nodes);
+    auto links = create_link_vector(nodes, MAX_LINK_DISTANCE);
 
     auto corr = generate_correlation_matrix(links);
     auto std_deviation = std::pow(11.4, 2);
     auto sigma = corr * std_deviation;
 
-    std::cout << measure<>::execution(cholesky, sigma) << std::endl;
+    //std::cout << measure<>::execution(cholesky, sigma) << std::endl;
 }

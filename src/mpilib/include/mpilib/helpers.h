@@ -102,10 +102,10 @@ std::ostream &operator<<(std::ostream &os, std::pair<T, T> pair) {
 
 
 template<typename T>
-bool compare_vectors(std::vector<T> a, std::vector<T> b, T margin) {
+bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
     if (a.size() != b.size()) return false;
     for (auto i = 0; i < a.size(); i++) {
-        if (a[i] != Approx(b[i]).margin(margin)) {
+        if (a[i] != Approx(b[i]).margin(epsilon)) {
             std::cout << a[i] << " Should == " << b[i] << std::endl;
             return false;
         }
@@ -115,10 +115,10 @@ bool compare_vectors(std::vector<T> a, std::vector<T> b, T margin) {
 
 
 template<typename T>
-bool compare_vectors(vecvec<T> a, vecvec<T> b, T margin) {
+bool compare_vectors(vecvec<T> a, vecvec<T> b, T epsilon) {
     if (a.size() != b.size()) return false;
     for (auto i = 0; i < a.size(); i++) {
-        if (!compare_vectors(a[i], b[i], margin)) return false;
+        if (!compare_vectors(a[i], b[i], epsilon)) return false;
     }
     return true;
 }
