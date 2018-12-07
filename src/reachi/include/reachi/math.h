@@ -7,7 +7,6 @@
 #include <mpilib/geomath.h>
 #include <mpilib/link.h>
 
-#include "linkmap.h"
 #include "constants.h"
 
 template<typename T>
@@ -206,7 +205,7 @@ double autocorrelation(Link link);
 
 vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links);
 
-LinkMap generate_correlation_matrix(std::vector<Link> links);
+vecvec<double> generate_correlation_matrix(std::vector<Link> links); // TODO: bedre funktions navn
 
 bool common_node(Link &k, Link &l);
 

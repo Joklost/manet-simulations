@@ -1,21 +1,7 @@
 #include <cmath>
 #include <algorithm>
 #include <reachi/linkmodel.h>
-
-
-#include "reachi/linkmodel.h"
-#include "reachi/math.h"
-#include "reachi/cholesky.h"
-
-
-LinkMap correlation_matrix(const std::vector<Link> &links) {
-    LinkMap res;
-    return res;
-    /* auto corr = generate_correlation_matrix(links);
-    auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
-    auto sigma = std_deviation * corr;
-    return cholesky(sigma);*/
-}
+#include <reachi/cholesky.h>
 
 
 double temporal_correlation_coefficient(const double d_transmitter, const double d_receiver) {
@@ -36,17 +22,18 @@ std::vector<double> compute_link_distance(const std::vector<Link> &links) {
 
 
 std::vector<double> compute_link_fading(const std::vector<Link> &links, double time) {
-    /* auto l_fading = correlation_matrix(links) * generate_gaussian_vector(0.0, 1.0, links.size());
-    return time == 0.0 ? l_fading : l_fading * time; */
-    return std::vector<double> {};
+    auto corr = generate_correlation_matrix(links);
+    auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
+    auto sigma = std_deviation * corr;
+    auto correlation_matrix = cholesky(sigma);
+    
+    auto l_fading = correlation_matrix * generate_gaussian_vector(0.0, 1.0, links.size());
+    return time == 0.0 ? l_fading : l_fading * time;
 }
 
 
 std::vector<double> compute_link_rssi(std::vector<Link> &links, double tx_power, double time) {
-    auto l_fading = compute_link_fading(links, time);
-    auto l_distance = compute_link_distance(links);
-
-    return tx_power - (l_distance + l_fading);
+    return tx_power - (compute_link_fading(links, time) + compute_link_distance(links));
 }
 
 std::vector<double> temporal_correlation(const std::vector<Link> &links, const double time, const double delta_time) {

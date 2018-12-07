@@ -40,15 +40,15 @@ TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
 
 
     // testing our implementation
-    begin = std::chrono::steady_clock::now();
+    auto begin_1 = std::chrono::steady_clock::now();
 
-    auto corr_our = generate_correlation_matrix_vector(links);
+    auto corr_our = generate_correlation_matrix(links);
     auto std_deviation_our = std::pow(11.4, 2);
     auto sigma_our = corr_our * std_deviation_our;
-    auto cholesky_res_our = our_cholesky(sigma_our);
+    auto cholesky_res_our = cholesky(sigma_our);
 
-    end = std::chrono::steady_clock::now();
-    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << std::endl;
+    auto end_1 = std::chrono::steady_clock::now();
+    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;
 
     REQUIRE(compare_vectors(cholesky_res_org, cholesky_res_our, 0.00001));
 }

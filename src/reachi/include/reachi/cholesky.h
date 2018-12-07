@@ -32,30 +32,25 @@ vecvec<T> slow_cholesky(const vecvec<T> matrix) {
 }
 
 template<typename T>
-vecvec<T> our_cholesky(const vecvec<T> matrix) {
+vecvec<T> cholesky(const vecvec<T> matrix) {
     auto size = matrix.size();
     vecvec<T> vec{};
     vec.resize(size, std::vector<T>(size));
 
-    for (auto i = 0; i < size; ++i) {
-        for (auto j = 0; j <= i; ++j) {
+    for (auto row = 0; row < size; ++row) {
+        for (auto column = 0; column <= row; ++column) {
             T sum = (T) 0;
-            for (auto k = 0; k < j; ++k) {
-                sum += vec[i][k] * vec[j][k];
+            for (auto i = 0; i < column; ++i) {
+                sum += vec[row][i] * vec[column][i];
             }
 
-            if (i == j) {
-                vec[i][j] = std::sqrt(std::abs(matrix[i][i] - sum));
-            } else {
-                vec[i][j] = ((T) 1) / vec[j][j] * (matrix[i][j] - sum);
-            }
-
+            vec[row][column] = row == column ?
+                               std::sqrt(std::abs(matrix[row][row] - sum)) :
+                               ((T) 1) / vec[column][column] * (matrix[row][column] - sum);
         }
     }
 
     return vec;
 }
-
-LinkMap cholesky(LinkMap &linkmap);
 
 #endif /* MANETSIMS_CHOLESKY_H */

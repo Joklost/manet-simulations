@@ -85,7 +85,7 @@ vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links) {
     return corr;
 }
 
-vecvec<double> generate_correlation_matrix_vector(std::vector<Link> links) {
+vecvec<double> generate_correlation_matrix(std::vector<Link> links) {
     auto size = links.size();
     vecvec<double> corr{};
     corr.resize(size, std::vector<double>(size));
@@ -115,47 +115,6 @@ vecvec<double> generate_correlation_matrix_vector(std::vector<Link> links) {
     }
 
     return corr;
-}
-
-
-LinkMap generate_correlation_matrix(std::vector<Link> links) {
-    auto size = links.size();
-    LinkMap res;
-
-    for (auto i = 0; i < size; ++i) {
-        if (links[i].get_distance() >= MAX_LINK_DISTANCE) {
-            continue;
-        }
-
-        for (auto j = 0; j < size; ++j) {
-            if (res.contains(links[i].get_id(), links[j].get_id())) {
-                continue;
-            }
-
-            double value = 0.0;
-            if (links[i] == links[j]) {
-                value = 1.0;
-            } else if (links[i] != links[j] && has_common_node(links[i], links[j])) {
-                auto common_node = get_common_node(links[i], links[j]);
-                auto li_unique = links[i].get_nodes().first.get_id() == common_node.get_id() ?
-                                 links[i].get_nodes().second :
-                                 links[i].get_nodes().first;
-
-                auto lj_unique = links[j].get_nodes().first.get_id() == common_node.get_id() ?
-                                 links[j].get_nodes().second :
-                                 links[j].get_nodes().first;
-
-                auto angle = angle_between(common_node, li_unique, lj_unique);
-                value = autocorrelation(angle);
-            }
-
-            if (value >= CORRELATION_COEFFICIENT_THRESHOLD) {
-                res.emplace(links[i].get_id(), links[j].get_id(), value);
-            }
-        }
-
-    }
-    return res;
 }
 
 bool is_equal(double a, double b) {
