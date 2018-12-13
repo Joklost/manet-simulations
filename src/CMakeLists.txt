@@ -110,6 +110,9 @@ add_subdirectory(libs)
 #find_package(nlohmann_json CONFIG REQUIRED)
 include_directories(${CPR_INCLUDE_DIRS} ${JSON_INCLUDE_DIRS} ${CATCH_INCLUDE_DIRS})
 
+set(MPI_EXECUTABLE_SUFFIX ".mpich")
+find_package(MPI REQUIRED)
+
 add_subdirectory(mpilib)
 add_subdirectory(mpi)
 add_subdirectory(reachi)

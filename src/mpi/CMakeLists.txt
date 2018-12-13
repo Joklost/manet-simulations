@@ -17,4 +17,4 @@ install(TARGETS mpi EXPORT MPILibraryConfig
         RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(mpi mpilib )
+target_link_libraries(mpi mpilib)
