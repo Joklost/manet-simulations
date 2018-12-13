@@ -8,8 +8,6 @@
 #include <mpilib/node.h>
 #include <spdlog/spdlog.h>
 
-#include "math.h"
-
 using neighbour_t = std::pair<Node &, double>;
 using neighbourhood_t = std::vector<neighbour_t>;
 
@@ -30,13 +28,69 @@ public:
 
         unsigned long size() const;
 
+        double radius() const;
+
         uint32_t get_id() const;
 
+        double cost() const;
+
         const std::vector<Node> &get_nodes() const;
+
+        bool contains(const Node &node) const;
+
+        bool operator==(const Cluster &rhs) const;
+
+        bool operator!=(const Cluster &rhs) const;
 
     private:
         uint32_t id{};
         std::vector<Node> nodes{};
+
+        mutable bool cached = false;
+        mutable Location _centroid{};
+    };
+
+    class CLink {
+    public:
+        CLink(uint64_t id, Cluster &c1, Cluster &c2);
+
+        const std::pair<Cluster, Cluster> &get_clusters() const;
+
+        double get_distance() const;
+
+        uint64_t get_id() const;
+
+        bool operator==(const CLink &rhs) const;
+
+        bool operator!=(const CLink &rhs) const;
+
+        bool operator<(const CLink &rhs) const;
+
+        bool operator>(const CLink &rhs) const;
+
+        bool operator<=(const CLink &rhs) const;
+
+        bool operator>=(const CLink &rhs) const;
+
+        bool contains(const Node &node) const;
+
+        bool contains(const Node &n1, const Node &n2) const;
+
+        double get_rssi() const;
+
+        void set_rssi(double rssi);
+
+        double get_pep() const;
+
+        void set_pep(double pep);
+
+    private:
+        double distance;
+        double rssi;
+        double pep;
+        uint64_t id;
+        std::pair<Cluster, Cluster> clusters;
+
     };
 
     Optics();
@@ -64,7 +118,6 @@ private:
     std::vector<int> unprocessed{};
     std::vector<Node> ordered{};
     std::unordered_map<Node, std::vector<Neighbour>> neighbourhoods{};
-    std::shared_ptr<spdlog::logger> console;
 };
 
 

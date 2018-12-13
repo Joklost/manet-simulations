@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <iterator>
 #include <chrono>
@@ -100,19 +101,30 @@ std::ostream &operator<<(std::ostream &os, std::pair<T, T> pair) {
     return os;
 }
 
+template<typename T>
+bool is_equal(T a, T b) {
+    return fabs(a - b) < std::numeric_limits<T>::epsilon();
+}
+
+template<typename T>
+bool is_equal(T a, T b, T epsilon) {
+    return fabs(a - b) < epsilon;
+}
+
+
+#ifdef TWOBLUECUBES_SINGLE_INCLUDE_CATCH_HPP_INCLUDED
 
 template<typename T>
 bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
     if (a.size() != b.size()) return false;
     for (auto i = 0; i < a.size(); i++) {
         if (a[i] != Approx(b[i]).margin(epsilon)) {
-            std::cout << a[i] << " Should == " << b[i] << std::endl;
+            std::cout << a[i] << " != " << b[i] << std::endl;
             return false;
         }
     }
     return true;
 }
-
 
 template<typename T>
 bool compare_vectors(vecvec<T> a, vecvec<T> b, T epsilon) {
@@ -122,7 +134,31 @@ bool compare_vectors(vecvec<T> a, vecvec<T> b, T epsilon) {
     }
     return true;
 }
+#else
 
-uint64_t generate_link_id(const uint32_t id1, const uint32_t id2);
+template<typename T>
+bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
+    if (a.size() != b.size()) return false;
+    for (auto i = 0; i < a.size(); i++) {
+        if (!is_equal(a[i], b[i], epsilon)) {
+            std::cout << a[i] << " != " << b[i] << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+bool compare_vectors(vecvec<T> a, vecvec<T> b, T epsilon) {
+    if (a.size() != b.size()) return false;
+    for (auto i = 0; i < a.size(); i++) {
+        if (!compare_vectors(a[i], b[i], epsilon)) return false;
+    }
+    return true;
+}
+#endif
+
+uint64_t generate_link_id(uint32_t id1, uint32_t id2);
+
 
 #endif /* MANETSIMS_HELPERS_H */

@@ -24,7 +24,7 @@ std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location 
     std::uniform_real_distribution dist_lon{lon_min, lon_max};
     auto gen_lon = std::bind(dist_lon, eng_lon);
 
-    for (uint32_t i = 0; i < count; ++i) {
+    for (uint32_t i = 1; i <= count; ++i) {
         Location l{gen_lat(), gen_lon()};
         Node n{i, l};
         nodes.emplace_back(n);
@@ -70,6 +70,25 @@ std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold 
             }
 
             Link l{generate_link_id(i, j), nodes[i], nodes[j]};
+            if (l.get_distance() < threshold or threshold <= 0.01) {
+                links.emplace_back(l);
+            }
+        }
+    }
+
+    return links;
+}
+
+std::vector<Optics::CLink> create_link_vector(std::vector<Optics::Cluster> &clusters, double threshold /* km */) {
+    std::vector<Optics::CLink> links{};
+
+    for (uint32_t i = 0; i < clusters.size(); ++i) {
+        for (uint32_t j = i; j < clusters.size(); ++j) {
+            if (i == j) {
+                continue;
+            }
+
+            Optics::CLink l{generate_link_id(i, j), clusters[i], clusters[j]};
             if (l.get_distance() < threshold or threshold <= 0.01) {
                 links.emplace_back(l);
             }

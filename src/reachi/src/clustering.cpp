@@ -1,10 +1,9 @@
 #include <reachi/clustering.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <mpilib/helpers.h>
+#include <reachi/math.h>
 
-Optics::Optics() {
-    //this->console = spdlog::stdout_color_mt("optics");
-}
+Optics::Optics() = default;
 
 double Optics::core_distance(Node &p) {
     if (!is_equal(p.get_core_distance(), UNDEFINED)) {
@@ -159,20 +158,31 @@ std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering, double
 
     separators.emplace_back(ordering.size());
 
-    for (uint32_t j = 0; j < (separators.size() - 1); ++j) {
+    uint32_t id = 0;
+    for (int j = 0; j < (separators.size() - 1); ++j) {
         auto start = separators[j];
         auto end = separators[j + 1];
         if (end - start >= this->minpts) {
             std::vector<Node> cluster{ordering.begin() + start, ordering.begin() + end};
-            Cluster c{j, cluster};
+            Cluster c{id++, cluster};
             clusters.emplace_back(c);
         }
     }
-
+    /*
+     * TODO: Create clusters containing single nodes for any node not in a cluster.
+     */
     return clusters;
 }
 
 Location Optics::Cluster::centroid() const {
+    if (this->nodes.size() == 1) {
+        return this->nodes.front().get_location();
+    }
+
+    if (this->cached) {
+        return this->_centroid;
+    }
+
     auto lat = 0.0;
     auto lon = 0.0;
     for (auto &node : this->nodes) {
@@ -185,6 +195,8 @@ Location Optics::Cluster::centroid() const {
 
     Location l{lat, lon};
 
+    this->_centroid = l;
+    this->cached = true;
     return l;
 }
 
@@ -220,4 +232,85 @@ double Optics::Cluster::cost() const {
     }
 
     return cost;
+}
+
+uint32_t Optics::Cluster::get_id() const {
+    return this->id;
+}
+
+bool Optics::Cluster::contains(const Node &node) const {
+    return std::find(this->nodes.begin(), this->nodes.end(), node) != this->nodes.end();
+}
+
+bool Optics::Cluster::operator==(const Optics::Cluster &rhs) const {
+    return id == rhs.id;
+}
+
+bool Optics::Cluster::operator!=(const Optics::Cluster &rhs) const {
+    return !(rhs == *this);
+}
+
+uint64_t Optics::CLink::get_id() const {
+    return this->id;
+}
+
+double Optics::CLink::get_distance() const {
+    return distance_between(this->clusters.first.centroid(), this->clusters.second.centroid());
+}
+
+const std::pair<Optics::Cluster, Optics::Cluster> &Optics::CLink::get_clusters() const {
+    return clusters;
+}
+
+Optics::CLink::CLink(uint64_t id, Optics::Cluster &c1, Optics::Cluster &c2) : id(id), clusters(std::make_pair(c1, c2)) {
+    this->distance = distance_between(c1.centroid(), c2.centroid());
+}
+
+bool Optics::CLink::operator==(const Optics::CLink &rhs) const {
+    return id == rhs.id;
+}
+
+bool Optics::CLink::operator!=(const Optics::CLink &rhs) const {
+    return !(rhs == *this);
+}
+
+bool Optics::CLink::operator<(const Optics::CLink &rhs) const {
+    return id < rhs.id;
+}
+
+bool Optics::CLink::operator>(const Optics::CLink &rhs) const {
+    return rhs < *this;
+}
+
+bool Optics::CLink::operator<=(const Optics::CLink &rhs) const {
+    return !(rhs < *this);
+}
+
+bool Optics::CLink::operator>=(const Optics::CLink &rhs) const {
+    return !(*this < rhs);
+}
+
+bool Optics::CLink::contains(const Node &node) const {
+    return this->clusters.first.contains(node) || this->clusters.second.contains(node);
+}
+
+bool Optics::CLink::contains(const Node &n1, const Node &n2) const {
+    return (this->clusters.first.contains(n1) && this->clusters.second.contains(n2))
+           || (this->clusters.first.contains(n2) && this->clusters.second.contains(n1));
+}
+
+double Optics::CLink::get_rssi() const {
+    return rssi;
+}
+
+void Optics::CLink::set_rssi(double rssi) {
+    CLink::rssi = rssi;
+}
+
+double Optics::CLink::get_pep() const {
+    return pep;
+}
+
+void Optics::CLink::set_pep(double pep) {
+    CLink::pep = pep;
 }

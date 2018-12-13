@@ -16,7 +16,8 @@
  */
 std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location &lower);
 
-std::vector<Node> generate_cluster(Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */);
+std::vector<Node>
+generate_cluster(Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */);
 
 /**
  * Create a vector of unique (undirected) links from a set of nodes (a graph).
@@ -30,6 +31,8 @@ std::vector<Node> generate_cluster(Location &center, uint32_t begin, unsigned lo
  * @return A vector of unique (undirected) links
  */
 std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold /* kilometers */);
+
+std::vector<Optics::CLink> create_link_vector(std::vector<Optics::Cluster> &clusters, double threshold /* km */);
 
 /**
  * Send nodes to the vizualising tool in chunks of 10000.

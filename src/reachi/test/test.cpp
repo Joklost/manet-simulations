@@ -6,6 +6,7 @@
 #include "reachi/cholesky.h"
 #include "reachi/radiomodel.h"
 #include "reachi/linkmodel.h"
+#include "math.h"
 
 #include <reachi/datagen.h>
 
@@ -36,7 +37,8 @@ TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
     auto cholesky_res_org = slow_cholesky(sigma_org);
 
     auto end = std::chrono::steady_clock::now();
-    std::cout << "Original code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << std::endl;
+    std::cout << "Original code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+              << std::endl;
 
 
     // testing our implementation
@@ -48,7 +50,9 @@ TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
     auto cholesky_res_our = cholesky(sigma_our);
 
     auto end_1 = std::chrono::steady_clock::now();
-    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;
+    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count()
+              << std::endl;
+
 
     REQUIRE(compare_vectors(cholesky_res_org, cholesky_res_our, 0.00001));
 }
@@ -314,6 +318,48 @@ TEST_CASE("Compute packet probability error", "[radiomodel]") {
     REQUIRE(packet_error_probability(-104.0, 160) == Approx(0.014551).margin(0.00001));
 }
 
+TEST_CASE("Cholesky verify", "[cholesky]") {
+    Node n1{1, {57.01266813458001, 9.994625734716218}};
+    Node n2{2, {57.01266813458001, 9.9929758}};
+    Node n3{3, {57.0117698, 9.9929758}};
+    Node n4{4, {57.0117698, 9.994625734716218}};
+
+    Link l6{6, n3, n4};
+    Link l1{1, n1, n2};
+    Link l2{2, n1, n3};
+    Link l5{5, n2, n4};
+    Link l3{3, n1, n4};
+    Link l4{4, n2, n3};
+    std::vector links{l1, l2, l3, l4, l5, l6};
+
+    /* Compute link fading   */
+    auto corr = generate_correlation_matrix_slow(links);
+    auto std_deviation = std::pow(11.4, 2);
+    auto sigma = std_deviation * corr;
+    auto l = slow_cholesky(sigma);
+    REQUIRE(compare_vectors(sigma, l * transpose(l), 0.00001));
+}
+
+TEST_CASE("Eigenvalues", "[math]") {
+    vecvec<double> a{{4.0,   -30.0,  60.0,    -35.0},
+                     {-30.0, 300.0,  -675.0,  420.0},
+                     {60.0,  -675.0, 1620.0,  -1050.0},
+                     {-35.0, 420.0,  -1050.0, 700.0}};
+
+    auto eigen = eig(a, 100);
+
+    vecvec<double> eigenvector_expected{{0.0291933, 0.179186,  0.582076,  0.792608},
+                                        {-0.328712, -0.741918, -0.370502, 0.451923},
+                                        {0.791411,  0.100228,  -0.509579, 0.322416},
+                                        {-0.514553, 0.638283,  -0.514048, 0.252161}};
+    std::vector<double> eigenvalues_expected{2585.25,
+                                             37.1015,
+                                             1.47805,
+                                             0.166643};
+    REQUIRE(compare_vectors(eigen.vectors, eigenvector_expected, 0.0001));
+    REQUIRE(compare_vectors(eigen.values, eigenvalues_expected, 0.0001));
+}
+
 TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     /*Node n1{0, {57.01266813458001, 9.994625734716218}};
     Node n2{1, {57.01266813458001, 9.9929758}};
@@ -340,7 +386,7 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
 
 
     // std::cout << measure<>::execution(generate_correlation_matrix_slow, links) << std::endl;
-     // std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
+    // std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
 
     auto upper = Location{57.01266813458001, 9.994625734716218};
     auto lower = Location{57.0117698, 9.9929758};
