@@ -5,9 +5,9 @@
 #include <random>
 #include <map>
 #include <cmath>
-#include <mpilib/geomath.h>
-#include <mpilib/link.h>
-#include <mpilib/helpers.h>
+#include <mpi/geomath.h>
+#include <mpi/link.h>
+#include <mpi/helpers.h>
 
 #include "constants.h"
 #include "clustering.h"

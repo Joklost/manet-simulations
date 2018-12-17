@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <limits>
-#include <mpilib/geomath.h>
-#include <mpilib/helpers.h>
+#include <mpi/geomath.h>
+#include <mpi/helpers.h>
 #include <reachi/math.h>
 
 double distance_pathloss(const double distance) {

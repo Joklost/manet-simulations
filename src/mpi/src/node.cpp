@@ -1,6 +1,6 @@
 
 #include <utility>
-#include <mpilib/node.h>
+#include <mpi/node.h>
 
 Node::Node(uint32_t id, Location location) : current_location(location) {
     this->id = id;

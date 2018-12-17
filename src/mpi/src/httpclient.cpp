@@ -1,6 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <mpilib/httpclient.h>
+#include <mpi/httpclient.h>
 
 HttpClient::HttpClient(std::string base_url) {
     this->host = std::move(base_url);

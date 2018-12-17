@@ -1,7 +1,7 @@
-#ifndef MANETSIMS_MPILIB_NODE_H
-#define MANETSIMS_MPILIB_NODE_H
+#ifndef MANETSIMS_MPI_NODE_H
+#define MANETSIMS_MPI_NODE_H
 
-#include <mpilib/location.h>
+#include <mpi/location.h>
 #include <vector>
 #include <json.hpp>
 #include <reachi/constants.h>
@@ -75,4 +75,4 @@ void to_json(json &j, const Node &p);
 
 void from_json(const json &j, Node &p);
 
-#endif /* MANETSIMS_MPILIB_NODE_H */
+#endif /* MANETSIMS_MPI_NODE_H */

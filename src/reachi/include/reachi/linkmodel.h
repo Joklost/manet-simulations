@@ -2,7 +2,7 @@
 #define MANETSIMS_LINKMODEL_H
 
 #include <vector>
-#include <mpilib/link.h>
+#include <mpi/link.h>
 
 #include "reachi/math.h"
 

@@ -1,6 +1,6 @@
 #include <catch.hpp>
 #include <iostream>
-#include <mpilib/helpers.h>
+#include <mpi/helpers.h>
 #include <chrono>
 
 #include "reachi/cholesky.h"

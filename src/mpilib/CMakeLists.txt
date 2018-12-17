@@ -1,6 +1,7 @@
-project(mpilib VERSION 1.0 )
+project(mpi LANGUAGES C CXX VERSION 1.0)
 
-add_library(mpilib src/geomath.cpp src/link.cpp src/node.cpp src/location.cpp src/httpclient.cpp src/helpers.cpp)
+add_library(mpilib src/interface.h include/mpilib/objectifier.h)
+set_target_properties(mpilib PROPERTIES LINKER_LANGUAGE CXX)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -16,8 +17,8 @@ install(TARGETS mpilib EXPORT MPILibLibraryConfig
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-# cpprestsdk::cpprest
-target_link_libraries(mpilib reachi spdlog cpr)
+
+target_link_libraries(mpilib spdlog mpich)
 
 enable_testing()
 

@@ -1,5 +1,5 @@
-#include <mpilib/geomath.h>
-#include <mpilib/location.h>
+#include <mpi/geomath.h>
+#include <mpi/location.h>
 
 bool Location::operator==(const Location &rhs) const {
     return latitude == rhs.get_latitude() &&

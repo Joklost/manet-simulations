@@ -1,6 +1,6 @@
 #include <random>
-#include <mpilib/httpclient.h>
-#include <mpilib/helpers.h>
+#include <mpi/httpclient.h>
+#include <mpi/helpers.h>
 
 #include <reachi/datagen.h>
 

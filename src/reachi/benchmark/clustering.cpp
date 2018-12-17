@@ -2,11 +2,11 @@
 #include <iomanip>
 #include <future>
 
-#include <mpilib/node.h>
-#include <mpilib/helpers.h>
+#include <mpi/node.h>
+#include <mpi/helpers.h>
 #include <reachi/datagen.h>
 #include <reachi/math.h>
-#include <mpilib/httpclient.h>
+#include <mpi/httpclient.h>
 #include <reachi/cholesky.h>
 #include <reachi/radiomodel.h>
 #include "math.h"
@@ -231,7 +231,7 @@ return 0;
         auto corr = generate_correlation_matrix(links);
         auto sigma = std_deviation * corr;
         auto gaussian = generate_gaussian_vector(0.0, 1.0, links.size());
-        auto l_fading = our_cholesky(sigma) * gaussian;
+        auto l_fading = cholesky(sigma) * gaussian;
 
         std::vector<double> rssi{TX_DBM - (l_distance + l_fading)};
 

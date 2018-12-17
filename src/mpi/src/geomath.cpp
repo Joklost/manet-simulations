@@ -1,5 +1,5 @@
 #include <cmath>
-#include <mpilib/geomath.h>
+#include <mpi/geomath.h>
 #include <vector>
 #include <iterator>
 #include <algorithm>
