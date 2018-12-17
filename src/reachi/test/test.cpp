@@ -6,6 +6,7 @@
 #include "reachi/cholesky.h"
 #include "reachi/radiomodel.h"
 #include "reachi/linkmodel.h"
+#include "reachi/svd.h"
 #include "math.h"
 
 #include <reachi/datagen.h>
@@ -152,6 +153,26 @@ TEST_CASE("Compute the autocorrelation for an angle (double)", "[math]") {
     REQUIRE(autocorrelation(45.0) == Approx(0.1254).margin(0.0001));
     REQUIRE(autocorrelation(90.0) == Approx(0.0939).margin(0.0001));
 }
+
+/*TEST_CASE("Matrix multiplication", "[math]") {
+    std::random_device rnd_device;
+    std::mt19937 mersenne_engine {rnd_device()};
+    std::uniform_int_distribution<int> dist {0, 100};
+
+    auto gen = [&dist, &mersenne_engine](){
+        return dist(mersenne_engine);
+    };
+
+    std::vector<int> d1(100), d2(100);
+    std::generate(std::begin(d1), std::end(d1), gen);
+    std::generate(std::begin(d2), std::end(d2), gen);
+
+    auto begin_1 = std::chrono::steady_clock::now();
+    std::cout << d1[10] << std::endl;
+    auto res = d1 * d2;
+    auto end_1 = std::chrono::steady_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;
+}*/
 
 
 TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
@@ -398,4 +419,20 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     auto sigma = corr * std_deviation;
 
     //std::cout << measure<>::execution(cholesky, sigma) << std::endl;
+}
+
+TEST_CASE("SVD verification", "[svd]") {
+    vecvec<double> data{{2, 5, 3},
+                        /*{1, 2, 1},
+                        {4, 1, 1},
+                        {3, 5, 2},
+                        {5, 3, 1},
+                        {4, 5, 5},*/
+                        {2, 4, 2},
+                        {2, 2, 5}};
+
+    std::vector<double> singular_values, u, v {};
+    svd(data);
+    //std::tie(singular_values, u, v) = svd(data);
+    //std::cout << singular_values << std::endl;
 }

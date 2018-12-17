@@ -3,6 +3,7 @@
 #include <mpi/geomath.h>
 #include <mpi/helpers.h>
 #include <reachi/math.h>
+#include <reachi/svd.h>
 
 double distance_pathloss(const double distance) {
     return (10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
@@ -198,6 +199,15 @@ double frobenius_norm(vecvec<double> &a) {
     }
 
     return std::sqrt(val);
+}
+
+double frobenius_norm(std::vector<double> &a) {
+    auto res = 0.0;
+
+    for (const double i : a) {
+        res += std::pow(i, 2);
+    }
+    return std::sqrt(res);
 }
 
 double

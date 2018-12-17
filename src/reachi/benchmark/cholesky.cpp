@@ -3,6 +3,7 @@
 #include <reachi/datagen.h>
 #include <reachi/math.h>
 #include <mpi/helpers.h>
+#include <reachi/svd.h>
 
 int main(int argc, char *argv[]) {
     Location upper{57.0134, 9.99008};
@@ -25,15 +26,33 @@ int main(int argc, char *argv[]) {
 
 
     // testing our implementation
-    auto begin_1 = std::chrono::steady_clock::now();
+    /*   auto begin_1 = std::chrono::steady_clock::now();
 
-    auto corr_our = generate_correlation_matrix(links);
-    auto std_deviation_our = std::pow(11.4, 2);
-    auto sigma_our = corr_our * std_deviation_our;
-    auto cholesky_res_our = cholesky(sigma_our);
 
-    auto end_1 = std::chrono::steady_clock::now();
-    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;
+       auto corr_our = generate_correlation_matrix(links);
+       auto std_deviation_our = std::pow(11.4, 2);
+       auto sigma_our = corr_our * std_deviation_our;
+       auto cholesky_res_our = cholesky(sigma_our);
+
+       auto end_1 = std::chrono::steady_clock::now();
+       std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;*/
     //std::cout << cholesky_res_our << std::endl;
 
+
+
+    vecvec<double> data{{2, 5, 3},
+                        /*{1, 2, 1},
+                        {4, 1, 1},
+                        {3, 5, 2},
+                        {5, 3, 1},
+                        {4, 5, 5},*/
+                        {2, 4, 2},
+                        {2, 2, 5}};
+    auto begin_1 = std::chrono::steady_clock::now();
+
+    std::vector<double> singular_values, u, v {};
+    auto res = svd(data);
+    auto end_1 = std::chrono::steady_clock::now();
+    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::microseconds>(end_1 - begin_1).count()
+              << std::endl;
 }

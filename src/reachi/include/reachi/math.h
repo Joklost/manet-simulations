@@ -18,6 +18,22 @@ using vecvec = std::vector<std::vector<T>>;
 /**
  * https://rosettacode.org/wiki/Matrix_multiplication
  */
+
+template<typename T>
+vecvec<T> operator*(const std::vector<T> &lhs, const std::vector<T> &rhs) {
+    vecvec<T> res;
+    auto rhs_size = rhs.size();
+    res.resize(lhs.size(), std::vector<T>(rhs_size));
+
+    for (auto row = 0; row < lhs.size(); ++row) {
+        for (auto column = 0; column < rhs.size(); ++column) {
+            res[row][column] = lhs[row] * rhs[column];
+        }
+    }
+
+    return res;
+}
+
 template<typename T>
 vecvec<T> operator*(const vecvec<T> &lhs, const vecvec<T> &rhs) {
     vecvec<T> res;
@@ -128,6 +144,7 @@ bool operator>(const vecvec<T> &lhs, const T value) {
 
     return true;
 }
+
 /*
 template<typename T>
 bool operator>(const T value, const vecvec<T> &rhs) {
@@ -239,6 +256,96 @@ vecvec<T> operator-(const vecvec<T> &lhs, const vecvec<T> &rhs) {
     return res;
 }
 
+
+template<typename T>
+vecvec<T> operator/(const vecvec<T> &lhs, const T scalar) {
+    vecvec<T> res;
+    auto size = lhs.size();
+    res.resize(size, std::vector<T>(size));
+
+    for (auto row = 0; row < size; ++row) {
+        for (auto column = 0; column < size; ++column) {
+            res[row][column] = lhs[row][column] / scalar;
+        }
+    }
+
+    return res;
+}
+
+template<typename T>
+std::vector<T> operator/(const std::vector<T> &lhs, const T scalar) {
+    std::vector<T> res;
+    auto size = lhs.size();
+    res.resize(size);
+
+    for (auto i = 0; i < size; ++i) {
+        res[i] = lhs[i] / scalar;
+    }
+    return res;
+}
+
+
+template<typename T>
+vecvec<T> dot(const vecvec<T> &lhs, const vecvec<T> &rhs) {
+    vecvec<T> res{};
+    auto size = lhs.size();
+    res.resize(size, std::vector<T>(size));
+
+    for (auto row = 0; row < size; ++row) {
+        for (auto column = 0; column < size; ++column) {
+            auto sum = 0.0;
+
+            for (auto i = 0; i < size; ++i) {
+                auto val_1 = lhs[row][i];
+                auto val_2 = rhs[i][column];
+                sum += val_1 * val_2;
+            }
+
+            //assert(std::isinf(sum) || std::isnan(sum));
+            res[row][column] = sum;
+        }
+    }
+
+    return res;
+}
+
+template<typename T>
+std::vector<T> dot(const vecvec<T> &lhs, const std::vector<T> &rhs) {
+    assert(lhs.size() == rhs.size());
+    std::vector<T> res{};
+    auto size = lhs.size();
+    res.resize(size);
+
+    for (auto i = 0; i < size; ++i) {
+        auto sum = (T) 0;
+
+        for (auto j = 0; j < size; ++j) {
+            sum += lhs[i][j] * rhs[j];
+        }
+        res[i] = sum;
+    }
+
+    return res;
+}
+
+template<typename T>
+std::vector<T> dot(const std::vector<T> &lhs, const vecvec<T> &rhs) {
+    return dot(rhs, lhs);
+}
+
+template<typename T>
+T dot(const std::vector<T> &lhs, const std::vector<T> &rhs) {
+    assert(lhs.size() == rhs.size());
+    T res = 0;
+
+    for (auto i = 0; i < lhs.size(); ++i) {
+        res += lhs[i] * rhs[i];
+    }
+
+    return res;
+}
+
+
 /**
  * Shorthand for subtracting a vector consisting of multiple elements of the same scalar.
  * @tparam T
@@ -260,13 +367,14 @@ std::vector<T> operator-(const T scalar, const std::vector<T> &rhs) {
 
 template<typename T>
 vecvec<T> transpose(const vecvec<T> matrix) {
-    auto size = matrix.size();
+    auto rows = matrix.size();
+    auto row_size = matrix[0].size();
 
     vecvec<T> vec{};
-    vec.resize(size, std::vector<T>(size));
+    vec.resize(rows, std::vector<T>(row_size));
 
-    for (auto i = 0; i < size; i++) {
-        for (auto j = 0; j < size; j++) {
+    for (auto i = 0; i < rows; i++) {
+        for (auto j = 0; j < row_size; j++) {
             vec[j][i] = matrix[i][j];
         }
     }
@@ -285,6 +393,8 @@ struct Eigen {
 vecvec<double> identity(unsigned long n);
 
 double frobenius_norm(vecvec<double> &a);
+
+double frobenius_norm(std::vector<double> &a);
 
 double
 is_eigen_right(unsigned long n, unsigned long k, vecvec<double> &a, vecvec<double> &x, std::vector<double> &lambda);
