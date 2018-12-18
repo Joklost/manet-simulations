@@ -1,6 +1,5 @@
-set(JSON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/json/single_include/nlohmann PARENT_SCOPE)
-set(CATCH_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Catch2/single_include/catch2 PARENT_SCOPE)
-
+set(JSON_BuildTests OFF CACHE BOOL "Don't build json test")
+set(CATCH_BUILD_TESTING OFF CACHE BOOL "Don't build Catch2 test")
 set(BUILD_CPR_TESTS OFF CACHE BOOL "Don't build cpr tests")
 
 find_package(CURL)
@@ -14,9 +13,10 @@ if(OPENSSL_FOUND)
 else()
     set(CMAKE_USE_OPENSSL OFF CACHE BOOL "OPENSSL not found")
 endif()
+
+add_subdirectory(json)
+add_subdirectory(Catch2)
 add_subdirectory(cpr)
-
 add_subdirectory(spdlog)
-
 add_subdirectory(mpilib)
 add_subdirectory(reachi)

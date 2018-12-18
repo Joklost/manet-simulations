@@ -2,7 +2,7 @@
 #define MANETSIMS_HTTPCLIENT_H
 
 #include <string>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <cpr/cpr.h>
 #include <spdlog/spdlog.h>
 

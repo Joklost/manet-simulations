@@ -1,3 +1,3 @@
 /* Tells Catch2 to define a main function */
 #define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include <catch2/catch.hpp>

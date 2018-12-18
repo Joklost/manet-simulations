@@ -1,9 +1,10 @@
 #ifndef MANETSIMS_MPI_NODE_H
 #define MANETSIMS_MPI_NODE_H
 
-#include <mpilib/location.h>
 #include <vector>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
+
+#include <mpilib/location.h>
 
 #include "constants.h"
 
