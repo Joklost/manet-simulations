@@ -1,6 +1,6 @@
 project(mpi VERSION 1.0 )
 
-add_library(mpi src/geomath.cpp src/link.cpp src/node.cpp src/location.cpp src/httpclient.cpp src/helpers.cpp)
+add_library(mpi src/link.cpp src/httpclient.cpp src/helpers.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build

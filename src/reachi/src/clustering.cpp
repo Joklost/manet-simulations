@@ -38,7 +38,7 @@ std::vector<Optics::Neighbour> &Optics::compute_neighbours(Node &p) {
             continue;
         }
 
-        auto distance = distance_between(p, q.second);
+        auto distance = distance_between(p.get_location(), q.second.get_location());
 
         if (distance <= this->eps) {
             Neighbour n{q.second.get_id(), distance};
@@ -60,7 +60,7 @@ void Optics::update_seeds(Node &p, std::vector<uint32_t> &seeds) {
             continue;
         }
 
-        auto reachdist = std::max(coredist, distance_between(p, o));
+        auto reachdist = std::max(coredist, distance_between(p.get_location(), o.get_location()));
         if (is_equal(o.get_reachability_distance(), UNDEFINED)) {
             /* 'o' is not in seeds */
             o.set_reachability_distance(reachdist);

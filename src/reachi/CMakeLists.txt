@@ -3,7 +3,7 @@ project(reachi VERSION 1.0)
 add_library(reachi
         src/math.cpp src/radiomodel.cpp src/linkmodel.cpp
         src/cholesky.cpp src/clustering.cpp
-        src/datagen.cpp)
+        src/datagen.cpp src/node.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -20,7 +20,7 @@ install(TARGETS reachi EXPORT ReachiLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(reachi mpi spdlog)
+target_link_libraries(reachi mpi spdlog mpilib)
 add_subdirectory(benchmark)
 enable_testing()
 

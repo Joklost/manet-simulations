@@ -42,4 +42,8 @@ private:
     double longitude{};
 };
 
+Location random_location(const Location &upper_bound, const Location &lower_bound);
+
+Location square(const Location &corner, double diag /* kilometers */);
+
 #endif //MANETSIMS_LOCATION_H

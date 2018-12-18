@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <future>
 
-#include <mpi/node.h>
+#include <reachi/node.h>
 #include <mpi/helpers.h>
 #include <reachi/datagen.h>
 #include <reachi/math.h>

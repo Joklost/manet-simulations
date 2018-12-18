@@ -1,4 +1,5 @@
 #include <mpilib/hardware.h>
+
 #include <ostream>
 #include <iostream>
 #include <csignal>
@@ -16,17 +17,8 @@ public:
     std::uint16_t v9{};
     std::uint32_t v10{};
     unsigned long v11{};
-    int v12{};
+    std::uint8_t v12{};
     double v13{};
-    float v14{};
-
-    friend std::ostream &operator<<(std::ostream &os, const Packet &packet) {
-        os << "v1: " << packet.v1 << " v2: " << packet.v2 << " v3: " << packet.v3 << " v4: " << packet.v4 << " v5: "
-           << packet.v5 << " v6: " << packet.v6 << " v7: " << packet.v7 << " v8: " << packet.v8 << " v9: " << packet.v9
-           << " v10: " << packet.v10 << " v11: " << packet.v11 << " v12: " << packet.v12 << " v13: " << packet.v13
-           << " v14: " << packet.v14;
-        return os;
-    }
 
     bool operator==(const Packet &rhs) const {
         return v1 == rhs.v1 &&
@@ -41,12 +33,18 @@ public:
                v10 == rhs.v10 &&
                v11 == rhs.v11 &&
                v12 == rhs.v12 &&
-               v13 == rhs.v13 &&
-               v14 == rhs.v14;
+               v13 == rhs.v13;
     }
 
     bool operator!=(const Packet &rhs) const {
         return !(rhs == *this);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Packet &packet) {
+        os << "v1: " << packet.v1 << " v2: " << packet.v2 << " v3: " << packet.v3 << " v4: " << packet.v4 << " v5: "
+           << packet.v5 << " v6: " << packet.v6 << " v7: " << packet.v7 << " v8: " << packet.v8 << " v9: " << packet.v9
+           << " v10: " << packet.v10 << " v11: " << packet.v11 << " v12: " << packet.v12 << " v13: " << packet.v13;
+        return os;
     }
 };
 
@@ -54,34 +52,31 @@ static bool work = true;
 
 void stop_work(int signal) {
     work = false;
+    deinit_hardware();
 }
 
 int main(int argc, char *argv[]) {
 
     std::signal(SIGINT, stop_work);
 
-    init_hardware<Packet>();
+    Location l1{57.01266813458001, 10.994625734716218};
+    Location l2 = square(l1, 1.0);
 
-    Packet p1{'D', 'E', 'A', 'D', 'B', 'E', 'E', 'F', 0x1234, 0x87654321, 4242, 42, 42.42, 13.37};
-    /*Packet p2{43, "Packet 2"};
-    Packet p3{44, "Packet 3"};
-    Packet p4{45, "Packet 4"};
-    Packet p5{46, "Packet 5"};
-*/
+    Location l = random_location(l1, l2);
+
+    init_hardware(l);
+
+    //Packet p1{'D', 'E', 'A', 'D', 'B', 'E', 'E', 'F', 0x1234, 0x87654321, 4242, 'X', 42.42};
+    Packet p1{0xDE, 0xAD, 0xBE, 0xEF, 0xEF, 0xBE, 0xAD, 0xDE, 0x1234, 0x87654321, 4242, 'X', 42.42};
     tx(p1);
-    /*  tx(p2);
-      tx(p3);
-      tx(p4);
-      tx(p5);
-  */
+
     auto packets = rx<Packet>(1ul);
+
+    l = random_location(l1, l2);
+    set_location(l);
     assert(p1 == packets.front());
-    //for (const auto &packet : packets) {
-    //    std::cout << packet << std::endl;
-    //}
 
+    deinit_hardware();
 
-    //while (work);
-
-    deinit_hardware<Packet>();
+    return 0;
 }

@@ -5,7 +5,7 @@
 #include <ostream>
 #include <functional>
 
-#include "node.h"
+#include <reachi/node.h>
 
 class Link {
 public:

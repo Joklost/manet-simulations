@@ -2,58 +2,43 @@
 #define MANETSIMS_OBJECTIFIER_H
 
 #include <memory>
-#include <cstdint>
-
-#include "mpi.h"
-
-using octet = unsigned char;
+#include <vector>
+#include <mpilib/defines.h>
 
 template<typename T>
-using octetarray = std::array<octet, sizeof(T)>;
+std::vector<octet> serialise(const T &object) {
+    std::vector<octet> octets(sizeof(T));
 
-template<typename T>
-std::string hex(const octetarray<T> bytes) {
-    return hex(bytes.data(), bytes.size());
-}
-
-template<typename T>
-octetarray<T> serialise(const T &object) {
-    octetarray<T> bytes;
-
-    const auto *begin = reinterpret_cast< const octet * >( std::addressof(object));
+    const auto *begin = reinterpret_cast<const octet *>(std::addressof(object));
     const auto *end = begin + sizeof(T);
-    std::copy(begin, end, std::begin(bytes));
+    std::copy(begin, end, std::begin(octets));
 
-    return bytes;
+    return octets;
 }
 
 template<typename T>
-T &deserialise(const octetarray<T> &bytes, T &object) {
+T &deserialise(const std::vector<octet> &bytes, T &object) {
     /* http://en.cppreference.com/w/cpp/types/is_trivially_copyable */
     static_assert(std::is_trivially_copyable<T>::value, "not a TriviallyCopyable type");
 
-    auto *begin_object = reinterpret_cast< octet * >( std::addressof(object));
+    auto *begin_object = reinterpret_cast<octet *>( std::addressof(object));
     std::copy(std::begin(bytes), std::end(bytes), begin_object);
 
     return object;
 }
 
+template<typename T>
+T deserialise(const std::vector<octet> &bytes) {
+    /* http://en.cppreference.com/w/cpp/types/is_trivially_copyable */
+    static_assert(std::is_trivially_copyable<T>::value, "not a TriviallyCopyable type");
 
-static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    T object{};
+    auto *begin_object = reinterpret_cast<octet *>( std::addressof(object));
+    std::copy(std::begin(bytes), std::end(bytes), begin_object);
 
-
-std::ostream &operator<<(std::ostream &os, std::vector<octet> &buffer) {
-    for (const auto &item : buffer) {
-        os << " 0x" << hexmap[(item & 0xF0) >> 4] << hexmap[item & 0x0F];
-    }
-
-    return os;
+    return object;
 }
 
-std::ostream &operator<<(std::ostream &os, std::vector<octet> *buffer) {
-    return os << *buffer;
-}
 
 
 #endif /* MANETSIMS_OBJECTIFIER_H */

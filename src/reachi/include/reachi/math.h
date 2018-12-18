@@ -5,7 +5,7 @@
 #include <random>
 #include <map>
 #include <cmath>
-#include <mpi/geomath.h>
+#include "../../../mpilib/include/mpilib/geomath.h"
 #include <mpi/link.h>
 #include <mpi/helpers.h>
 

@@ -1,10 +1,11 @@
 #ifndef MANETSIMS_MPI_NODE_H
 #define MANETSIMS_MPI_NODE_H
 
-#include <mpi/location.h>
+#include <mpilib/location.h>
 #include <vector>
 #include <json.hpp>
-#include <reachi/constants.h>
+
+#include "constants.h"
 
 using json = nlohmann::json;
 

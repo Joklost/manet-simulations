@@ -1,6 +1,6 @@
 project(mpi LANGUAGES C CXX VERSION 1.0)
 
-add_library(mpilib src/interface.h include/mpilib/objectifier.h)
+add_library(mpilib src/mpi.cpp src/hardware.cpp src/ostr.cpp src/location.cpp src/geomath.cpp)
 set_target_properties(mpilib PROPERTIES LINKER_LANGUAGE CXX)
 
 # Define headers for this library. PUBLIC headers are used for

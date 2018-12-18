@@ -5,7 +5,7 @@
 #include <limits>
 #include <cmath>
 #include <queue>
-#include <mpi/node.h>
+#include <reachi/node.h>
 #include <spdlog/spdlog.h>
 
 using neighbour_t = std::pair<Node &, double>;

@@ -1,5 +1,7 @@
-#include <mpi/geomath.h>
-#include <mpi/location.h>
+#include <mpilib/geomath.h>
+#include <mpilib/location.h>
+#include <random>
+#include <functional>
 
 bool Location::operator==(const Location &rhs) const {
     return latitude == rhs.get_latitude() &&
@@ -34,6 +36,28 @@ std::ostream &operator<<(std::ostream &os, const Location &location) {
     os << " latitude: " << location.get_latitude() << ", longitude: "
        << location.get_longitude();
     return os;
+}
+
+Location random_location(const Location &upper_bound, const Location &lower_bound) {
+    auto lat_min = lower_bound.get_latitude();
+    auto lat_max = upper_bound.get_latitude();
+    std::random_device rd_lat;
+    std::default_random_engine eng_lat(rd_lat());
+    std::uniform_real_distribution dist_lat{lat_min, lat_max};
+    auto gen_lat = std::bind(dist_lat, eng_lat);
+
+    auto lon_min = lower_bound.get_longitude();
+    auto lon_max = upper_bound.get_longitude();
+    std::random_device rd_lon;
+    std::default_random_engine eng_lon(rd_lon());
+    std::uniform_real_distribution dist_lon{lon_min, lon_max};
+    auto gen_lon = std::bind(dist_lon, eng_lon);
+
+    return {gen_lat(), gen_lon()};
+}
+
+Location square(const Location &corner, double diag) {
+    return move_location(move_location(corner, diag, 180), diag, 90);
 }
 
 /* https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing */
@@ -73,6 +97,4 @@ Location::Location(double latitude, double longitude) : latitude(latitude), long
 Location::Location(int time, double latitude, double longitude) : time(time), latitude(latitude),
                                                                   longitude(longitude) {}
 
-Location::Location() {
-
-}
+Location::Location() = default;

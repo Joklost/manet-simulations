@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <limits>
-#include <mpi/geomath.h>
+#include "../../mpilib/include/mpilib/geomath.h"
 #include <mpi/helpers.h>
 #include <reachi/math.h>
 #include <reachi/svd.h>
@@ -125,7 +125,7 @@ vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links) {
                                  links[j].get_nodes().second :
                                  links[j].get_nodes().first;
 
-                auto angle = angle_between(common_node, li_unique, lj_unique);
+                auto angle = angle_between(common_node.get_location(), li_unique.get_location(), lj_unique.get_location());
                 corr[i][j] = autocorrelation(angle);
 
             } else if (links[i] == links[j]) {
@@ -161,7 +161,7 @@ vecvec<double> generate_correlation_matrix(std::vector<Link> links) {
                                  links[j].get_nodes().second :
                                  links[j].get_nodes().first;
 
-                auto angle = angle_between(common_node, li_unique, lj_unique);
+                auto angle = angle_between(common_node.get_location(), li_unique.get_location(), lj_unique.get_location());
                 auto value = autocorrelation(angle);
                 corr[i][j] = value >= CORRELATION_COEFFICIENT_THRESHOLD ? value : 0.0;
             }
