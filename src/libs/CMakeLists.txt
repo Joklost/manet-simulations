@@ -17,3 +17,6 @@ endif()
 add_subdirectory(cpr)
 
 add_subdirectory(spdlog)
+
+add_subdirectory(mpilib)
+add_subdirectory(reachi)

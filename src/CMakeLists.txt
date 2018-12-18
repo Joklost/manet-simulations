@@ -36,8 +36,6 @@ include_directories(${CPR_INCLUDE_DIRS} ${JSON_INCLUDE_DIRS} ${CATCH_INCLUDE_DIR
 set(MPI_EXECUTABLE_SUFFIX ".mpich")
 find_package(MPI REQUIRED)
 
-add_subdirectory(reachi)
-add_subdirectory(mpilib)
 add_subdirectory(lmac)
 add_subdirectory(alohanet)
 add_subdirectory(ctlr)
