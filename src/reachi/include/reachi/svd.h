@@ -28,7 +28,13 @@ std::vector<T> svd_1d(const vecvec<T> &matrix, const double &epsilon) {
     }
 }
 
-
+/***
+ * Calculate the singular value decomposition (SVD)
+ * @tparam T
+ * @param matrix
+ * @param epsilon
+ * @return tuple(singular_values, u, v)
+ */
 template<typename T>
 std::tuple<std::vector<T>, vecvec<T>, vecvec<T>> svd(const vecvec<T> &matrix, const double epsilon = 1e-10) {
     std::vector<T> singular_values;

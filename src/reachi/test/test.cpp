@@ -154,25 +154,54 @@ TEST_CASE("Compute the autocorrelation for an angle (double)", "[math]") {
     REQUIRE(autocorrelation(90.0) == Approx(0.0939).margin(0.0001));
 }
 
-/*TEST_CASE("Matrix multiplication", "[math]") {
-    std::random_device rnd_device;
-    std::mt19937 mersenne_engine {rnd_device()};
-    std::uniform_int_distribution<int> dist {0, 100};
+TEST_CASE("Dot product", "[math]") {
+    vecvec<double> v1{{0, 3, 5},
+                      {5, 5, 2}};
 
-    auto gen = [&dist, &mersenne_engine](){
-        return dist(mersenne_engine);
-    };
+    vecvec<double> v2{{3, 4},
+                      {3, -2},
+                      {4, -2}};
 
-    std::vector<int> d1(100), d2(100);
-    std::generate(std::begin(d1), std::end(d1), gen);
-    std::generate(std::begin(d2), std::end(d2), gen);
+    vecvec<double> expected{{29, -16},
+                            {38, 6}};
 
-    auto begin_1 = std::chrono::steady_clock::now();
-    std::cout << d1[10] << std::endl;
-    auto res = d1 * d2;
-    auto end_1 = std::chrono::steady_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;
-}*/
+    auto res = dot(v1, v2);
+    std::cout << res << std::endl;
+    std::cout << "helooooooo" << std::endl;
+    REQUIRE(compare_vectors(res, expected, 0.01));
+}
+
+TEST_CASE("Slicing vecvec and vectors", "[math]") {
+    std::vector<int> v1{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    vecvec<int> v2{{0, 1, 2, 3},
+                   {0, 1, 2, 3},
+                   {0, 1, 2, 3},
+                   {0, 1, 2, 3},
+                   {0, 1, 2, 3}};
+
+    std::vector<int> expected_v1_1{1, 2, 3, 4};
+    std::vector<int> expected_v1_2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+    vecvec<int> expected_v2_1{{0, 1, 2, 3},
+                              {0, 1, 2, 3},
+                              {0, 1, 2, 3},
+                              {0, 1, 2, 3}};
+
+    vecvec<int> expected_v2_2{{1},
+                              {1}};
+
+
+    auto res_v1_1 = slice(v1, 1, 5);
+    auto res_v1_2 = slice(v1, 1);
+
+    auto res_v2_1 = slice(v2, 1);
+    auto res_v2_2 = slice(v2, 1, 2, 1, 2);
+
+    REQUIRE(compare_vectors(res_v1_1, expected_v1_1, 0));
+    REQUIRE(compare_vectors(res_v1_2, expected_v1_2, 0));
+    REQUIRE(compare_vectors(res_v2_1, expected_v2_1, 0));
+    REQUIRE(compare_vectors(res_v2_2, expected_v2_2, 0));
+}
 
 
 TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
@@ -423,16 +452,20 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
 
 TEST_CASE("SVD verification", "[svd]") {
     vecvec<double> data{{2, 5, 3},
-                        /*{1, 2, 1},
-                        {4, 1, 1},
-                        {3, 5, 2},
-                        {5, 3, 1},
-                        {4, 5, 5},*/
                         {2, 4, 2},
                         {2, 2, 5}};
 
-    std::vector<double> singular_values, u, v {};
-    svd(data);
-    //std::tie(singular_values, u, v) = svd(data);
-    //std::cout << singular_values << std::endl;
+    std::vector<double> expected_s{9.30288, 2.884, 0.372724};
+    vecvec<double> expected_u{{-0.651033, 0.389208,  0.65167},
+                              {-0.510022, 0.411546,  -0.755319},
+                              {-0.562168, -0.824104, -0.0694256}};
+
+    vecvec<double> expected_v{{-0.370471,  -0.690065, -0.621741},
+                              {-0.0161927, 0.67407,   -0.73849},
+                              {-0.928703,  0.263522,  0.260897}};
+    auto res = svd(data);
+    REQUIRE(compare_vectors(std::get<0>(res), expected_s, 0.001));
+    REQUIRE(compare_vectors(std::get<1>(res), expected_u, 0.1));
+    REQUIRE(compare_vectors(std::get<2>(res), expected_v, 0.1));
+
 }

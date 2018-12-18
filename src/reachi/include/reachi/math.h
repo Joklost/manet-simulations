@@ -20,6 +20,12 @@ using vecvec = std::vector<std::vector<T>>;
  */
 
 template<typename T>
+std::pair<unsigned long, unsigned long> shape(const vecvec<T> &matrix) {
+    return std::make_pair(matrix.size(), matrix[0].size());
+}
+
+
+template<typename T>
 vecvec<T> operator*(const std::vector<T> &lhs, const std::vector<T> &rhs) {
     vecvec<T> res;
     auto rhs_size = rhs.size();
@@ -288,26 +294,40 @@ std::vector<T> operator/(const std::vector<T> &lhs, const T scalar) {
 template<typename T>
 vecvec<T> dot(const vecvec<T> &lhs, const vecvec<T> &rhs) {
     vecvec<T> res{};
-    auto size = lhs.size();
-    res.resize(size, std::vector<T>(size));
 
-    for (auto row = 0; row < size; ++row) {
-        for (auto column = 0; column < size; ++column) {
+    auto ls = shape(lhs);
+    auto rs = shape(rhs);
+    unsigned long n, m;
+
+    //const vecvec<T>& n_matrix = std::move(lhs), m_matrix = std::move(rhs);
+
+    if (ls.first < rs.first) {
+        n = ls.first;
+        m = rs.second;
+    } else {
+        n = rs.first;
+        m = ls.second;
+        /*n_matrix = rhs;
+        m_matrix = lhs;*/
+    }
+    res.resize(n, std::vector<T>(m));
+
+    for (auto row = 0; row < n; ++row) {
+        for (auto column = 0; column < m; ++column) {
             auto sum = 0.0;
 
-            for (auto i = 0; i < size; ++i) {
-                auto val_1 = lhs[row][i];
-                auto val_2 = rhs[i][column];
-                sum += val_1 * val_2;
+            for (auto i = 0; i < n; ++i) {
+                sum += n < m ?
+                       lhs[row][i] * rhs[i][column] :
+                       rhs[row][i] * lhs[i][column];
             }
 
-            //assert(std::isinf(sum) || std::isnan(sum));
             res[row][column] = sum;
         }
     }
-
     return res;
 }
+
 
 template<typename T>
 std::vector<T> dot(const vecvec<T> &lhs, const std::vector<T> &rhs) {
@@ -340,6 +360,74 @@ T dot(const std::vector<T> &lhs, const std::vector<T> &rhs) {
 
     for (auto i = 0; i < lhs.size(); ++i) {
         res += lhs[i] * rhs[i];
+    }
+
+    return res;
+}
+
+/***
+ *
+ * @tparam T
+ * @param lhs vector to slice
+ * @param start index to begin slicing from
+ * @param end index - 1 to end slicing
+ * @return
+ */
+template<typename T>
+std::vector<T> slice(const std::vector<T> &lhs, int start = 0, int end = 0ul) {
+    std::vector<T> res;
+
+    if (end == 0ul)
+        end = static_cast<int>(lhs.size());
+
+    for (; start < end; start++) {
+        res.emplace_back(lhs[start]);
+    }
+
+    return res;
+}
+
+/***
+ *
+ * @tparam T
+ * @param lhs matrix to slice from
+ * @param row_start row index to start slicing from
+ * @param row_end row index to end slicing from
+ * @param column_start column index to start slicing from
+ * @param column_end column index -1 to end slicing from
+ * @return
+ */
+template<typename T>
+vecvec<T> slice(const vecvec<T> &lhs, int row_start = 0, int row_end = 0ul, int column_start = 0, int column_end = 0) {
+    vecvec<T> res;
+
+    if (row_end == 0ul)
+        row_end = static_cast<int>(lhs.size() - 1);
+
+    for (; row_start <= row_end; ++row_start) {
+        res.emplace_back(slice(lhs[row_start], column_start, column_end));
+    }
+
+    return res;
+}
+
+/***
+ *
+ * @tparam T
+ * @param lhs matrix to slice from
+ * @param column_index index for column value
+ * @param row_start start index
+ * @param row_end end index
+ * @return
+ */
+template<typename T>
+std::vector<T> slice_to_vector(const vecvec<T> &lhs, int column_index, int row_start = 0, int row_end = 0ul) {
+    std::vector<T> res;
+
+    if (row_end == 0ul) row_end = static_cast<int>(lhs.size());
+
+    for (; row_start < row_end; ++row_start) {
+        res.emplace_back(lhs[row_start][column_index]);
     }
 
     return res;

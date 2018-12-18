@@ -307,9 +307,9 @@ Eigen eig(const vecvec<double> &c, unsigned long it_max) {
                         }
                     }
 
-                    auto c = 1.0 / std::sqrt(1.0 + t * t);
-                    auto s = t * c;
-                    auto tau = s / (1.0 + c);
+                    auto c1 = 1.0 / std::sqrt(1.0 + t * t);
+                    auto s = t * c1;
+                    auto tau = s / (1.0 + c1);
                     h = t * a[p][q];
 
                     /* Accumulate corrections to the diagonal elements. */
@@ -369,7 +369,7 @@ Eigen eig(const vecvec<double> &c, unsigned long it_max) {
         }
     }
 
-    /* Ascending sort the eigenvalues and eigenvectors. */
+    /* Descending sort the eigenvalues and eigenvectors. */
     for (auto k = 0; k < n - 1; ++k) {
         auto m = k;
         for (auto l = k + 1; l < n; ++l) {
