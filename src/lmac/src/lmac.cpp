@@ -4,6 +4,7 @@
 #include <iostream>
 #include <csignal>
 
+/*
 class Packet {
 public:
     std::uint8_t v1{};
@@ -46,6 +47,26 @@ public:
            << " v10: " << packet.v10 << " v11: " << packet.v11 << " v12: " << packet.v12 << " v13: " << packet.v13;
         return os;
     }
+};*/
+//Packet p1{'D', 'E', 'A', 'D', 'B', 'E', 'E', 'F', 0x1234, 0x87654321, 4242, 'X', 42.42};
+//Packet p1{0xDE, 0xAD, 0xBE, 0xEF, 0xEF, 0xBE, 0xAD, 0xDE, 0x1234, 0x87654321, 4242, 'X', 42.42};
+
+class Packet {
+public:
+    unsigned long rank{};
+
+        bool operator==(const Packet &rhs) const {
+        return rank == rhs.rank;
+    }
+
+    bool operator!=(const Packet &rhs) const {
+        return !(rhs == *this);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Packet &packet) {
+        os << "rank: " << packet.rank;
+        return os;
+    }
 };
 
 static bool work = true;
@@ -66,15 +87,40 @@ int main(int argc, char *argv[]) {
 
     init_hardware(l);
 
-    //Packet p1{'D', 'E', 'A', 'D', 'B', 'E', 'E', 'F', 0x1234, 0x87654321, 4242, 'X', 42.42};
-    Packet p1{0xDE, 0xAD, 0xBE, 0xEF, 0xEF, 0xBE, 0xAD, 0xDE, 0x1234, 0x87654321, 4242, 'X', 42.42};
-    tx(p1);
+    auto id = get_id();
 
-    auto packets = rx<Packet>(1ul);
+    auto console = spdlog::stderr_color_st("alo" + std::to_string(id));
+    console->info("started");
+
+    if (id == 1ul) {
+        Packet p1{get_id()};
+        tx(p1);
+        sleep(1ul);
+        sleep(1ul);
+        auto packets = rx<Packet>(1ul);
+        for (const auto &item : packets) {
+            console->info(item);
+        }
+    } else if (id == 2ul) {
+        auto packets = rx<Packet>(1ul);
+        for (const auto &item : packets) {
+            console->info(item);
+        }
+        sleep(1ul);
+        sleep(1ul);
+        Packet p1{get_id()};
+        tx(p1);
+    } else {
+        auto packets = rx<Packet>(4ul);
+        for (const auto &item : packets) {
+            console->info(item);
+        }
+    }
+
+    //sleep(5ul);
 
     l = random_location(l1, l2);
     set_location(l);
-    assert(p1 == packets.front());
 
     deinit_hardware();
 

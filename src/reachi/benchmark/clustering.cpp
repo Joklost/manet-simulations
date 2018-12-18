@@ -1,15 +1,16 @@
 #include <iostream>
 #include <iomanip>
 #include <future>
+#include <cmath>
 
 #include <reachi/node.h>
-#include <mpi/helpers.h>
 #include <reachi/datagen.h>
 #include <reachi/math.h>
-#include <mpi/httpclient.h>
 #include <reachi/cholesky.h>
 #include <reachi/radiomodel.h>
-#include "math.h"
+
+#include <mpilib/helpers.h>
+#include <mpilib/httpclient.h>
 
 #define MIN_PTS 2
 #define MIN_EPS 0.01

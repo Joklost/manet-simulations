@@ -5,8 +5,8 @@
 #include <limits>
 #include <cmath>
 #include <queue>
-#include <reachi/node.h>
-#include <spdlog/spdlog.h>
+
+#include "node.h"
 
 using neighbour_t = std::pair<Node &, double>;
 using neighbourhood_t = std::vector<neighbour_t>;

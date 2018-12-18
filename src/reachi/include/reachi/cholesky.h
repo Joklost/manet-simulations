@@ -4,6 +4,7 @@
 #include <vector>
 #include <future>
 #include <cmath>
+
 #include "math.h"
 
 template<typename T>

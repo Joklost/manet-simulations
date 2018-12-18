@@ -1,5 +1,6 @@
 #include <cmath>
 #include <algorithm>
+
 #include <reachi/linkmodel.h>
 #include <reachi/cholesky.h>
 #include <reachi/svd.h>

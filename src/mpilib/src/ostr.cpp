@@ -15,3 +15,4 @@ std::ostream &operator<<(std::ostream &os, std::vector<octet> buffer) {
 std::ostream &operator<<(std::ostream &os, std::vector<octet> *buffer) {
     return os << *buffer;
 }
+

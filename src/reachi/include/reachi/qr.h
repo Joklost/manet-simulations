@@ -1,7 +1,7 @@
 #ifndef MANETSIMS_QR_H
 #define MANETSIMS_QR_H
 
-#include <reachi/math.h>
+#include "math.h"
 
 template<typename T>
 vecvec<T> add_row_axis(const std::vector<T> vec) {

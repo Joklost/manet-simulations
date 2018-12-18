@@ -1,7 +1,8 @@
 #include <algorithm>
 #include <limits>
-#include "../../mpilib/include/mpilib/geomath.h"
-#include <mpi/helpers.h>
+
+#include <mpilib/geomath.h>
+#include <mpilib/helpers.h>
 #include <reachi/math.h>
 #include <reachi/svd.h>
 

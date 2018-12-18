@@ -1,7 +1,9 @@
-#include <reachi/clustering.h>
+#include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include <mpi/helpers.h>
+
+#include <reachi/clustering.h>
 #include <reachi/math.h>
+#include <mpilib/helpers.h>
 
 Optics::Optics() = default;
 

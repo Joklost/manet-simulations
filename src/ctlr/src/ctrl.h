@@ -15,19 +15,25 @@ struct Packet {
     std::vector<octet> *data{};
 };
 
-struct Node {
+class Node {
+public:
     int rank{};
     Location loc{};
     unsigned long time{};
 
     States state = sleeping;
     std::vector<std::vector<octet>> packets{};
+
+    bool operator==(const Node &rhs) const;
+
+    bool operator!=(const Node &rhs) const;
 };
 
 class Controller {
     std::mutex mutex_;
     std::condition_variable cond_;
 
+    bool debug = false;
     bool work = true;
     int dies = 1;
     unsigned long current_time = 0;
@@ -39,7 +45,7 @@ class Controller {
     std::shared_ptr<spdlog::logger> c;
 
     std::map<int, Node> nodes{};
-    std::map<int, std::vector<Packet>> packets{};
+    std::map<int, Packet> packets{};
 
     void message_handler();
 
@@ -60,6 +66,8 @@ class Controller {
     void die(Status &status);
 
 public:
+    explicit Controller(bool debug) : debug(debug) {}
+
     void run();
 };
 

@@ -2,9 +2,8 @@
 #define MANETSIMS_LINKMODEL_H
 
 #include <vector>
-#include <mpi/link.h>
-
-#include "reachi/math.h"
+#include <reachi/link.h>
+#include <reachi/math.h>
 
 std::vector<double> compute_link_fading(std::vector<Link> &links, double time);
 

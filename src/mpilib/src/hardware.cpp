@@ -12,6 +12,9 @@ void init_hardware(const Location &loc) {
     mpi_init(&world_size, &world_rank, &name_len, name);
     processor_name = name + std::to_string(world_rank);
 
+    /* Subtract ctlr from world size. */
+    world_size = world_size - 1;
+
     /* Handshake */
     int number;
     mpi_recv(&number, CTRL, HANDSHAKE);
@@ -36,9 +39,27 @@ void deinit_hardware() {
 }
 
 void sleep(unsigned long time) {
+    mpi_send(time, CTRL, SLEEP);
+
+    unsigned long new_time;
+    mpi_recv(&new_time, CTRL, SLEEP_ACK);
 }
 
 bool set_location(const Location &loc) {
     auto buffer = serialise(loc);
     return mpi_send(buffer, CTRL, LOCATION) == MPI_SUCCESS;
+}
+
+unsigned long get_id() {
+    if (!initialized) {
+        return 0;
+    }
+    return static_cast<unsigned long>(world_rank);
+}
+
+unsigned long get_world_size() {
+    if (!initialized) {
+        return 0;
+    }
+    return static_cast<unsigned long>(world_size - 1);
 }

@@ -1,15 +1,15 @@
 #include <catch.hpp>
 #include <iostream>
-#include <mpi/helpers.h>
+#include <cmath>
 #include <chrono>
 
-#include "reachi/cholesky.h"
-#include "reachi/radiomodel.h"
-#include "reachi/linkmodel.h"
-#include "reachi/svd.h"
-#include "math.h"
-
+#include <reachi/cholesky.h>
+#include <reachi/radiomodel.h>
+#include <reachi/linkmodel.h>
+#include <reachi/svd.h>
 #include <reachi/datagen.h>
+#include <mpilib/helpers.h>
+
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     vecvec<double> matrix{{25.0, 15.0, -5.0},

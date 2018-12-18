@@ -17,17 +17,6 @@ std::vector<octet> serialise(const T &object) {
 }
 
 template<typename T>
-T &deserialise(const std::vector<octet> &bytes, T &object) {
-    /* http://en.cppreference.com/w/cpp/types/is_trivially_copyable */
-    static_assert(std::is_trivially_copyable<T>::value, "not a TriviallyCopyable type");
-
-    auto *begin_object = reinterpret_cast<octet *>( std::addressof(object));
-    std::copy(std::begin(bytes), std::end(bytes), begin_object);
-
-    return object;
-}
-
-template<typename T>
 T deserialise(const std::vector<octet> &bytes) {
     /* http://en.cppreference.com/w/cpp/types/is_trivially_copyable */
     static_assert(std::is_trivially_copyable<T>::value, "not a TriviallyCopyable type");

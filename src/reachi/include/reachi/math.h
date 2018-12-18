@@ -5,15 +5,14 @@
 #include <random>
 #include <map>
 #include <cmath>
-#include "../../../mpilib/include/mpilib/geomath.h"
-#include <mpi/link.h>
-#include <mpi/helpers.h>
+#include <mpilib/helpers.h>
+#include <mpilib/geomath.h>
+#include <mpilib/defines.h>
 
+#include "link.h"
 #include "constants.h"
 #include "clustering.h"
 
-template<typename T>
-using vecvec = std::vector<std::vector<T>>;
 
 /**
  * https://rosettacode.org/wiki/Matrix_multiplication

@@ -1,7 +1,7 @@
 #ifndef MANETSIMS_GPSGEN_H
 #define MANETSIMS_GPSGEN_H
 
-#include <mpi/link.h>
+#include "link.h"
 #include "clustering.h"
 
 /**

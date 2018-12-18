@@ -9,7 +9,6 @@
 #define PATHLOSS_EXPONENT 5.5
 #endif
 
-
 #ifndef THERMAL_NOISE
 #define THERMAL_NOISE -119.66
 #endif
@@ -30,11 +29,8 @@
 #define MAX_LINK_DISTANCE 1
 #endif
 
-
 #define KM 1000
 #define KM_PER_DEGREE 111.320
 #define UNDEFINED -0.1
-
-#define VIS_URL "http://localhost:8050"
 
 #endif /* MANETSIMS_LINKMODEL_CONSTANTS_H */
