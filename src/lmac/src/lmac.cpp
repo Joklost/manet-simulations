@@ -94,24 +94,24 @@ int main(int argc, char *argv[]) {
 
     if (id == 1ul) {
         Packet p1{get_id()};
-        tx(p1);
+        transmit(p1);
         sleep(1ul);
         sleep(1ul);
-        auto packets = rx<Packet>(1ul);
+        auto packets = listen<Packet>(1ul);
         for (const auto &item : packets) {
             console->info(item);
         }
     } else if (id == 2ul) {
-        auto packets = rx<Packet>(1ul);
+        auto packets = listen<Packet>(1ul);
         for (const auto &item : packets) {
             console->info(item);
         }
         sleep(1ul);
         sleep(1ul);
         Packet p1{get_id()};
-        tx(p1);
+        transmit(p1);
     } else {
-        auto packets = rx<Packet>(4ul);
+        auto packets = listen<Packet>(4ul);
         for (const auto &item : packets) {
             console->info(item);
         }

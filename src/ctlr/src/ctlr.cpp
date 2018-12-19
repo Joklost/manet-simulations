@@ -1,5 +1,5 @@
 
-#include "ctrl.h"
+#include "ctlr.h"
 
 void Controller::run() {
     mpi_init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
@@ -45,15 +45,71 @@ void Controller::message_handler() {
         this->c->debug("\e[96m-\e[39m probe(source={}, tag={})", status.source, status.tag);
 
         if (status.tag == DIE) {
-            this->die(status);
+            int node;
+            mpi_recv(&node, status.source, DIE);
+            this->c->debug("\e[96m--\e[39m die(source={}{})", processor_name, node);
+
+            this->dies++;
+            if (this->dies == world_size) {
+                this->work = false;
+                this->cond_.notify_one();
+            } else {
+                /* Make sure that the controller can continue, even if a node will disappear. */
+                if (node == status.source) {
+                    this->nodes.erase(node);
+
+                    if (this->timeslot_complete(this->current_time)) {
+                        this->c->debug("\e[96m---\e[39m notify(time={})", this->current_time);
+                        this->cond_.notify_one();
+                    }
+                }
+            }
+
         } else if (status.tag == TX_PKT) {
-            this->handle_tx(status);
+            this->c->debug("\e[96m--\e[39m handle_tx(source={})", status.source);
+
+            auto packet = new std::vector<octet>{};
+            mpi_recv(packet, status.source, TX_PKT);
+
+            this->packets[status.source] = {this->current_time, packet};
+            //this->packets[status.source].push_back({this->current_time, packet});
+            this->c->debug("\e[96m---\e[39m rx_packet(node={}, size={}):", status.source, packet->size());
+            log_packet(this->c, "\e[96m---\e[39m", packet);
+
+            this->nodes[status.source].time += 1;
+            this->nodes[status.source].state = transmitting;
+
         } else if (status.tag == RX_PKT) {
-            this->handle_rx(status);
+            this->c->debug("\e[96m--\e[39m handle_rx(source={})", status.source);
+
+            unsigned long time_units;
+            mpi_recv(&time_units, status.source, RX_PKT);
+
+            this->nodes[status.source].time += time_units;
+            this->nodes[status.source].state = listening;
+
         } else if (status.tag == SLEEP) {
-            this->handle_sleep(status);
+            unsigned long time_units;
+            mpi_recv(&time_units, status.source, SLEEP);
+
+            this->c->debug("\e[96m--\e[39m handle_sleep(source={}, time={})", status.source, time_units);
+
+            this->nodes[status.source].time += time_units;
+            this->nodes[status.source].state = sleeping;
+
         } else if (status.tag == LOCATION) {
-            this->update_location(status);
+            update_location(status);
+
+        } else if (status.tag == LOCAL_TIME_REQ) {
+            unsigned long id;
+            mpi_recv(&id, status.source, LOCAL_TIME_REQ);
+
+            mpi_send(this->nodes[id].time, status.source, LOCAL_TIME_RSP);
+        } else if (status.tag == WORLD_SIZE_REQ) {
+            unsigned long id;
+            mpi_recv(&id, status.source, WORLD_SIZE_REQ);
+
+            mpi_send(this->nodes.size(), status.source, WORLD_SIZE_RSP);
         }
 
         if (this->timeslot_complete(this->current_time)) {
@@ -104,6 +160,7 @@ void Controller::clock() {
                         continue;
                     }
 
+                    /* TODO: Include link model and neighbourhoods */
                     if (/*reachable or neighbour*/true) {
                         this->c->debug("\e[92m+++\e[39m add_to_neighbour(node={})", pnode.rank);
                         pnode.packets.emplace_back(p.data->begin(), p.data->end());
@@ -170,44 +227,6 @@ bool Controller::handshake() {
     return true;
 }
 
-void Controller::die(Status &status) {
-    int node;
-    mpi_recv(&node, status.source, DIE);
-    this->c->debug("\e[96m--\e[39m die(source={}{})", processor_name, node);
-
-    dies++;
-    if (dies == world_size) {
-        this->work = false;
-        this->cond_.notify_one();
-    }
-}
-
-void Controller::handle_tx(const Status &status) {
-    this->c->debug("\e[96m--\e[39m handle_tx(source={})", status.source);
-
-    auto packet = new std::vector<octet>{};
-    mpi_recv(packet, status.source, TX_PKT);
-
-    this->packets[status.source] = {this->current_time, packet};
-    //this->packets[status.source].push_back({this->current_time, packet});
-    this->c->debug("\e[96m---\e[39m rx_packet(node={}, size={}):", status.source, packet->size());
-    log_packet(this->c, "\e[96m---\e[39m", packet);
-
-    this->nodes[status.source].time += 1;
-    this->nodes[status.source].state = transmitting;
-}
-
-void Controller::handle_rx(const Status &status) {
-    this->c->debug("\e[96m--\e[39m handle_rx(source={})", status.source);
-
-    unsigned long time_units;
-    mpi_recv(&time_units, status.source, RX_PKT);
-
-    this->nodes[status.source].time += time_units;
-    this->nodes[status.source].state = listening;
-
-}
-
 void Controller::update_location(const Status &status) {
     this->c->debug("\e[96m--\e[39m update_location(source={})", status.source);
 
@@ -222,16 +241,6 @@ void Controller::update_location(const Status &status) {
     }
 
     this->c->debug("\e[96m---\e[39m{}", this->nodes[status.source].loc);
-}
-
-void Controller::handle_sleep(const Status &status) {
-    unsigned long time_units;
-    mpi_recv(&time_units, status.source, SLEEP);
-
-    this->c->debug("\e[96m--\e[39m handle_sleep(source={}, time={})", status.source, time_units);
-
-    this->nodes[status.source].time += time_units;
-    this->nodes[status.source].state = sleeping;
 }
 
 bool Controller::timeslot_complete(const unsigned long time) {

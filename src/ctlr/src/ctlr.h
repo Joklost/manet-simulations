@@ -55,15 +55,7 @@ class Controller {
 
     bool handshake();
 
-    void handle_tx(const Status &status);
-
-    void handle_rx(const Status &status);
-
-    void handle_sleep(const Status &status);
-
     void update_location(const Status &status);
-
-    void die(Status &status);
 
 public:
     explicit Controller(bool debug) : debug(debug) {}

@@ -33,9 +33,9 @@ int main(int argc, char *argv[]) {
     for (auto current = 0; current < slots; ++current) {
         if (selected == current) {
             Packet p{id, selected};
-            tx(p);
+            transmit(p);
         } else {
-            auto packets = rx<Packet>(1ul);
+            auto packets = listen<Packet>(1ul);
 
             for (const auto &item : packets) {
                 console->info(item);

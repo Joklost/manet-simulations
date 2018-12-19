@@ -22,40 +22,42 @@ unsigned long get_world_size();
 
 bool set_location(const Location &loc);
 
+unsigned long get_local_time(unsigned long id);
+
 template<typename T>
-void tx(T &packet) {
+void transmit(T &packet) {
     /* Step 1: Serialise packet. */
     /* Step 2: Send packet to ctlr. */
     auto buffer = serialise(packet);
-    mpi_send(buffer, CTRL, TX_PKT);
+    mpi_send(buffer, CTLR, TX_PKT);
 
     unsigned long new_time;
-    mpi_recv(&new_time, CTRL, TX_PKT_ACK);
+    mpi_recv(&new_time, CTLR, TX_PKT_ACK);
 }
 
 template<typename T>
-std::vector<T> rx(unsigned long time) {
+std::vector<T> listen(unsigned long time) {
     /* Step 1: Message ctlr; I'm ready to receive. */
     /* Step 2: Receive messages from ctlr, if any. */
     /* Step 3: Deserialise messages, and return them. */
     std::vector<T> packets{};
 
     /* Let the ctlr know that we want to listen for a number of time slots. */
-    mpi_send(time, CTRL, RX_PKT);
+    mpi_send(time, CTLR, RX_PKT);
 
     /* Wait for ctlr to respond with number of packets. */
     unsigned long packet_count;
-    mpi_recv(&packet_count, CTRL, RX_PKT_COUNT);
+    mpi_recv(&packet_count, CTLR, RX_PKT_COUNT);
 
     for (auto i = 0; i < packet_count; ++i) {
         std::vector<octet> buffer(sizeof(T));
-        mpi_recv(buffer, CTRL, RX_PKT);
+        mpi_recv(buffer, CTLR, RX_PKT);
 
         packets.emplace_back(deserialise<T>(buffer));
     }
 
     unsigned long new_time;
-    mpi_recv(&new_time, CTRL, RX_PKT_ACK);
+    mpi_recv(&new_time, CTLR, RX_PKT_ACK);
 
     return packets;
 }
