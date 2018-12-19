@@ -1,16 +1,55 @@
+\section{Hardware Emulator}\label{sec:mpiprotocol}
+In this section, we will introduce the hardware functions required to emulate the radio hardware on a wireless sensor node, as well as a sample protocol that we can implement, using these functions. \autoref{sec:saloha} will present the Slotted ALOHA protocol, and \autoref{sec:hwfuncspseudo} will present the three functions, along with pseudocode descriptions of these.
+
+\subsection{Slotted ALOHA}\label{sec:saloha}
+%In this section we will present an implementation of the Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}, using the hardware interface from \autoref{sec:hardwareinterface}. 
+Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, that enable communication between nodes in a wireless network, by randomly selecting a time slot to transmit, while listening in every other time slot. Pseudocode describing the Slotted ALOHA protocol can be seen in \autoref{algo:slottedaloha}. This method of selecting time slots for transmitting will have a high probability of collisions happening, where multiple nodes transmit at the same time.\medbreak
+
+%An important part of any \gls{tdma} protocol is that only a single node should transmit at a given timeslot, otherwise collisions will occur. Thus, the Slotted ALOHA protocol is a good choice for 
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
-    \SetKwFunction{FTransmit}{Transmit}
+    \SetKwFunction{FSlottedALOHA}{Slotted ALOHA}
+    \SetKwProg{Fn}{procedure}{}{}
+
+    \Fn{\FSlottedALOHA{}}{
+        \Repeat{\textit{protocol terminates}}{
+            selected $\leftarrow$ randomly select a slot $\in$ {1, 2, \dots, S}\;
+
+            \ForEach{current $\in$ {1, 2, \dots, S}}{
+                \If{select = current}{
+                    \KwTransmit\;
+                }
+                \Else{
+                    \KwListen\;
+                }
+            }
+        }
+    }
+
+    \caption{The Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}.}
+    \label{algo:slottedaloha}
+\end{algorithm}
+
+\todo[inline]{At some point, we should be able to create a graph to measure received packets and collisions for the Slotted ALOHA protocol.}
+
+\subsection{Hardware Functions}\label{sec:hwfuncspseudo}
+The three essential functions for hardware emulation is: broadcasting (\autoref{algo:hwfuncstransmit}), listening (\autoref{algo:hwfuncslisten}), and sleeping (\autoref{algo:hwfuncssleep}).
+  
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FBroadcast}{Broadcast}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FTransmit{packet}}{
+    \Fn{\FBroadcast{packet}}{
         \KwSend packet \KwTo controller\;
         \KwAwait ack \KwFrom controller\;
     }
-    \caption{The Transmit Function.}
+    \caption{The Broadcast Function.}
     \label{algo:hwfuncstransmit}
 \end{algorithm}
+
+The \texttt{Broadcast} function takes any arbitrary data packet, sends this to the controller using the \gls{mpi}, and waits for an acknowledgement from the controller. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -35,12 +74,14 @@
     \label{algo:hwfuncslisten}
 \end{algorithm}
 
+The \texttt{Listen} function takes an amount of time units, and sends this to the controller. The controller will return any packets the listening node have received within the time interval.
+
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FSleep}{Sleep}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FListen{time}}{
+    \Fn{\FSleep{time}}{
         \KwSend time \KwTo controller\;
         \KwAwait wakeup \KwFrom controller\;
     }
@@ -48,3 +89,5 @@
     \caption{The Sleep Function.}
     \label{algo:hwfuncssleep}
 \end{algorithm}
+
+The \texttt{Sleep} function also takes an amount of time units, and sends this to the controller. The controller will in turn send a wakeup message to the node after the time has passed.

@@ -100,38 +100,6 @@
 		\end{exa}
 }
 
-% Table macro.
-% 1: Table Latex
-% 2: Caption
-% 3: Label
-\definecolor{lightgray}{gray}{0.9}
-\newcommand{\makeTable}[3]{
-    \rowcolors{1}{}{lightgray}
-    \begin{table}[H]
-        \centering
-            \begin{tabular}
-            #1
-            \end{tabular}
-        \caption{#2}
-        \label{table:#3}
-    \end{table}
-    \rowcolors{0}{}{}
-}
-
-% Table macro.
-% 1: Table Latex
-% 2: Caption
-% 3: Label
-\newcommand{\makeTablePB}[3]{
-    \rowcolors{1}{}{lightgray}
-    \begin{longtable}
-        #1
-        \caption{#2}
-        \label{table:#3}
-    \end{longtable}
-    \rowcolors{0}{}{}
-}
-
 % Code listing macros
 \newenvironment{java}[3][]
 {\VerbatimEnvironment

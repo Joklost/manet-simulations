@@ -1,13 +1,11 @@
 \chapter{Message Passing Interface}
+%In this chapter, we will introduce our \gls{mpi} library.
 
-\section{Protocol}\label{sec:mpiprotocol}
+To be able to simulate radio communication using \gls{mpi}, we want to expose a series of functions, such that \gls{manet} nodes will be able to communicate with each other. This will be done in two parts. The first part is a set of hardware emulating functions to enable transmission and reception of data packets between nodes. This part is introduced in \autoref{sec:mpiprotocol}. The second part is a centralised controller, used to control the networking between the nodes. The controller is presented in \autoref{sec:mpicontroller}.
+
 \input{sections/04-implementation/01-protocols.tex}
-
-\section{Centralised Controller}\label{sec:mpicontroller}
 \input{sections/04-implementation/02-controller.tex}
 
 \chapter{Implementation}
-
 \input{sections/04-implementation/03-hardwareinterface.tex}
-
-\input{sections/04-implementation/04-slotted-aloha.tex}
+%\input{sections/04-implementation/04-slotted-aloha.tex}

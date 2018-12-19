@@ -1,34 +1,44 @@
+\section{Centralised Controller}\label{sec:mpicontroller}
+The centralised controller consist of two concurrent procedures. The \texttt{MessageHandler} procedure (\autoref{algo:mpimessagehandler}), and the \texttt{Controller} procedure (\autoref{algo:mpicontrollerpart}). A shared state is used to manage the data between the two procedures (\autoref{algo:mpisharedstate}). \medbreak
+
+In essence, the centralised controller works by gathering all requests from all nodes in the \texttt{MessageHandler} procedure for a given time slot, and by processing, and responding to the requests in the \texttt{Controller} procedure.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     
     \textbf{Structure} Message \{ action, source, data, time \}\;
-    \textbf{Structure} Node \{ id, state, location, time, packets \}\;
+    \textbf{Structure} Node \{ id, state, time, packets \}\; % location
     \;
     
     nodes $\leftarrow$ map containing all nodes with id as key\;
-    packets $\leftarrow$ empty map\;
+    transmissions $\leftarrow$ empty map\;
     currenttime $\leftarrow$ 0\;
  
-    \caption{The Shared State}
+    \caption{The shared state variables and structures used by the centralised controller.}
     \label{algo:mpisharedstate}
 \end{algorithm}
 
+The shared state consists of two structures, \texttt{Message} and \texttt{Node}, used to store messages and nodes respectively, as well as three global variables: \texttt{nodes}, \texttt{transmissions}, and \texttt{currenttime}. \smallbreak
+
+\texttt{nodes} is a map of key-value pairs, containing every node in the network, with the unique identifier of the node as the key, and a \texttt{Node} structure as the value. \smallbreak
+
+\texttt{transmissions} is another map of key-value pairs, where the key is the unique identifier of a transmitting node, and the value is the data packet sent from the node. \smallbreak
+
+\texttt{currenttime} is an integer used to keep track of the already processed time slots, whenever a time slot has been processed, this is incremented.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FMessageHandler}{MessageHandler}
     \SetKwProg{Fn}{procedure}{}{}
     
-
     \Fn{\FMessageHandler{}}{
         \Repeat{\textit{protocol terminates}}{
-            m $\leftarrow$ \KwAwait message \KwFrom any node\;
+            m $\leftarrow$ \KwAwait Message \KwFrom any node\;
         
             \If{m.action = transmit}{
                 nodes(m.source).time $\leftarrow$ nodes(m.source).time + 1\;
                 nodes(m.source).state $\leftarrow$ transmitting\;
-                packets(m.source) $\leftarrow$ m.data\;
+                transmissions(m.source) $\leftarrow$ m.data\;
             }
             \ElseIf{m.action = listen}{
                 nodes(m.source).time $\leftarrow$ nodes(m.source).time + m.time\;
@@ -38,16 +48,22 @@
                 nodes(m.source).time $\leftarrow$ nodes(m.source).time + m.time\;
                 nodes(m.source).state $\leftarrow$ sleeping\;
             }
-            \ElseIf{m.action = location}{
-                nodes(m.source).location $\leftarrow$ m.data as location\;
-            }
+            %\ElseIf{m.action = location}{
+            %    nodes(m.source).location $\leftarrow$ m.data as location\;
+            %}
         }
     }
-    
-    \caption{The Message Handler.}
+    \caption{The MessageHandler procedure.}
     \label{algo:mpimessagehandler}
 \end{algorithm}
 
+The task of the \texttt{MessageHandler} procedure is to continuously gather requests from all of the nodes in the network, and change the state and local time of the node in the \texttt{nodes} map, as well as storing the data packet for any transmitting node in the \texttt{packets} map. \medbreak
+
+Whenever requests have been gathered from all nodes for a time slot, we are able to process the time slot. This is the task of the \texttt{Controller} procedure. On \autoref{line:awaitprocess} in \autoref{algo:mpicontrollerpart}, we wait until every node in the \texttt{nodes} map has a $\texttt{time} > \texttt{currenttime}$, which means that every node has sent a request for the \texttt{currenttime}'th time slot. If this is the case, we are able to process the time slot. A time slot is processed by first iterating through all nodes that are either in the \texttt{transmitting} or \texttt{sleeping} state. If the node is transmitting, we need to distribute the packet to all neighbours of the node that are able to receive the packet, by adding the packet to the \texttt{packets} list in the \texttt{Node} structure. This is decided by the link model (TODO), where we compute the probability of the neighbour receiving the packet, as described in \autoref{sec:linkmodel}. Is the node currently sleeping, we send a wakeup message to the node, if the local time of the node is equal to our \texttt{currenttime} variable. \smallbreak
+
+\todo[inline]{Incorporate link model}
+
+After processing any transmitting or sleeping nodes, we iterate through the map of nodes once again, but this time we process any nodes currently listening for packets. If the local time of the node listening for packets is equal to our \texttt{currenttime} variable, we send any packets stored in the \texttt{packets} list of the node, and clear the contents of the list afterwards.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -56,7 +72,7 @@
     
     \Fn{\FProcessor{}}{
         \Repeat{\textit{protocol terminates}}{
-            \KwAwait every node $\in$ nodes, where node.time $>$ currenttime\;
+            \KwAwait every node $\in$ nodes, where node.time $>$ currenttime\;\label{line:awaitprocess}
             
             currenttime $\leftarrow$ currenttime + 1\;
         
@@ -64,26 +80,25 @@
                 \If{node.state = transmitting}{
                     %m $\leftarrow$ Message\;
                     %m.action $\leftarrow$ transmit\;
-                    data $\leftarrow$ packets(node.id)\;
+                    data $\leftarrow$ transmissions(node.id)\;
                     
                     \ForEach{neighbour $\in$ neighbours(node)}{
-                        \If{neighbour.state = listening \textbf{and} isreachable(neighbour)}{
+                        \If{neighbour.state = listening \KwAnd shouldreceive(neighbour)}{
                             \KwAppend data \KwTo neighbour.packets\;
                         }
                     }
                     
-                    \KwRemove packets(node.id)\;
+                    \KwRemove transmissions(node.id)\;
                     \KwSend ack \KwTo node.id\;
                 }
-                \ElseIf{node.state = sleeping}{
-                    \If{node.time = currenttime}{
-                        \KwSend wakeup \KwTo node.id\;
-                    }
+                \ElseIf{node.state = sleeping \KwAnd node.time = currenttime}{
+                    \KwSend wakeup \KwTo node.id\;
                 }
             }
             
             \ForEach{node $\in$ nodes}{
                 \If{node.state = listening \KwAnd node.time = currenttime}{
+                    \KwSend $|$node.packets$|$ \KwTo node.id\;                
                     \ForEach{packet $\in$ node.packets}{
                         \KwSend packet \KwTo node.id\;
                     }
@@ -95,6 +110,7 @@
         }
     }
     
-    \caption{The Controller Part.}
+    \caption{The Controller procedure.}
     \label{algo:mpicontrollerpart}
 \end{algorithm}
+
