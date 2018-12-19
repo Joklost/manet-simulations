@@ -1,0 +1,92 @@
+% \subsection{Cholesky decomposition}\label{sec:cholesky}
+%In this section we present and describe the Cholesky decomposition, and the problem it creates for our computation time, and how we propose to optimise the decomposition algorithm for our particular needs.
+
+% The cholesky decomposition or cholesky factorization is a matrix decomposition, of a positive-definite matrix, resulting in a lower triangular matrix and its conjugate transpose.
+
+In \autoref{sec:linkmodel} we utilise the Cholesky decomposition in \autoref{eq:pathlossstoch}. The Cholesky decomposition or Cholesky factorization is a matrix decomposition, on a \gls{pd-matrix}. The decomposition results in a \gls{lt-matrix} and its \gls{conjugate-transpose}. The Cholesky decomposition is an expensive computation of cubic time complexity, as such we intend to speed up the algorithm. Furthermore since the decomposition requires an \gls{pd-matrix} to work, we choose to verify our auto-correlation matrix before decomposing it, to ensure that the decomposition will run correctly.
+
+In the following sections we discuss our optimizations.
+
+% is a decomposition of a Hermitian, positive-definite matrix into the product of a lower triangular matrix and its conjugate transpose,
+
+
+% In \autoref{sec:linkmodel} we utilise the Cholesky decomposition in \autoref{eq:pathlossstoch}. 
+% In \autoref{sec:linkmodel} we utilise the Cholesky decomposition. The Cholesky decomposition is an expensive computation of cubic time complexity and, as such, it needs to be more efficient for our use case. 
+
+%Initially we propose to optimise the algorithm by changing the data structure from a matrix to an ordered map of key-value pairs. The keys will a tuple of links and the value will be the result of the auto-correlation function from \autoref{eq:pathlossautocorrelation}.\medbreak
+
+
+
+%, where the pair will be sorted after the link with the largest id, will be the first element in the pair, eg. $l_1.id = 1$ and $l_2.id = 2$ then $key = (l_2, l_1)$. The map must be ordered since the cholesky decomposition uses previous calculated values, to calculate the next.
+
+% shortly introduce cholesky
+
+% our intended improvements
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{}
+    \SetKwFunction{Cholesky}{Cholesky}
+    \SetKwProg{Fn}{Function}{:}{}
+    \Fn{\Cholesky{matrix}}{
+        result$_{n,m}$\;
+       \For{n = 0, n < matrix.size}{
+            \For{m = 0, m < n + 1}{
+                sum = 0\;
+                \For{i = 0, i < m}{
+                    sum = sum + result$_{n,i} \cdot$ result$_{m,i}$\;
+                }
+                \If{n == m}{
+                    results$_{n,m}$ = $\sqrt{\text{matrix}_{n,n} - \text{sum}}$\;
+                }
+                \Else{
+                    results$_{n,m} = \frac{1}{\text{result}_{m,m}} \cdot (\text{matrix}_{n,m} - sum)$\;
+                }
+            }
+        }
+        \KwRet result
+    }
+    \caption{Cholesky decomposition}
+    \label{algo:cholesky}
+\end{algorithm}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% øøøøøh tænker at alt nedefra kan nærmest dumbes
+
+%In \autoref{eq:correlationmatrix} we create the correlation matrix. The correlation matrix will be used later in the computations, and such optimising the matrix is %relevant. We will do the following steps to optimise:
+%
+%\begin{enumerate}
+%    \item Remove duplicates
+%    \item Remove elements of value 0 or value below a given threshold
+%\end{enumerate}
+%
+%
+%
+%
+%First we remove duplicates. The correlation matrix is a symmetric matrix, which means that $m_{i,j} = m_{j,i}$. As such we can safely remove either $m_{i,j}$ or %$m_{j,i}$ from our data structure, as it would be redundant to keep duplicate values representing the same link pair. Secondly we remove link pairs where their %calculated correlation is below a threshold. When elements has the value 0, it means that the link pair has no correlation, and can therefore be omitted. Link pairs %where their calculated correlation is below a defined threshold, will also be omitted. This is done because link pairs with a very low correlation will have a very high %packet error probability, where the probability for successfully receiving a packet will be too low.
+%
+%\subsubsection{Benchmarks}
+%
+%\begin{table}[ht]
+%\begin{tabular}{|l|l|l|l|l|l|l|}
+%\hline
+% & 50 & 100 & 200 & 500 & 1000  \\ \hline
+%Cholesky &  &  &  &  &  \\ \hline
+%Cholesky\_improved &  &  &  &  &  \\ \hline
+%\end{tabular}
+%\end{table}

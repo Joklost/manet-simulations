@@ -1,0 +1,85 @@
+%\section{Hardware constants}
+%Below is a list of constants that must be specified, when using our interface.
+%\begin{itemize}
+%    \item Baudrate
+%    \item Transmission power
+%    \item Noise figure
+%    \item Thermal noise
+%\end{itemize}
+%
+%
+%\begin{C++}{Hardware constants}{code:hw:constants}
+%
+%#define BAUD_RATE 34800        /* Hz  */
+%#define TX_POWER 26.2          /* dBm */
+%#define THERMAL_NOISE -119.66  /* dBm */
+%#define NOISE_FIGURE 4.2       /* dBm */
+%
+%\end{C++}
+%
+
+
+%\section{The Hardware Interface}\label{sec:preliminaries:interface-design-c}
+%In this section we will describe the design of the hardware (\gls{lowerlayer}) interface, used by an \gls{upperlayer} protocol to simulate radio communication between nodes in a \gls{manet}. The interface is designed to be as generic as possible, such that it can be used by any arbitrary \gls{upperlayer} protocol. To achieve this, we define three basic functions that will be used for communicating with other nodes in the network. Additionally, we want to keep the interface C-compatible, such that an \gls{upperlayer} protocol can be implemented in either C or C++, or any other language implementing a C \gls{ffi}\footnote{Languages implementing a C \gls{ffi} include, but are not limited to, Python~\cite{website:python3ctypes}, Java~\cite{website:javajni}, Rust~\cite{website:rustffi}.}. This is done by using only C-compatible types, as well as adding the \mintinline{cpp}{extern "C"} block around the code in the header file, as seen in \autoref{code:hw:interface}.
+%% As such, we define three basic functions targeted towards protocols using the \gls{tdma}~\cite{paper:lmac_protocol} method for dividing transmission into different time slots.
+%
+%% Additionally, the interface is based on the requirements of the LMAC~\cite{paper:lmac_protocol} protocol, as described in \autoref{sec:preliminaries:lmac_analysis}, and we will relate the following functions to the LMAC protocol.
+%
+%\begin{C++}{The hardware interface header (hardware.h)}{code:hw:interface}
+%#ifndef HARDWARE_H
+%#define HARDWARE_H
+%
+%#include <stdint.h>
+%
+%#ifdef __cplusplus
+%extern "C" {
+%#endif  
+%
+%void broadcast(uint8_t *packet, uint8_t packet_len);
+%uint8_t * listen(uint32_t time);
+%void sleep(uint32_t time);
+%
+%#ifdef __cplusplus  
+%} /* extern "C" */
+%#endif
+%
+%#endif /* HARDWARE_H */
+%\end{C++}
+%
+%% We have chosen to use the \mintinline{cpp}{uint8_t} type to represent \glspl{octet}
+%
+%\begin{description}[style=nextline]
+%    \item[\mintinline{cpp}{void broadcast(uint8_t *packet, uint8_t packet_len)}] The \texttt{broadcast()} function is used for broadcasting packets to the network. The function takes an unsigned 8-bit integer pointer as the first argument, and the length of the packet as the second argument. The 8-bit integer pointer \texttt{packet} represents an array of \glspl{octet}, and may be as long as 255 \glspl{octet}.
+%    
+%    % The \texttt{broadcast()} function is for broadcasting packets for a given amount of time slots. In the LMAC protocol a node will only broadcast a single package for an entire time slot.
+%    % Broadcast message, return after 1 time slot
+%
+%    \item[\mintinline{cpp}{uint8_t * listen(uint32_t time)}] The \texttt{listen()} function is used to listen for packets for a given amount of time. The function takes an unsigned 32-bit integer as argument, representing the amount time units that the node must be in a listening state. Packets received in the duration of the given time, will be returned as a pointer to an 8-bit unsigned integer.\smallbreak
+%    The pointer is a pointer to an array of \glspl{octet} containing a sequence of packets, as demonstrated in \autoref{fig:bytefield:receivedpackets}.
+%    The first \gls{octet} in the array is the amount of (\textit{n}) packets contained in the sequence. This means that we will be limited to receiving 255 packets within the given time\todo[inline]{Will this be enough?}. The next \gls{octet} is the size in (\textit{x}) \glspl{octet} in the first packet, where the \textit{x} following \glspl{octet} is the received packet, and so on. Structuring the packet sequence this way allows us to preallocate the memory needed to store the packet, and with little effort unpack the sequence of packets. A sample program for unpacking a sequence of packets is provided in \autoref{app:codesamples}, \autoref{code:samples:unpack_c}.
+%    
+%    \begin{figure}[ht]
+%        \centering
+%        
+%        \begin{bytefield}{40}
+%            \bitbox{8}{8 bits} & \bitbox{8}{8 bits} & \bitbox{8}{\textit{x} \glspl{octet} \ldots} & \bitbox{8}{8 bits} & \bitbox{8}{\textit{y} \glspl{octet} \ldots} \\
+%            \bitbox{8}{\textit{n} packets} &
+%            \bitbox{8}{\textit{x} \glspl{octet}} & \bitbox{8}{\color{lightgray}\rule{\width}{\height}} & \bitbox{8}{\textit{y} \glspl{octet}} & \bitbox{8}{\color{lightgray}\rule{\width}{\height}}
+%        \end{bytefield}
+%        
+%        \caption{A sequence of received packets.}
+%        \label{fig:bytefield:receivedpackets}
+%    \end{figure}
+%    
+%    
+%    % The \texttt{listen()} function is used to listen for messages for a given amount of time slots. In the LMAC protocol, a node will listen for packets in every occupied time slot, in order to listen for control messages.
+%    % Listen for messages, return after N time slots
+%    
+%    \item[\mintinline{cpp}{void sleep(uint32_t time)}] The \texttt{wait()} function, allows for a node to go in an sleeping state for a given amount of time. The function takes an unsigned 32-bit integer as argument, representing the amount of time units that the node must be in a sleeping state. Being able to set the node in a sleeping state, allows for protocols to simulate turning off some of the hardware, reducing power consumption.
+%    
+%    
+%    % This is useful for situations where the node should neither broadcast or listen for messages. In the LMAC protocol, a node waits a random amount of time before proceeding to the discover phase.
+%    % Wait for N time slots
+%     
+%%    \item[discover()] The \texttt{discover()} function allows for a node to get information about the first- and second-order neighbours. Implementation wise, this would probably be done by using the preexisting knowledge of the network, either based on geographical data using a function to calculate the topology, or from a network topology given as input to the interface. In the LMAC protocol, a node needs information about its neighbours before it can select a time slot.
+%\end{description}

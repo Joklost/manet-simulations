@@ -1,0 +1,100 @@
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    
+    \textbf{Structure} Message \{ action, source, data, time \}\;
+    \textbf{Structure} Node \{ id, state, location, time, packets \}\;
+    \;
+    
+    nodes $\leftarrow$ map containing all nodes with id as key\;
+    packets $\leftarrow$ empty map\;
+    currenttime $\leftarrow$ 0\;
+ 
+    \caption{The Shared State}
+    \label{algo:mpisharedstate}
+\end{algorithm}
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FMessageHandler}{MessageHandler}
+    \SetKwProg{Fn}{procedure}{}{}
+    
+
+    \Fn{\FMessageHandler{}}{
+        \Repeat{\textit{protocol terminates}}{
+            m $\leftarrow$ \KwAwait message \KwFrom any node\;
+        
+            \If{m.action = transmit}{
+                nodes(m.source).time $\leftarrow$ nodes(m.source).time + 1\;
+                nodes(m.source).state $\leftarrow$ transmitting\;
+                packets(m.source) $\leftarrow$ m.data\;
+            }
+            \ElseIf{m.action = listen}{
+                nodes(m.source).time $\leftarrow$ nodes(m.source).time + m.time\;
+                nodes(m.source).state $\leftarrow$ listening\;
+            }
+            \ElseIf{m.action = sleep}{
+                nodes(m.source).time $\leftarrow$ nodes(m.source).time + m.time\;
+                nodes(m.source).state $\leftarrow$ sleeping\;
+            }
+            \ElseIf{m.action = location}{
+                nodes(m.source).location $\leftarrow$ m.data as location\;
+            }
+        }
+    }
+    
+    \caption{The Message Handler.}
+    \label{algo:mpimessagehandler}
+\end{algorithm}
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FProcessor}{Controller}
+    \SetKwProg{Fn}{procedure}{}{}
+    
+    \Fn{\FProcessor{}}{
+        \Repeat{\textit{protocol terminates}}{
+            \KwAwait every node $\in$ nodes, where node.time $>$ currenttime\;
+            
+            currenttime $\leftarrow$ currenttime + 1\;
+        
+            \ForEach{node $\in$ nodes}{
+                \If{node.state = transmitting}{
+                    %m $\leftarrow$ Message\;
+                    %m.action $\leftarrow$ transmit\;
+                    data $\leftarrow$ packets(node.id)\;
+                    
+                    \ForEach{neighbour $\in$ neighbours(node)}{
+                        \If{neighbour.state = listening \textbf{and} isreachable(neighbour)}{
+                            \KwAppend data \KwTo neighbour.packets\;
+                        }
+                    }
+                    
+                    \KwRemove packets(node.id)\;
+                    \KwSend ack \KwTo node.id\;
+                }
+                \ElseIf{node.state = sleeping}{
+                    \If{node.time = currenttime}{
+                        \KwSend wakeup \KwTo node.id\;
+                    }
+                }
+            }
+            
+            \ForEach{node $\in$ nodes}{
+                \If{node.state = listening \KwAnd node.time = currenttime}{
+                    \ForEach{packet $\in$ node.packets}{
+                        \KwSend packet \KwTo node.id\;
+                    }
+                    
+                    \KwClear node.packets\;
+                }
+            }
+        
+        }
+    }
+    
+    \caption{The Controller Part.}
+    \label{algo:mpicontrollerpart}
+\end{algorithm}

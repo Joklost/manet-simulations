@@ -1,0 +1,45 @@
+ \section{The LMAC protocol}\label{sec:preliminaries:lmac_protocol}
+ \todo[inline]{Work in progress.}
+ In this section we will briefly describe the \gls{lmac} protocol. The protocol will be used as a our testing protocol.\medbreak
+ 
+ The \gls{lmac} protocol is, more lightweight compared to other \gls{mac} protocols as its intended, use is in networks where the devices power consumption should be minimal. \gls{lmac} uses \gls{tdma}, which means that nodes will have a time slot where they are allowed to transmit data to the network. A nodes time slot will be unique in its first- and second order neighbourhood to avoid collisions between nodes. A frame is a fixed amount of time slots, where all nodes should be able to get a time slot. When a node transmits, it will always first transmit a 12-\gls{octet} control packet. The control packet contains the following information~\cite[p.~2]{paper:lmac_protocol} and can be seen on \autoref{fig:bytefield:lmac-control-packet}.
+ 
+ \begin{labeling}{Current Slot number}
+    \item[Identification] The ID of the node that is transmitting.
+    \item[Current Slot number] The time slot that is currently active.
+    \item[Occupied Slots] The already occupied time slots.
+    \item[Distance to Gateway] The distance from the node to the gateway in \glspl{hop}.
+    \item[Collision in slot] The time slot number where a collision has been detected.
+    \item[Destination ID] The ID of the node that is to receive the data packet.
+    \item[Data size (\glspl{octet})] The size of the data packet in \glspl{octet} with a max size of 255 \glspl{octet}.
+ \end{labeling}
+ 
+ \begin{figure}[ht]
+    \centering
+    
+    \begin{bytefield}[bitwidth=\textwidth / 96, bitheight=2cm]{96}
+        \bitheader{0, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 95}\\
+        \bitbox{16}{Identification}
+        \bitbox{8}{Slot Number}
+        \bitbox{32}{Occupied Slots}
+        \bitbox{8}{DtG}
+        \bitbox{8}{Colli- sion}
+        \bitbox{16}{Destination ID}
+        \bitbox{8}{Data Size (\glspl{octet})}
+    \end{bytefield}
+    
+    \caption{The control packets structure in \gls{lmac}~\cite[p.~2]{paper:lmac_protocol}.}
+    \label{fig:bytefield:lmac-control-packet}
+\end{figure}
+ 
+ 
+\gls{lmac} works in four phases:
+\begin{description}[style=nextline]
+    \item[Initialisation phase(\textit{I})] The node will detect and synchronise with other nodes. The node will do this for one whole frame and then continue to the wait phase(\textit{W}).
+    
+    \item[Wait phase(\textit{W})] The node will wait for a random amount of time slots but a most one frame and continue to the discover phase(\textit{D}). The randomness decreases the chances of several nodes proceeding to the discover phase(\textit{D}) at the same time, reducing collisions.
+    
+    \item[Discover phase(\textit{D})] The node will collect information about its first order neighbourhood for a whole frame. The node will then use that information to choose an available time slot. When the node has chosen a time slot, it will proceed to the active phase(\textit{A}).
+    
+    \item[Active phase(\textit{A})] In the active phase, the node will listen in every time slot for incoming data. If the node is to receive a data packet, it will keep listening for the rest of the time slots duration, otherwise sleep until next time slot. When the nodes time slot is up, the node will be able to transmit data over the network. If the node detects a collision between other nodes, it will use its time slot to notify the nodes that a collision has happened. When a node is in a collision in the active phase(\textit{A}), it will proceed to the wait phase(\textit{W})~\cite[p.~3-4]{paper:lmac_verification}. 
+\end{description}

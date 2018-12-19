@@ -1,0 +1,34 @@
+
+\section{Hardware Interface (hardware.h)}\label{sec:hardwareinterface}
+In this section we will describe the design of the hardware (\gls{lowerlayer}) interface, used by an \gls{upperlayer} protocol to simulate radio communication between nodes in a \gls{manet}. The section will serve as the documentation, as well as a programmers guide, for the \mintinline{cpp}{hardware.h} interface.\medbreak
+
+The hardware interface is implemented in modern C++, using templates, which will allow a protocol implementation to transmit instances of arbitrary structures or classes between nodes, provided that the structure or class is a trivially copyable type~\cite{website:cpptriviallycopyable}.
+
+\begin{description}[style=nextline]
+    \item[\mintinline{cpp}{void init_hardware(const Location &loc)}] 
+        Initialises the hardware functionality by initialising the \gls{mpi} functionality, as well as registering the node with the \gls{mpi} controller. The location is stored on the controller, and can later be update by using the \mintinline{cpp}{set_location()} function. The location of a node is used to compute neighbourhood information, as well as the \gls{pathloss} experienced when transmitting data between nodes. This function has to be called exactly once, before calling any other hardware functions.
+    
+    \item[\mintinline{cpp}{void deinit_hardware()}] 
+        Deinitialises the hardware functionality by unregistering the node from the \gls{mpi} controller, as well as deinitialising the \gls{mpi} functionality. This function has to be called exactly once, before terminating the protocol.
+        
+    \item[\mintinline{cpp}{template <typename T> void transmit(T &packet)}] 
+        Transmit a data packet of type \mintinline{cpp}{T}. The pseudocode for an implementation of this function can be found in \autoref{algo:hwfuncstransmit}.
+    
+    \item[\mintinline{cpp}{template <typename T> std::vector<T> listen(unsigned long time)}
+        Listen for data packets of type \mintinline{cpp}{T} for a given amount of time units. The pseudocode for an implementation of this function can be found in \autoref{algo:hwfuncslisten}.
+    
+    \item[\mintinline{cpp}{void sleep(unsigned long time)}] 
+        Sleep for a given amount of time units. The pseudocode for an implementation of this function can be found in \autoref{algo:hwfuncssleep}.
+    
+    \item[\mintinline{cpp}{unsigned long get_id()}]
+        Gets the unique identifier of the node. This function will return 0, if the \mintinline{cpp}{init_hardware()} function has not yet been called.
+    
+    \item[\mintinline{cpp}{unsigned long get_world_size()}] 
+        Gets the total amount of nodes registered to the \gls{mpi} controller. This function will return 0, if the \mintinline{cpp}{init_hardware()} function has not yet been called.
+    
+    \item[\mintinline{cpp}{bool set_location(const Location &loc)}] 
+        Updates the location registered on the \gls{mpi} controller. Returns \mintinline{cpp}{true} if the location was successfully updated, and \mintinline{cpp}{false} if the location failed to update, or if the \mintinline{cpp}{init_hardware()} function has not yet been called.
+    
+    \item[\mintinline{cpp}{unsigned long get_local_time(unsigned long id)}] 
+        Gets the local time for the node with the given id. This function will return 0, if the \mintinline{cpp}{init_hardware()} function has not yet been called.
+\end{description}

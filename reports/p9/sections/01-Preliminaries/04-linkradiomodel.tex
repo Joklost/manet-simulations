@@ -1,0 +1,164 @@
+
+In this section, we will present a method for simulating \gls{manet} link \gls{pathloss} from \cite{paper:linkmodel}. For our simulations, we would like to be able to simulate the performance of a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues}...
+Note that the actual values used in this Section, is specific to the Reachi\todo[inline]{Introduce Reachi earlier in the report.} devices, and are based on on-site measurements.
+
+\subsection{Units}
+In the following sections, we will be using different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrfull{db}~\cite{website:isadbdbm}, and the transmission power as \acrfull{dbm}~\cite{website:isadbdbm}.
+
+\subsection{Path Loss}\label{sec:pathloss}
+The \gls{pathloss} of a link is dependent on the distance between transmitter and receiver, as well as a stochastic shadow fading term. The \gls{pathloss} vector \vect{PL_{db}} is the sum of two parts:
+
+\begin{description}
+    \item[\vect{PL_{determ,dB}(d)}]: A deterministic distance dependent part, which describes the mean signal attenuation at any given link distance (distance between transmitter and receiver), in \gls{db}. It is a vector of size $n$, where $n$ is the number of links in the network.
+    \item[\vect{PL_{fading,dB}}]: A stochastic slow/shadow fading part, which specifies the local mean of the signal, in \gls{db}. The slow fading variable is, more or less, constant in the same local area, as it is caused by terrain, buildings, vegetation, and cars. It is a vector of size $n$, where $n$ is the number of links in the network.
+\end{description}
+\begin{eq}\label{eq:pathlossdb}
+    \vect{PL_{dB}} = \vect{PL_{determ,dB}(d)} + \vect{PL_{fading,dB}}
+\end{eq}
+
+The deterministic distance dependent \gls{pathloss} is an independent value, while the stochastic slow/shadow fading value depends on physical objects and terrain. This means that links existing in the same physical environment should have a similar slow fading. The similarity is modelled by introducing a correlation between the slow fading on different links:
+
+\begin{description}
+    \item[Cross correlation (interlink)] describes the correlation between two or more links in the same spatial (physical) environment (\textbf{spatial correlation}).
+    \item[Auto correlation (intralink)] describes the correlation in the development of slow fading for a single link over time (\textbf{temporal correlation}).
+\end{description}
+
+The \gls{pathloss} can be used, along with the transmission power in \acrshort{dbm} ($P_{tx,dBm}$) to simulate the \gls{rssi} on a link.
+\begin{eq}\label{eq:computerssi}
+    RSSI_{dBm} = P_{tx,dBm} - PL_{dB}
+\end{eq}
+
+\subsection{Simulating Link Path Loss}\label{sec:simulatingvalues}
+In this Section, we will summarise how \gls{pathloss} and \gls{rssi} values are simulated for a \gls{manet} according to \cite{paper:linkmodel}, and we will present how we expect to use this in our own simulations. Again, note that the values used throughout this section are based on on-site measurements made with the Reachi devices in the Philippines and are heavily dependent on the environment, as described in \cite{paper:linkmodel}. \medbreak
+
+%With a \gls{manet} consisting of $N$ nodes, we have the quadratic link matrix, $L$.
+%\begin{eq}
+%    l'_{i,j} = l'_{j,i} | i,j = \{0, 1, \ldots , N \}
+%\end{eq}
+
+With a \gls{manet} consisting of $N$ nodes, we have the link matrix $\textbf{L}$.
+
+\begin{eq}
+    \textbf{L} = 
+    \begin{bmatrix}
+        0 & l'_{1,2} & l'_{1,3} & \dots & l'_{1,N} \\
+        l'_{2,1} & 0 & l'_{2,3} & \dots & l'_{2,N} \\
+        l'_{3,1} & l'_{3,2} & 0 & \dots & l'_{3,N} \\
+        \vdots & \vdots & \vdots & \vdots & \vdots \\
+        l'_{N,1} & l'_{N,2} & l'_{N,3} & \dots & 0 \\
+\end{bmatrix}
+\end{eq}
+
+Links are undirected and show equal loss in both directions. The diagonal $l'_{i, i}$ is zero, as there is no link from a node to itself. From the link matrix $\textbf{L}$, we can identify the unique links in the link matrix as the vector \vect{l}, that contains all unique links in the link matrix; the elements of the upper triangle of the link matrix, excluding the diagonal.
+
+\begin{eq}\label{eq:uniquelinkvec}
+    \vect{l} =
+    \begin{bmatrix}
+        l'_{1,2} & l'_{1,3} & \dots & l'_{1,N} & l'_{2,3} & l'_{2,4} & \dots & l'_{2,N} & \dots l'_{N-1,N}
+    \end{bmatrix}^T
+\end{eq}
+
+The length of the unique link vector is denoted by the function $len(\vect{l})$.
+
+\begin{eq}\label{eq:lengthoflinks}
+    len(\vect{l}) = \sum\limits_{i=1}^{k=N-1} i = \frac{N(N+1)}{2} - N
+\end{eq}
+%This link matrix describe the path loss in \gls{db} on the link between node $i$ and $j$. Links are undirected, and show equal loss in both directions. The diagonal $l'_{i,i}$ is zero, as there are no link from a node to itself. To describe the \gls{pathloss} on each link and the correlation between links, we identify $l$ as the vector of unique links in the link matrix. 
+
+With this, we can compute the \gls{pathloss} of each unique link as the sum of the distance dependent part and the slow shadow fading part.
+
+\begin{eq}\label{eq:pathlosslink}
+    \vect{l_{pl}} = \vect{l_d} + \vect{l_{fading}}
+\end{eq}
+
+The deterministic distance dependent part \vect{l_d} is obtained for each unique link in the network by
+\begin{eq}\label{eq:pathlossdeterm}
+    \vect{l_d} = 
+        \begin{bmatrix}
+            10 \gamma \log_{10} \left( distance(l_1) \right) - c\\
+            10 \gamma \log_{10} \left( distance(l_2) \right) - c \\
+            \vdots \\
+            10 \gamma \log_{10} \left( distance(l_n) \right) - c\\
+        \end{bmatrix}
+\end{eq}
+where the \gls{pathloss} exponent $\gamma = 5.5$, the constant offset $c = -18.8$, $distance(l_i)$ is the distance between the two nodes of the link, in meters, and $n = len(\vect{l})$. The \gls{pathloss} exponent is obtained by \gls{tls} regression in \cite{paper:linkmodel}, and the constant offset is the signal strength of a link with $d = 1$, in \gls{db}. \medbreak
+
+The stochastic slow shadow fading part is a bit more complicated, as it is not an independent value like the distance dependent part. The fading part \vect{l_{fading}} is where we need the correlations introduced in \autoref{sec:pathloss}. First, we introduce the spatial correlation. $\textbf{C}$ is the correlation matrix determining the correlation coefficient between links. $\textbf{C}$ is a quadratic matrix of size $M \times M$, where $M = len(\vect{l})$.
+
+%\begin{eq}\label{eq:nodesfunc}
+%    nodes(l) = \left\{n_i, n_j\right\}
+%\end{eq}
+
+\begin{eq}\label{eq:correlationmatrix}
+    \textbf{C} = 
+    \begin{cases} 
+        r_{k,l} \left( \theta_{k,l} \right) & \text{if} \  k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset \\
+        1 & \text{if} \ k = l \\
+        0 & \text{otherwise}
+    \end{cases} 
+\end{eq}
+
+$\theta_{k,l}$ is the angle between link $k$ and $l$, $nodes(l)$ is a function that returns the set of nodes of a link $l$, and $r_{k,l} \left( \theta_{k,l} \right)$ is an auto-correlation function, and it is parameterised based on the Reachi measurements in \cite{paper:linkmodel}.
+
+\begin{eq}\label{eq:pathlossautocorrelation}
+    r_{k,l}\left( \theta_{k,l} \right) = 0.595e^{-0.064 * \theta_{k,l}} + 0.092
+\end{eq}
+
+The correlation matrix $\textbf{C}$ is used to create the covariance matrix $\boldsymbol{\Sigma} = \sigma^2\textbf{C}$ by multiplying the correlation matrix with a standard deviation of $\sigma = 11.4$ \gls{db} squared. Next, we draw an \gls{iid} multivariate Gaussian vector, with the standard deviation $I = 1$.
+
+\begin{eq}\label{eq:pathlossnormaldist}
+    \vect{x} =  \big[ x_1 \  x_2 \  \ldots \  x_{len(\vect{l})} \big]^T \sim N(0, I) 
+\end{eq}
+
+The independent variables in the vector are made dependent by multiplication with the lower triangular Cholesky decomposition~\cite[p. 143]{Golub:1996:MC:248979} (\autoref{algo:cholesky}) of the covariance matrix $\textbf{Q} = cholesky\left(\boldsymbol{\Sigma}\right)$.
+
+\begin{eq}\label{eq:pathlossstoch}
+    \vect{l_{fading}} = \textbf{Q}\vect{x}
+\end{eq}
+
+With this, it is possible for us to compute a single realisation of the \gls{pathloss} of a link matrix, accounting for the distance dependent \gls{pathloss} and the spatial correlation. Next, the slow shadow fading part is expanded to include the temporal correlation. $l_{fading}\left(t\right)$ is the vector describing the shadow fading \gls{pathloss} at time $t$. As the distance dependent part is time invariant, it needs no further modifications.
+
+\begin{eq}\label{eq:pathlosstemporal}
+    \vect{l_{fading}}(t + \Delta t) = \overbrace{\textbf{Q}(t + \Delta t)\vect{x}}^{spatial correlation} \overbrace{\sqrt{1 - \rho_{\Delta t}} + \vect{l_{fading}}(t)\rho_{\Delta t}}^{temporal correlation}
+\end{eq}
+
+The temporal correlation is computed based on the temporal correlation coefficient, $\rho_{\Delta t}$, describing the correlation after both transmitter and receiver have moved $|d_t|$ and $|d_r|$ meters, respectively, and with a decorrelation distance of 20 meters.
+
+\begin{eq}
+    \rho_{\Delta t} = e^{-\frac{|d_t|+|d_r|}{20}\ln (2)}
+\end{eq}
+
+With this, the vectors \vect{l_d} and \vect{l_{fading}} can be combined as shown in \autoref{eq:pathlosslink}, to generate total \gls{pathloss} for all unique links in the network. All that remains is to subtract the \gls{pathloss} for a particular link $l_i$, as well as the interference noise from neighbouring nodes, from the transmission power, to compute the \gls{rssi} in \acrshort{dbm}. $P_{tx}(l)$ is a function returning the transmission power of the transmitting node in a given link.
+\todo[inline]{In the future, describe how we measure the noise of neighbouring nodes and link to it. \textbf{noise} in the equation is placeholder.}
+\begin{eq}\label{eq:rssidbm}
+    RSSI_{dBm} = P_{tx}(l_i) - l_{pl,i} - noise
+\end{eq}
+
+\todo[inline]{Create a pseudocode algorithm for this computation?}
+
+\subsection{Packet Error Probability}
+\todo[inline]{Describe the computations.}
+The packet error probability is the probability for a packet being erroneous, eg. the entire packet will not be received. To begin we calculate the noise power $P_{N,db}$. The noise power is calculated with the thermal noise and noise figure. For the Reachi devices the $thermal\_noise = -119.66$ and the $noise\_figure = 4.2$.
+\begin{eq}
+    P_{N,dB} = thermal\_noise + noise\_figure
+\end{eq}
+
+Next we calculate the \gls{snr} $\gamma_{dB}$. The \gls{snr} is the ratio between signal and noise, and is done to remove the calculated noise from the signal giving a more real world representation.
+\begin{eq}
+    \gamma_{dB} = RSSI_{dBm} - P_{N,dB}
+\end{eq}
+
+
+\begin{eq}
+    \gamma = 10^{\frac{\gamma_{dB}}{10}}
+\end{eq}
+
+\begin{eq}
+    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{\gamma}{2} \right)} \right)
+\end{eq}
+
+\begin{eq}
+    P_p = 1 - \left( 1 - P_b \right) ^{packet\_size}
+\end{eq}
+
+\todo[inline]{We need an actual citable source for this.}

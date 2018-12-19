@@ -1,0 +1,73 @@
+\makenoidxglossaries
+\setglossarystyle{altlist}
+\setacronymstyle{long-short}
+
+\newacronym{acronym:name}{What to describe}{The description!}
+
+\newacronym{mac}{MAC}{Medium Access Control}
+\newacronym{tdma}{TDMA}{Time Division Multiple Access}
+\newacronym{mpi}{MPI}{Message Passing Interface}
+\newacronym{lmac}{LMAC}{Lightweight Medium Access Protocol}
+\newacronym{manet}{MANET}{Mobile Ad-hoc NETwork}
+\newacronym{rssi}{RSSI}{Received Signal Strength Indication}
+\newacronym{tls}{TLS}{Total Least Squares}
+\newacronym{db}{dB}{decibel}
+\newacronym{dbm}{dBm}{\acrshort{db} relative to a milliwatt}
+\newacronym{iid}{IID}{Independent and Identically Distributed}
+\newacronym{snr}{SNR}{Signal to Noise Ratio}
+\newacronym{optics}{OPTICS}{Ordering Points To Identify the Clustering Structure}
+
+\newglossaryentry{glossary:name}
+{
+    name={text name in lower case},
+    description={Description of the term without period}
+}
+
+\newglossaryentry{lt-matrix}
+{
+    name={lower triangular matrix},
+    description={A square matrix where all entries above the diagonal are zero}
+}
+
+\newglossaryentry{conjugate-transpose}
+{
+    name={conjugate transpose},
+    description={}
+}
+
+\newglossaryentry{pd-matrix}
+{
+    name={positive-definite matrix},
+    description={An $n \times n$ matrix \textit{A} is positive-definite iff $\forall x, x \in A$ where $\lambda_x$ is the eigenvalue of $x$, then $\lambda_x > 0$. 
+    An $n \times n$ matrix \textit{A} is positive-definite iff forall $x \in A,\ \lambda_x > 0$}
+}
+
+\newglossaryentry{hop}
+{
+    name={hop},
+    description={The amount of nodes between source and destination}
+}
+
+\newglossaryentry{octet}
+{
+    name={octet},
+    description={A unit of digital information consisting of exactly eight bits}
+}
+
+\newglossaryentry{lowerlayer}
+{
+    name={lower layer},
+    description={The software simulating radio hardware}
+}
+
+\newglossaryentry{upperlayer}
+{
+    name={upper layer},
+    description={The software implementation of a \acrshort{manet} protocol, e.g., an implementation of the \acrshort{lmac} protocol}
+}
+
+\newglossaryentry{pathloss}
+{
+    name={path loss},
+    description={The signal loss inflicted by the propagation of a electromagnetic wave from transmitter to receiver~\cite[p.~10]{paper:linkmodel}}
+}

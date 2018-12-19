@@ -1,0 +1,26 @@
+\section{Slotted ALOHA}\label{sec:saloha}
+In this section we will present an implementation of the Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}, using the hardware interface from \autoref{sec:hardwareinterface}. The Slotted ALOHA is a \gls{tdma} protocol, that enable communication between nodes in a wireless network, by randomly selecting 
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FSlottedALOHA}{Slotted ALOHA}
+    \SetKwProg{Fn}{procedure}{}{}
+    
+    \Fn{\FSlottedALOHA{}}{
+        \Repeat{\textit{protocol terminates}}{
+            selected $\leftarrow$ randomly select a slot $\in$ {1, 2, \dots, S}\;
+        
+            \ForEach{current $\in$ {1, 2, \dots, S}}{
+                \If{select = current}{
+                    \KwTransmit\;
+                } 
+                \Else{
+                    \KwListen\;
+                }
+            }
+        }
+    }
+    
+    \caption{The Slotted ALOHA protocol.}
+    \label{algo:slottedaloha}
+\end{algorithm}

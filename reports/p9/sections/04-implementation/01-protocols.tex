@@ -1,0 +1,50 @@
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FTransmit}{Transmit}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FTransmit{packet}}{
+        \KwSend packet \KwTo controller\;
+        \KwAwait ack \KwFrom controller\;
+    }
+    \caption{The Transmit Function.}
+    \label{algo:hwfuncstransmit}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{list of packets}
+    \SetKwFunction{FListen}{Listen}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FListen{time}}{
+        packets $\leftarrow$ empty list\;
+    
+        \KwSend time \KwTo controller\;
+        c $\leftarrow$ \KwAwait count \KwFrom controller\;
+        \For{i $\leftarrow$ 0 \KwTo c}{
+            p $\leftarrow$ \KwAwait packet \KwFrom controller\;
+            \KwAppend p \KwTo packets\;
+        }
+        
+        \KwRet packets\;
+    }
+    
+    \caption{The Listen Function.}
+    \label{algo:hwfuncslisten}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FSleep}{Sleep}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FListen{time}}{
+        \KwSend time \KwTo controller\;
+        \KwAwait wakeup \KwFrom controller\;
+    }
+    
+    \caption{The Sleep Function.}
+    \label{algo:hwfuncssleep}
+\end{algorithm}
