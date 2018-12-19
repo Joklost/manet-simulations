@@ -324,10 +324,18 @@ dmypy.json
 pyvenv.cfg
 pip-selfcheck.json
 
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
-# End of https://www.gitignore.io/api/c,c++,python,clion+all,pycharm+all
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/c,c++,python,clion+all,pycharm+all,visualstudiocode
 
 *.png
 fig*.html
-
-.vscode/*

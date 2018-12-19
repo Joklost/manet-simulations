@@ -23,25 +23,32 @@ int main(int argc, char *argv[]) {
     auto console = spdlog::stderr_color_st("aloha" + sid);
 
     auto slots = get_world_size();
-
+    if (id == slots) {
+        console->info("start");
+    }
     std::random_device rd{};
     std::mt19937 eng{rd()};
     std::uniform_int_distribution<unsigned long> dist{0ul, slots};
 
-    auto selected = dist(eng);
-    console->info("selected={}", selected);
-    for (auto current = 0; current < slots; ++current) {
-        if (selected == current) {
-            Packet p{id, selected};
-            transmit(p);
-        } else {
-            auto packets = listen<Packet>(1ul);
+    for (auto i = 0; i < 3; ++i) {
+        auto selected = dist(eng);
+        //console->info("selected={}", selected);
+        for (auto current = 0; current < slots; ++current) {
+            if (selected == current) {
+                Packet p{id, selected};
+                transmit(p);
+            } else {
+                auto packets = listen<Packet>(1ul);
 
-            for (const auto &item : packets) {
-                console->info(item);
+                for (const auto &item : packets) {
+                    //console->info(item);
+                }
             }
         }
     }
 
+    if (id == slots) {
+        console->info("stop");
+    }
     deinit_hardware();
 }
