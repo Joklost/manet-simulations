@@ -25,17 +25,18 @@ std::vector<double> compute_link_distance(const std::vector<Link> &links) {
 }
 
 vecvec<double> ensure_positive_definiteness(const vecvec<double> &matrix) {
-    auto svd_res = svd(matrix);
+    auto svd_res = svd(matrix, 2);
 
     auto h = std::get<2>(svd_res) * std::get<0>(svd_res) * transpose(std::get<2>(svd_res));
     auto spd = (matrix + h) / 2.0;
 
     auto scalar = 0.0;
     while (!is_positive_definite(spd)) {
+        std::cout << "not positive definite" << std::endl;
         auto eigen = eig(spd, 10);
         auto min_eig = eigen.values.back();
-        scalar++;
 
+        scalar++;
         spd = spd + ((-min_eig * std::pow(scalar, 2) +
                       (std::numeric_limits<double>::epsilon() * std::abs(min_eig))) * identity(spd.size()));
     }

@@ -126,7 +126,8 @@ vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links) {
                                  links[j].get_nodes().second :
                                  links[j].get_nodes().first;
 
-                auto angle = angle_between(common_node.get_location(), li_unique.get_location(), lj_unique.get_location());
+                auto angle = angle_between(common_node.get_location(), li_unique.get_location(),
+                                           lj_unique.get_location());
                 corr[i][j] = autocorrelation(angle);
 
             } else if (links[i] == links[j]) {
@@ -149,6 +150,7 @@ vecvec<double> generate_correlation_matrix(std::vector<Link> links) {
 
     for (auto i = 0; i < size; ++i) {
         for (auto j = 0; j < i + 1; ++j) {
+            // if (j == size) continue;
 
             if (links[i] == links[j]) {
                 corr[i][j] = 1.0;
@@ -162,7 +164,8 @@ vecvec<double> generate_correlation_matrix(std::vector<Link> links) {
                                  links[j].get_nodes().second :
                                  links[j].get_nodes().first;
 
-                auto angle = angle_between(common_node.get_location(), li_unique.get_location(), lj_unique.get_location());
+                auto angle = angle_between(common_node.get_location(), li_unique.get_location(),
+                                           lj_unique.get_location());
                 auto value = autocorrelation(angle);
                 corr[i][j] = value >= CORRELATION_COEFFICIENT_THRESHOLD ? value : 0.0;
             }
@@ -205,7 +208,7 @@ double frobenius_norm(vecvec<double> &a) {
 double frobenius_norm(std::vector<double> &a) {
     auto res = 0.0;
 
-    for (const double i : a) {
+    for (double i : a) {
         res += std::pow(i, 2);
     }
     return std::sqrt(res);
@@ -234,8 +237,9 @@ is_eigen_right(unsigned long n, unsigned long k, vecvec<double> &a, vecvec<doubl
     return frobenius_norm(c);
 }
 
-std::vector<double> get_diagonal(unsigned long n, vecvec<double> &a) {
+std::vector<double> get_diagonal(vecvec<double> &a, unsigned long n) {
     std::vector<double> v{};
+    if (n == 0ul) n = a.size();
     v.resize(n);
 
     for (auto i = 0; i < n; ++i) {
@@ -249,7 +253,7 @@ Eigen eig(const vecvec<double> &c, unsigned long it_max) {
     auto a{c};
     auto n = a.size();
     auto v = identity(n);
-    auto d = get_diagonal(n, a);
+    auto d = get_diagonal(a, n);
 
     std::vector<double> bw{}, zw{};
     bw.resize(n);
