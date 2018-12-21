@@ -500,6 +500,8 @@ double distance_pathloss(Location to, Location from);
 
 double distance_pathloss(Link link);
 
+double distance_pathloss(Optics::CLink link);
+
 double autocorrelation(double angle);
 
 double autocorrelation(Location to, Location from);

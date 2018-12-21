@@ -18,6 +18,10 @@ double distance_pathloss(Link link) {
     return distance_pathloss(link.get_distance() * KM);
 }
 
+double distance_pathloss(Optics::CLink link) {
+    return distance_pathloss(link.get_distance() * KM);
+}
+
 double autocorrelation(const double angle) {
     /* TODO: #define the constants */
     return 0.595 * std::exp(-0.064 * angle) + 0.092;
@@ -84,7 +88,9 @@ vecvec<double> generate_correlation_matrix(std::vector<Optics::CLink> links) {
 
     for (auto i = 0; i < size; ++i) {
         for (auto j = 0; j < size; ++j) {
-            if (links[i] != links[j] && has_common_node_optics(links[i], links[j])) {
+            if (links[i] == links[j]) {
+                corr[i][j] = 1.0;
+            } else if (links[i] != links[j] && has_common_node_optics(links[i], links[j])) {
                 auto common_node = get_common_node_optics(links[i], links[j]);
                 auto li_unique = links[i].get_clusters().first.get_id() == common_node.get_id() ?
                                  links[i].get_clusters().second :
@@ -95,11 +101,10 @@ vecvec<double> generate_correlation_matrix(std::vector<Optics::CLink> links) {
                                  links[j].get_clusters().first;
 
                 auto angle = angle_between(common_node.centroid(), li_unique.centroid(), lj_unique.centroid());
-                corr[i][j] = autocorrelation(angle);
-            } else if (links[i] == links[j]) {
-                corr[i][j] = 1.0;
-            } else {
-                corr[i][j] = 0.0;
+                auto value = autocorrelation(angle);
+
+                if (value >= CORRELATION_COEFFICIENT_THRESHOLD)
+                    corr[i][j] = value;
             }
         }
     }
@@ -174,7 +179,6 @@ vecvec<double> generate_correlation_matrix(std::vector<Link> links) {
 
     return corr;
 }
-
 
 vecvec<double> identity(unsigned long n) {
     vecvec<double> ret{};
