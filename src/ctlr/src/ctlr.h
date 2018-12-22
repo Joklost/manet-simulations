@@ -18,7 +18,7 @@ struct Packet {
 class Node {
 public:
     int rank{};
-    Location loc{};
+    mpilib::geo::Location loc{};
     unsigned long time{};
 
     States state = sleeping;
@@ -55,7 +55,7 @@ class Controller {
 
     bool handshake();
 
-    void update_location(const Status &status);
+    void update_location(const mpi::Status &status);
 
 public:
     explicit Controller(bool debug) : debug(debug) {}

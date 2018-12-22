@@ -10,7 +10,7 @@ double distance_pathloss(const double distance) {
     return (10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
 }
 
-double distance_pathloss(const Location to, const Location from) {
+double distance_pathloss(const mpilib::geo::Location to, const mpilib::geo::Location from) {
     return distance_pathloss(distance_between(from, to) * KM);
 }
 
@@ -21,16 +21,6 @@ double distance_pathloss(Link link) {
 double autocorrelation(const double angle) {
     /* TODO: #define the constants */
     return 0.595 * std::exp(-0.064 * angle) + 0.092;
-}
-
-double autocorrelation(const Location to, const Location from) {
-    /* TODO: Implement using angle_between */
-    return 0;
-}
-
-double autocorrelation(Link link) {
-    /* TODO: Implement using angle_between */
-    return 0;
 }
 
 bool has_common_node_optics(const Optics::CLink &k, const Optics::CLink &l) {
@@ -94,7 +84,8 @@ vecvec<double> generate_correlation_matrix(std::vector<Optics::CLink> links) {
                                  links[j].get_clusters().second :
                                  links[j].get_clusters().first;
 
-                auto angle = angle_between(common_node.centroid(), li_unique.centroid(), lj_unique.centroid());
+                auto angle = mpilib::geo::angle_between(common_node.centroid(), li_unique.centroid(),
+                                                        lj_unique.centroid());
                 corr[i][j] = autocorrelation(angle);
             } else if (links[i] == links[j]) {
                 corr[i][j] = 1.0;
@@ -126,7 +117,8 @@ vecvec<double> generate_correlation_matrix_slow(std::vector<Link> links) {
                                  links[j].get_nodes().second :
                                  links[j].get_nodes().first;
 
-                auto angle = angle_between(common_node.get_location(), li_unique.get_location(), lj_unique.get_location());
+                auto angle = angle_between(common_node.get_location(), li_unique.get_location(),
+                                           lj_unique.get_location());
                 corr[i][j] = autocorrelation(angle);
 
             } else if (links[i] == links[j]) {
@@ -162,7 +154,8 @@ vecvec<double> generate_correlation_matrix(std::vector<Link> links) {
                                  links[j].get_nodes().second :
                                  links[j].get_nodes().first;
 
-                auto angle = angle_between(common_node.get_location(), li_unique.get_location(), lj_unique.get_location());
+                auto angle = angle_between(common_node.get_location(), li_unique.get_location(),
+                                           lj_unique.get_location());
                 auto value = autocorrelation(angle);
                 corr[i][j] = value >= CORRELATION_COEFFICIENT_THRESHOLD ? value : 0.0;
             }
@@ -278,7 +271,7 @@ Eigen eig(const vecvec<double> &c, unsigned long it_max) {
 
         thresh = std::sqrt(thresh) / (double) (4 * n);
         /* Break if threshold is pretty close to 0. */
-        if (is_equal(thresh, 0.0, 0.005)) {
+        if (mpilib::is_equal(thresh, 0.0, 0.005)) {
             break;
         }
 
@@ -291,14 +284,15 @@ Eigen eig(const vecvec<double> &c, unsigned long it_max) {
                 double g;
 
                 /* Annihilate tiny offdiagonal elements. */
-                if (4 < it_num && is_equal(termp, std::fabs(d[p])) && is_equal(termq, std::fabs(d[q]))) {
+                if (4 < it_num && mpilib::is_equal(termp, std::fabs(d[p])) &&
+                    mpilib::is_equal(termq, std::fabs(d[q]))) {
                     a[p][q] = 0.0;
                 } else if (thresh <= std::fabs(a[p][q])) {
                     /* Otherwise, apply a rotation. */
                     h = d[q] - d[p];
                     auto term = std::fabs(h) + gapq;
                     double t;
-                    if (is_equal(term, std::fabs(h))) {
+                    if (mpilib::is_equal(term, std::fabs(h))) {
                         t = a[p][q] / h;
                     } else {
                         auto theta = 0.5 * h / a[p][q];

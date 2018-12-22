@@ -8,11 +8,11 @@
 Optics::Optics() = default;
 
 double Optics::core_distance(Node &p) {
-    if (!is_equal(p.get_core_distance(), UNDEFINED)) {
+    if (!mpilib::is_equal(p.get_core_distance(), UNDEFINED)) {
         return p.get_core_distance();
     }
 
-    auto &neighbours = compute_neighbours(p);
+    auto &neighbours = this->compute_neighbours(p);
     if (neighbours.size() >= this->minpts - 1) {
 
         /* Sort by distance */
@@ -63,7 +63,7 @@ void Optics::update_seeds(Node &p, std::vector<uint32_t> &seeds) {
         }
 
         auto reachdist = std::max(coredist, distance_between(p.get_location(), o.get_location()));
-        if (is_equal(o.get_reachability_distance(), UNDEFINED)) {
+        if (mpilib::is_equal(o.get_reachability_distance(), UNDEFINED)) {
             /* 'o' is not in seeds */
             o.set_reachability_distance(reachdist);
             seeds.emplace_back(o.get_id());
@@ -102,7 +102,7 @@ std::vector<Node> Optics::compute_ordering(std::vector<Node> &nodes, double eps,
 
         //auto p_neighbours = this->compute_neighbours(p);
 
-        if (is_equal(this->core_distance(p), UNDEFINED)) {
+        if (mpilib::is_equal(this->core_distance(p), UNDEFINED)) {
             continue;
         }
 
@@ -118,7 +118,7 @@ std::vector<Node> Optics::compute_ordering(std::vector<Node> &nodes, double eps,
 
             this->processed(q);
 
-            if (!is_equal(this->core_distance(q), UNDEFINED)) {
+            if (!mpilib::is_equal(this->core_distance(q), UNDEFINED)) {
                 update_seeds(q, seeds);
             }
         }
@@ -143,11 +143,11 @@ std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering, double
     std::vector<Optics::Cluster> clusters{};
     std::vector<int> separators{};
 
-    enumerate(ordering.begin(), ordering.end(), 0, [&threshold, &separators](int i, Node &p) {
+    mpilib::enumerate(ordering.begin(), ordering.end(), 0, [&threshold, &separators](int i, Node &p) {
 
         double reachdist{};
 
-        if (is_equal(p.get_reachability_distance(), UNDEFINED)) {
+        if (mpilib::is_equal(p.get_reachability_distance(), UNDEFINED)) {
             reachdist = std::numeric_limits<double>::infinity();
         } else {
             reachdist = p.get_reachability_distance();
@@ -176,7 +176,7 @@ std::vector<Optics::Cluster> Optics::cluster(std::vector<Node> &ordering, double
     return clusters;
 }
 
-Location Optics::Cluster::centroid() const {
+mpilib::geo::Location Optics::Cluster::centroid() const {
     if (this->nodes.size() == 1) {
         return this->nodes.front().get_location();
     }
@@ -195,7 +195,7 @@ Location Optics::Cluster::centroid() const {
     lat = lat / this->nodes.size();
     lon = lon / this->nodes.size();
 
-    Location l{lat, lon};
+    mpilib::geo::Location l{lat, lon};
 
     this->_centroid = l;
     this->cached = true;
@@ -211,7 +211,7 @@ const std::vector<Node> &Optics::Cluster::get_nodes() const {
 }
 
 double Optics::Cluster::radius() const {
-    Location centroid = this->centroid();
+    mpilib::geo::Location centroid = this->centroid();
     auto radius = 0.0;
 
     for (auto &node : this->nodes) {
@@ -225,7 +225,7 @@ double Optics::Cluster::radius() const {
 }
 
 double Optics::Cluster::cost() const {
-    Location centroid = this->centroid();
+    mpilib::geo::Location centroid = this->centroid();
     auto cost = 0.0;
 
     for (auto &node : this->nodes) {

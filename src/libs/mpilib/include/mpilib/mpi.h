@@ -13,43 +13,44 @@
 #include <mpilib/helpers.h>
 #include <mpilib/location.h>
 
-struct Status {
-    int count;
-    int source;
-    int tag;
-    int error;
+namespace mpi {
 
-    Status() = default;
+    struct Status {
+        int count;
+        int source;
+        int tag;
+        int error;
 
-    explicit Status(MPI_Status status) : count(status.count_lo),
-                                         source(status.MPI_SOURCE),
-                                         tag(status.MPI_TAG),
-                                         error(status.MPI_ERROR) {}
-};
+        Status() = default;
 
-void mpi_init(int *world_size, int *world_rank, int *name_len, char *processor_name);
+        explicit Status(MPI_Status status) : count(status.count_lo),
+                                             source(status.MPI_SOURCE),
+                                             tag(status.MPI_TAG),
+                                             error(status.MPI_ERROR) {}
+    };
 
-void mpi_deinit();
+    void init(int *world_size, int *world_rank, int *name_len, char *processor_name);
 
-Status mpi_probe_any();
+    void deinit();
 
-Status mpi_probe(int source, int tag);
+    Status probe(int source = MPI_ANY_SOURCE, int tag = MPI_ANY_TAG);
 
-int mpi_send(const std::vector<octet> &buf, int dest, int tag);
+    int send(const std::vector<octet> &buf, int dest, int tag);
 
-Status mpi_recv(std::vector<octet> &buf, int source, int tag);
+    Status recv(std::vector<octet> &buf, int source, int tag);
 
-int mpi_send(const std::vector<octet> *buf, int dest, int tag);
+    int send(const std::vector<octet> *buf, int dest, int tag);
 
-Status mpi_recv(std::vector<octet> *buf, int source, int tag);
+    Status recv(std::vector<octet> *buf, int source, int tag);
 
-int mpi_send(unsigned long buf, int dest, int tag);
+    int send(unsigned long buf, int dest, int tag);
 
-Status mpi_recv(unsigned long *buf, int source, int tag);
+    Status recv(unsigned long *buf, int source, int tag);
 
-int mpi_send(int buf, int dest, int tag);
+    int send(int buf, int dest, int tag);
 
-Status mpi_recv(int *buf, int source, int tag);
+    Status recv(int *buf, int source, int tag);
 
+}
 
 #endif /* MANETSIMS_MPI_H */

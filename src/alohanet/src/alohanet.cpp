@@ -13,16 +13,16 @@ struct Packet {
 };
 
 int main(int argc, char *argv[]) {
-    Location l1{57.01266813458001, 10.994625734716218};
-    Location l2 = square(l1, 1.0);
-    Location l = random_location(l1, l2);
-    init_hardware(l);
+    mpilib::geo::Location l1{57.01266813458001, 10.994625734716218};
+    mpilib::geo::Location l2 = square(l1, 1.0);
+    mpilib::geo::Location l = random_location(l1, l2);
+    hardware::init(l);
 
-    auto id = get_id();
+    auto id = hardware::get_id();
     std::string sid = std::string(3 - std::to_string(id).length(), '0') + std::to_string(id);
     auto console = spdlog::stderr_color_st("aloha" + sid);
 
-    auto slots = get_world_size();
+    auto slots = hardware::get_world_size();
     if (id == slots) {
         console->info("start");
     }
@@ -36,9 +36,9 @@ int main(int argc, char *argv[]) {
         for (auto current = 0; current < slots; ++current) {
             if (selected == current) {
                 Packet p{id, selected};
-                transmit(p);
+                hardware::broadcast(p);
             } else {
-                auto packets = listen<Packet>(1ul);
+                auto packets = hardware::listen<Packet>(1ul);
 
                 for (const auto &item : packets) {
                     //console->info(item);
@@ -50,5 +50,5 @@ int main(int argc, char *argv[]) {
     if (id == slots) {
         console->info("stop");
     }
-    deinit_hardware();
+    hardware::deinit();
 }

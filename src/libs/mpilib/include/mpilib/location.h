@@ -4,46 +4,54 @@
 #include <ostream>
 #include <cmath>
 
-class Location {
-public:
-    Location();
+namespace mpilib {
 
-    Location(double latitude, double longitude);
+    namespace geo {
 
-    Location(int time, double latitude, double longitude);
+        class Location {
+        public:
+            Location();
 
-    bool operator==(const Location &rhs) const;
+            Location(double latitude, double longitude);
 
-    bool operator!=(const Location &rhs) const;
+            Location(int time, double latitude, double longitude);
 
-    bool operator<(const Location &rhs) const;
+            bool operator==(const Location &rhs) const;
 
-    bool operator>(const Location &rhs) const;
+            bool operator!=(const Location &rhs) const;
 
-    bool operator<=(const Location &rhs) const;
+            bool operator<(const Location &rhs) const;
 
-    bool operator>=(const Location &rhs) const;
+            bool operator>(const Location &rhs) const;
 
-    friend std::ostream &operator<<(std::ostream &os, const Location &location);
+            bool operator<=(const Location &rhs) const;
 
-    void move(int time, double distance /*kilometers */, double bearing /* degrees */);
+            bool operator>=(const Location &rhs) const;
 
-    double get_latitude() const;
+            friend std::ostream &operator<<(std::ostream &os, const Location &location);
 
-    double get_longitude() const;
+            void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
-    int get_time() const;
+            double get_latitude() const;
 
-    void set_time(int time);
+            double get_longitude() const;
 
-private:
-    int time{};
-    double latitude{};
-    double longitude{};
-};
+            int get_time() const;
 
-Location random_location(const Location &upper_bound, const Location &lower_bound);
+            void set_time(int time);
 
-Location square(const Location &corner, double diag /* kilometers */);
+        private:
+            int time{};
+            double latitude{};
+            double longitude{};
+        };
+
+        Location random_location(const Location &upper_bound, const Location &lower_bound);
+
+        Location square(const Location &corner, double diag /* kilometers */);
+
+    }
+
+}
 
 #endif //MANETSIMS_LOCATION_H

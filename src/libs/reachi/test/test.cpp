@@ -8,7 +8,9 @@
 #include <reachi/linkmodel.h>
 #include <reachi/svd.h>
 #include <reachi/datagen.h>
+#include <reachi/ostr.h>
 #include <mpilib/helpers.h>
+#include <mpilib/ostr.h>
 
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
@@ -23,8 +25,8 @@ TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
 }
 
 TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
-    auto upper = Location{57.01266813458001, 10.994625734716218};
-    auto lower = Location{57.0117698, 10.9929758};
+    auto upper = mpilib::geo::Location{57.01266813458001, 10.994625734716218};
+    auto lower = mpilib::geo::Location{57.0117698, 10.9929758};
     auto nodes = generate_nodes(25, upper, lower);
     auto links = create_link_vector(nodes, 1);
 
@@ -55,7 +57,7 @@ TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
               << std::endl;
 
 
-    REQUIRE(compare_vectors(cholesky_res_org, cholesky_res_our, 0.00001));
+    REQUIRE(mpilib::compare_vectors(cholesky_res_org, cholesky_res_our, 0.00001));
 }
 
 TEST_CASE("Generate a Gaussian Vector with 1 million elements", "[math]") {
@@ -87,7 +89,7 @@ TEST_CASE("Multiplication operator for 4x3 matrix and scalar value", "[math]") {
                                {-389.88, 649.8,   0.0},
                                {389.88,  909.72,  -259.92}};
 
-    REQUIRE(compare_vectors((m2 * std::pow(11.4, 2)), m2_expected, 0.00000001));
+    REQUIRE(mpilib::compare_vectors((m2 * std::pow(11.4, 2)), m2_expected, 0.00000001));
 
 }
 
@@ -144,8 +146,8 @@ TEST_CASE("Compute the distance dependent path loss (double)", "[math]") {
 }
 
 TEST_CASE("Compute the distance dependent path loss (Location)", "[math]") {
-    Location l1{57.01266813458001, 9.994625734716218};
-    Location l2{57.01266813458001, 9.9929758};
+    mpilib::geo::Location l1{57.01266813458001, 9.994625734716218};
+    mpilib::geo::Location l2{57.01266813458001, 9.9929758};
     REQUIRE(distance_pathloss(l1, l2) == Approx(91.2).margin(0.1));
 }
 
@@ -168,7 +170,7 @@ TEST_CASE("Dot product", "[math]") {
     auto res = dot(v1, v2);
     std::cout << res << std::endl;
     std::cout << "helooooooo" << std::endl;
-    REQUIRE(compare_vectors(res, expected, 0.01));
+    REQUIRE(mpilib::compare_vectors(res, expected, 0.01));
 }
 
 TEST_CASE("Slicing vecvec and vectors", "[math]") {
@@ -197,10 +199,10 @@ TEST_CASE("Slicing vecvec and vectors", "[math]") {
     auto res_v2_1 = slice(v2, 1);
     auto res_v2_2 = slice(v2, 1, 2, 1, 2);
 
-    REQUIRE(compare_vectors(res_v1_1, expected_v1_1, 0));
-    REQUIRE(compare_vectors(res_v1_2, expected_v1_2, 0));
-    REQUIRE(compare_vectors(res_v2_1, expected_v2_1, 0));
-    REQUIRE(compare_vectors(res_v2_2, expected_v2_2, 0));
+    REQUIRE(mpilib::compare_vectors(res_v1_1, expected_v1_1, 0));
+    REQUIRE(mpilib::compare_vectors(res_v1_2, expected_v1_2, 0));
+    REQUIRE(mpilib::compare_vectors(res_v2_1, expected_v2_1, 0));
+    REQUIRE(mpilib::compare_vectors(res_v2_2, expected_v2_2, 0));
 }
 
 
@@ -224,7 +226,7 @@ TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {
         l_distance.emplace_back(distance_pathloss(link));
     });
 
-    REQUIRE(compare_vectors(l_distance, l_distance_expected, 0.1));
+    REQUIRE(mpilib::compare_vectors(l_distance, l_distance_expected, 0.1));
 }
 
 TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
@@ -249,7 +251,7 @@ TEST_CASE("Compute the correlation matrix", "[linkmodel]") {
                                  {0.125, 0.0,   0.125, 0.125, 1.0,   0.125},
                                  {0.0,   0.125, 0.094, 0.094, 0.125, 1.0}};
 
-    REQUIRE(compare_vectors(corr, corr_expected, 0.001));
+    REQUIRE(mpilib::compare_vectors(corr, corr_expected, 0.001));
 }
 
 TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
@@ -279,7 +281,7 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
                                   {0.0,      16.245, 12.21624, 12.21624, 16.245, 129.96}};
 
 
-    REQUIRE(compare_vectors(sigma, sigma_expected, 0.1));
+    REQUIRE(mpilib::compare_vectors(sigma, sigma_expected, 0.1));
 
     std::vector<double> gaussian_vector{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
 
@@ -288,7 +290,7 @@ TEST_CASE("Compute stochastic fading path loss", "[linkmodel]") {
     auto l_fading = slow_cholesky(sigma) * gaussian_vector;
     std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
 
-    REQUIRE(compare_vectors(l_fading, l_fading_expected, 0.01));
+    REQUIRE(mpilib::compare_vectors(l_fading, l_fading_expected, 0.01));
 }
 
 TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
@@ -324,7 +326,7 @@ TEST_CASE("Compute RSSI using spatial correlation", "[linkmodel]") {
     std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
     auto rssi_expected = tx_dbm - (l_distance_expected + l_fading_expected);
 
-    REQUIRE(compare_vectors(rssi, rssi_expected, 0.1));
+    REQUIRE(mpilib::compare_vectors(rssi, rssi_expected, 0.1));
 }
 
 TEST_CASE("Compute RSSI using spatial and temporal correlation", "[linkmodel]") {
@@ -360,7 +362,7 @@ TEST_CASE("Compute RSSI using spatial and temporal correlation", "[linkmodel]") 
     std::vector<double> l_fading_expected{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
     auto rssi_expected = tx_dbm - (l_distance_expected + l_fading_expected);
 
-    REQUIRE(compare_vectors(rssi, rssi_expected, 0.1));
+    REQUIRE(mpilib::compare_vectors(rssi, rssi_expected, 0.1));
 }
 
 TEST_CASE("Compute packet probability error", "[radiomodel]") {
@@ -387,7 +389,7 @@ TEST_CASE("Cholesky verify", "[cholesky]") {
     auto std_deviation = std::pow(11.4, 2);
     auto sigma = std_deviation * corr;
     auto l = slow_cholesky(sigma);
-    REQUIRE(compare_vectors(sigma, l * transpose(l), 0.00001));
+    REQUIRE(mpilib::compare_vectors(sigma, l * transpose(l), 0.00001));
 }
 
 TEST_CASE("Eigenvalues", "[math]") {
@@ -406,8 +408,8 @@ TEST_CASE("Eigenvalues", "[math]") {
                                              37.1015,
                                              1.47805,
                                              0.166643};
-    REQUIRE(compare_vectors(eigen.vectors, eigenvector_expected, 0.0001));
-    REQUIRE(compare_vectors(eigen.values, eigenvalues_expected, 0.0001));
+    REQUIRE(mpilib::compare_vectors(eigen.vectors, eigenvector_expected, 0.0001));
+    REQUIRE(mpilib::compare_vectors(eigen.values, eigenvalues_expected, 0.0001));
 }
 
 TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
@@ -438,8 +440,8 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     // std::cout << measure<>::execution(generate_correlation_matrix_slow, links) << std::endl;
     // std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
 
-    auto upper = Location{57.01266813458001, 9.994625734716218};
-    auto lower = Location{57.0117698, 9.9929758};
+    auto upper = mpilib::geo::Location{57.01266813458001, 9.994625734716218};
+    auto lower = mpilib::geo::Location{57.0117698, 9.9929758};
     auto nodes = generate_nodes(15, upper, lower);
     auto links = create_link_vector(nodes, MAX_LINK_DISTANCE);
 
@@ -464,8 +466,8 @@ TEST_CASE("SVD verification", "[svd]") {
                               {-0.0161927, 0.67407,   -0.73849},
                               {-0.928703,  0.263522,  0.260897}};
     auto res = svd(data);
-    REQUIRE(compare_vectors(std::get<0>(res), expected_s, 0.001));
-    REQUIRE(compare_vectors(std::get<1>(res), expected_u, 0.1));
-    REQUIRE(compare_vectors(std::get<2>(res), expected_v, 0.1));
+    REQUIRE(mpilib::compare_vectors(std::get<0>(res), expected_s, 0.001));
+    REQUIRE(mpilib::compare_vectors(std::get<1>(res), expected_u, 0.1));
+    REQUIRE(mpilib::compare_vectors(std::get<2>(res), expected_v, 0.1));
 
 }

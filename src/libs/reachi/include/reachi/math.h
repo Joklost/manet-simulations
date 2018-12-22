@@ -494,13 +494,13 @@ vecvec<double> diag(std::vector<double> &v);
 
 double distance_pathloss(double distance);
 
-double distance_pathloss(Location to, Location from);
+double distance_pathloss(mpilib::geo::Location to, mpilib::geo::Location from);
 
 double distance_pathloss(Link link);
 
 double autocorrelation(double angle);
 
-double autocorrelation(Location to, Location from);
+double autocorrelation(mpilib::geo::Location to, mpilib::geo::Location from);
 
 double autocorrelation(Link link);
 

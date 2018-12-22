@@ -73,45 +73,44 @@ static bool work = true;
 
 void stop_work(int signal) {
     work = false;
-    deinit_hardware();
+    hardware::deinit();
 }
 
 int main(int argc, char *argv[]) {
 
     std::signal(SIGINT, stop_work);
 
-    Location l1{57.01266813458001, 10.994625734716218};
-    Location l2 = square(l1, 1.0);
+    mpilib::geo::Location l1{57.01266813458001, 10.994625734716218};
+    auto l2 = square(l1, 1.0);
+    auto l = random_location(l1, l2);
 
-    Location l = random_location(l1, l2);
+    hardware::init(l);
 
-    init_hardware(l);
-
-    auto id = get_id();
+    auto id = hardware::get_id();
 
     auto console = spdlog::stderr_color_st("alo" + std::to_string(id));
     console->info("started");
 
     if (id == 1ul) {
-        Packet p1{get_id()};
-        transmit(p1);
+        Packet p1{hardware::get_id()};
+        hardware::broadcast(p1);
         sleep(1ul);
         sleep(1ul);
-        auto packets = listen<Packet>(1ul);
+        auto packets = hardware::listen<Packet>(1ul);
         for (const auto &item : packets) {
             console->info(item);
         }
     } else if (id == 2ul) {
-        auto packets = listen<Packet>(1ul);
+        auto packets = hardware::listen<Packet>(1ul);
         for (const auto &item : packets) {
             console->info(item);
         }
         sleep(1ul);
         sleep(1ul);
-        Packet p1{get_id()};
-        transmit(p1);
+        Packet p1{hardware::get_id()};
+        hardware::broadcast(p1);
     } else {
-        auto packets = listen<Packet>(4ul);
+        auto packets = hardware::listen<Packet>(4ul);
         for (const auto &item : packets) {
             console->info(item);
         }
@@ -120,9 +119,9 @@ int main(int argc, char *argv[]) {
     //sleep(5ul);
 
     l = random_location(l1, l2);
-    set_location(l);
+    hardware::set_location(l);
 
-    deinit_hardware();
+    hardware::deinit();
 
     return 0;
 }

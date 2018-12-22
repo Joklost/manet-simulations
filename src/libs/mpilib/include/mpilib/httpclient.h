@@ -6,25 +6,24 @@
 #include <cpr/cpr.h>
 #include <spdlog/spdlog.h>
 
+namespace mpilib {
 
-/**
- * TODO: Turn HttpClient into singleton.
- */
-class HttpClient {
-    std::string host;
-    std::shared_ptr<spdlog::logger> console;
+    class HttpClient {
+        std::string host;
 
-public:
-    explicit HttpClient(std::string base_url);
+    public:
+        explicit HttpClient(std::string base_url);
 
-    cpr::Response get(std::string endpoint);
+        cpr::Response get(std::string endpoint);
 
-    cpr::AsyncResponse getAsync(std::string endpoint);
+        cpr::AsyncResponse getAsync(std::string endpoint);
 
-    cpr::Response post(std::string endpoint, nlohmann::json &payload);
+        cpr::Response post(std::string endpoint, nlohmann::json &payload);
 
-    cpr::AsyncResponse post_async(std::string endpoint, nlohmann::json &payload);
-};
+        cpr::AsyncResponse post_async(std::string endpoint, nlohmann::json &payload);
+    };
+
+}
 
 
 #endif //MANETSIMS_HTTPCLIENT_H

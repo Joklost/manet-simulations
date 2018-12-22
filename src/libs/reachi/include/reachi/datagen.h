@@ -14,10 +14,10 @@
  * @param lower The lower right geographical bound
  * @return A vector of nodes (a graph)
  */
-std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location &lower);
+std::vector<Node> generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower);
 
 std::vector<Node>
-generate_cluster(Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */);
+generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */);
 
 /**
  * Create a vector of unique (undirected) links from a set of nodes (a graph).

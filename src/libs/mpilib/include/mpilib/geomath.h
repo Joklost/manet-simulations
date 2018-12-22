@@ -5,21 +5,29 @@
 
 #define EARTH_RADIUS_KM 6371.0
 
-double deg2rad(double deg);
+namespace mpilib {
 
-Location deg2rad(Location &pos);
+    namespace geo {
 
-double rad2deg(double rad);
+        double deg2rad(double deg);
 
-Location rad2deg(Location &pos);
+        Location deg2rad(const Location &pos);
 
-double distance_between(const Location &from, const Location &to);
+        double rad2deg(double rad);
 
-double bearing_between(const Location &from, const Location &to);
+        Location rad2deg(const Location &pos);
 
-double angle_between(const Location &origin, const Location &pos1, const Location &pos2);
+        double distance_between(const Location &from, const Location &to);
 
-Location move_location(const Location &location, double distance /*kilometers */, double bearing /* degrees */);
+        double bearing_between(const Location &from, const Location &to);
+
+        double angle_between(const Location &origin, const Location &pos1, const Location &pos2);
+
+        Location move_location(const Location &location, double distance /*kilometers */, double bearing /* degrees */);
+
+    }
+
+}
 
 
 #endif /* MANETSIMS_GEOMATH_H */

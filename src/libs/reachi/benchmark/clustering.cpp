@@ -76,7 +76,7 @@ void print_result(int graph_id, long cluster_count, double eps, long node_count,
             << std::endl;
 }
 
-void request_graph(HttpClient &httpclient, std::vector<Optics::Cluster> clusters, int graph_id, double eps) {
+void request_graph(mpilib::HttpClient &httpclient, std::vector<Optics::Cluster> clusters, int graph_id, double eps) {
     std::vector<json> serialized_clusters{};
     serialized_clusters.reserve(clusters.size());
 
@@ -130,7 +130,7 @@ long clusterize_remaining(const std::vector<Node> &nodes, std::vector<Optics::Cl
     return node_count;
 }
 
-Location create_square(Location &upper, double size) {
+mpilib::geo::Location create_square(mpilib::geo::Location &upper, double size) {
     return move_location(move_location(upper, size, 180), size, 90);
 }
 
@@ -138,8 +138,8 @@ int main(int argc, char *argv[]) {
     std::vector<std::future<void>> futures{};
     std::vector<std::thread> threads{};
 
-    Location upper{57.0134, 9.99008};
-    Location lower = create_square(upper, AREA);
+    mpilib::geo::Location upper{57.0134, 9.99008};
+    mpilib::geo::Location lower = create_square(upper, AREA);
 
     auto setup_start = std::chrono::steady_clock::now();
     /**/
@@ -181,7 +181,7 @@ return 0;
     auto og_sigma = std_deviation * og_corr;
     auto og_gaussian = generate_gaussian_vector(0.0, 1.0, og_links.size());
     auto og_choleskied = cholesky_v2(og_sigma);
-    assert(compare_vectors(og_sigma, og_choleskied * transpose(og_choleskied), 0.00001));
+    assert(mpilib::compare_vectors(og_sigma, og_choleskied * transpose(og_choleskied), 0.00001));
     auto og_l_fading = og_choleskied * og_gaussian;
 
     auto og_rssi = TX_DBM - (og_l_distance + og_l_fading);
@@ -197,7 +197,7 @@ return 0;
     auto setup_end = std::chrono::steady_clock::now();
     auto setup_duration = std::chrono::duration_cast<std::chrono::microseconds>(setup_end - setup_start);
 
-    HttpClient httpclient{"http://0.0.0.0:5000/vis"};
+    mpilib::HttpClient httpclient{"http://0.0.0.0:5000/vis"};
     json j_nodes = nodes;
     httpclient.post("/add-nodes", j_nodes);
 

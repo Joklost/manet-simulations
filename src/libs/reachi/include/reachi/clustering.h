@@ -24,7 +24,7 @@ public:
     public:
         Cluster(uint32_t id, std::vector<Node> &nodes) : id(id), nodes(nodes) {}
 
-        Location centroid() const;
+        mpilib::geo::Location centroid() const;
 
         unsigned long size() const;
 
@@ -47,7 +47,7 @@ public:
         std::vector<Node> nodes{};
 
         mutable bool cached = false;
-        mutable Location _centroid{};
+        mutable mpilib::geo::Location _centroid{};
     };
 
     class CLink {

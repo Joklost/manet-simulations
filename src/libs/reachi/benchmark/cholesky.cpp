@@ -7,8 +7,8 @@
 #include <mpilib/helpers.h>
 
 int main(int argc, char *argv[]) {
-    Location upper{57.0134, 9.99008};
-    Location lower{57.0044, 10.0066};
+    mpilib::geo::Location upper{57.0134, 9.99008};
+    mpilib::geo::Location lower{57.0044, 10.0066};
 
     //auto nodes = generate_nodes(static_cast<unsigned long>(atoi(argv[1])), upper, lower);
     auto nodes = generate_nodes(10, upper, lower);

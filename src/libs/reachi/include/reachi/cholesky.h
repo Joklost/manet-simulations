@@ -160,10 +160,6 @@ vecvec<T> cholesky_v2(const vecvec<T> a) {
                     sum += ret[r][j] * ret[r][j];
                 }
                 auto val = a[c][c] - sum;
-                if (val < 0) {
-                    std::cout << a[c][c] << " - " << sum << " = " << val << std::endl;
-                    assert(!(val < 0));
-                }
                 ret[c][c] = std::sqrt(val);
             } else {
                 T sum = (T) 0;
@@ -171,7 +167,7 @@ vecvec<T> cholesky_v2(const vecvec<T> a) {
                     sum += ret[r][j] * ret[c][j];
                 }
 
-                assert(!is_equal(ret[c][c], (T) 0));
+                assert(!mpilib::is_equal(ret[c][c], (T) 0));
                 ret[r][c] = ((T) 1) / ret[c][c] * (a[r][c] - sum);
             }
         }

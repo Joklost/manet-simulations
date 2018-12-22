@@ -14,13 +14,13 @@ class Node {
 public:
     Node();
 
-    Node(uint32_t id, Location location);
+    Node(uint32_t id, mpilib::geo::Location location);
 
     uint32_t get_id() const;
 
-    const Location &get_location() const;
+    const mpilib::geo::Location &get_location() const;
 
-    void update_location(Location &location, int time);
+    void update_location(mpilib::geo::Location &location, int time);
 
     bool operator==(const Node &rhs) const;
 
@@ -54,8 +54,8 @@ public:
 
 private:
     uint32_t id;
-    Location current_location;
-    std::vector<Location> location_history;
+    mpilib::geo::Location current_location;
+    std::vector<mpilib::geo::Location> location_history;
 
     /* OPTICS */
     double reachability_distance{UNDEFINED};

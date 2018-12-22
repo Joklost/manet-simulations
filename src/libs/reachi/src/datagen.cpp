@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location &lower) {
+std::vector<Node> generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
     std::vector<Node> nodes{};
     nodes.reserve(count);
 
@@ -25,7 +25,7 @@ std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location 
     auto gen_lon = std::bind(dist_lon, eng_lon);
 
     for (uint32_t i = 1; i <= count; ++i) {
-        Location l{gen_lat(), gen_lon()};
+        mpilib::geo::Location l{gen_lat(), gen_lon()};
         Node n{i, l};
         nodes.emplace_back(n);
     }
@@ -34,7 +34,7 @@ std::vector<Node> generate_nodes(unsigned long count, Location &upper, Location 
 }
 
 std::vector<Node>
-generate_cluster(Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */) {
+generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */) {
     std::vector<Node> nodes{};
     nodes.reserve(count);
 
@@ -69,7 +69,7 @@ std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold 
                 continue;
             }
 
-            Link l{generate_link_id(i, j), nodes[i], nodes[j]};
+            Link l{mpilib::generate_link_id(i, j), nodes[i], nodes[j]};
             if (l.get_distance() < threshold or threshold <= 0.01) {
                 links.emplace_back(l);
             }
@@ -88,7 +88,7 @@ std::vector<Optics::CLink> create_link_vector(std::vector<Optics::Cluster> &clus
                 continue;
             }
 
-            Optics::CLink l{generate_link_id(i, j), clusters[i], clusters[j]};
+            Optics::CLink l{mpilib::generate_link_id(i, j), clusters[i], clusters[j]};
             if (l.get_distance() < threshold or threshold <= 0.01) {
                 links.emplace_back(l);
             }
@@ -103,10 +103,10 @@ void visualise_nodes(std::vector<Node> &nodes) {
 }
 
 void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size) {
-    HttpClient httpclient{"http://localhost:8050"};
+    mpilib::HttpClient httpclient{"http://localhost:8050"};
     httpclient.get("/clear");
 
-    for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &chunk_size](auto from, auto to) {
+    mpilib::for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &chunk_size](auto from, auto to) {
 /*        std::vector<json> serialized_nodes{};
         serialized_nodes.reserve(chunk_size);
 
@@ -122,7 +122,7 @@ void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size) {
 }
 
 void visualise_clusters(std::vector<Optics::Cluster> clusters) {
-    HttpClient httpclient{"http://localhost:8050"};
+    mpilib::HttpClient httpclient{"http://localhost:8050"};
 
     std::vector<json> serialized_clusters{};
     serialized_clusters.reserve(clusters.size());

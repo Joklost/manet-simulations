@@ -2,7 +2,7 @@
 #include <cmath>
 
 
-uint64_t generate_link_id(const uint32_t id1, const uint32_t id2) {
+uint64_t mpilib::generate_link_id(const uint32_t id1, const uint32_t id2) {
     uint32_t low, high;
     if (id1 < id2) {
         low = id2;
