@@ -102,6 +102,8 @@ namespace mpilib {
     }
 
     uint64_t generate_link_id(uint32_t id1, uint32_t id2);
+
+    std::string processor_name(const char *processor_name, int world_rank);
 }
 
 #endif /* MANETSIMS_HELPERS_H */

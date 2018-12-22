@@ -1,9 +1,11 @@
 #ifndef MANETSIMS_HWGLOBALS_H
 #define MANETSIMS_HWGLOBALS_H
 
-namespace hardware {
+#include <spdlog/spdlog.h>
 
-    extern unsigned long my_time;
+namespace hardware {
+    extern std::shared_ptr<spdlog::logger> logger;
+    extern unsigned long localtime;
     extern bool initialized;
     extern int world_size;
     extern int world_rank;

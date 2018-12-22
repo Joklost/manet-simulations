@@ -51,6 +51,12 @@ namespace mpi {
 
     Status recv(int *buf, int source, int tag);
 
+    template <typename T>
+    T recv(int source, int tag) {
+        T buf{};
+        mpi::recv(&buf, source, tag);
+        return buf;
+    }
 }
 
 #endif /* MANETSIMS_MPI_H */

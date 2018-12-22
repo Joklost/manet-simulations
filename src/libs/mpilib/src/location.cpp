@@ -94,8 +94,8 @@ mpilib::geo::Location::Location(int time, double latitude, double longitude) : t
                                                                                longitude(longitude) {}
 
 std::ostream &mpilib::geo::operator<<(std::ostream &os, const mpilib::geo::Location &location) {
-    os << " latitude: " << location.get_latitude() << ", longitude: "
-       << location.get_longitude();
+    os << "{latitude: " << location.get_latitude() << ", longitude: "
+       << location.get_longitude() << "}";
     return os;
 }
 

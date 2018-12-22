@@ -5,9 +5,29 @@
 #include <map>
 
 #include <mpilib/mpi.h>
+#include <mpilib/queue.h>
+
+enum Action {
+    transmit_t, listen_t, sleep_t, update_location_t, set_time_t, poison_t
+};
 
 enum States {
     transmitting, listening, sleeping
+};
+
+struct Transmission {
+    unsigned long start{};
+    unsigned long duration{};
+    unsigned long source{};
+    std::vector<octet> data;
+};
+
+struct Message {
+    Action action;
+    int rank;
+    unsigned long localtime;
+    unsigned long duration;
+    std::vector<octet> data;
 };
 
 struct Packet {
@@ -18,8 +38,10 @@ struct Packet {
 class Node {
 public:
     int rank{};
+    std::string name{};
     mpilib::geo::Location loc{};
-    unsigned long time{};
+    unsigned long localtime{};
+    bool dead{};
 
     States state = sleeping;
     std::vector<std::vector<octet>> packets{};
@@ -32,6 +54,9 @@ public:
 class Controller {
     std::mutex mutex_;
     std::condition_variable cond_;
+
+    mpilib::Queue<Message> queue{};
+    mpilib::Queue<Transmission> transmissions{};
 
     bool debug = false;
     bool work = true;
@@ -47,9 +72,14 @@ class Controller {
     std::map<int, Node> nodes{};
     std::map<int, Packet> packets{};
 
+
     void message_handler();
 
     void clock();
+
+    void recv();
+
+    void control();
 
     bool timeslot_complete(unsigned long time);
 
