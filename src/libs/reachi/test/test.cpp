@@ -7,6 +7,7 @@
 #include <reachi/radiomodel.h>
 #include <reachi/linkmodel.h>
 #include <reachi/svd.h>
+#include <reachi/qr.h>
 #include <reachi/datagen.h>
 #include <reachi/ostr.h>
 #include <mpilib/helpers.h>
@@ -167,10 +168,8 @@ TEST_CASE("Dot product", "[math]") {
     vecvec<double> expected{{29, -16},
                             {38, 6}};
 
-    auto res = dot(v1, v2);
-    std::cout << res << std::endl;
-    std::cout << "helooooooo" << std::endl;
-    REQUIRE(mpilib::compare_vectors(res, expected, 0.01));
+    auto res_1 = dot(v1, v2);
+    REQUIRE(mpilib::compare_vectors(res_1, expected, 0.01));
 }
 
 TEST_CASE("Slicing vecvec and vectors", "[math]") {
@@ -203,6 +202,24 @@ TEST_CASE("Slicing vecvec and vectors", "[math]") {
     REQUIRE(mpilib::compare_vectors(res_v1_2, expected_v1_2, 0));
     REQUIRE(mpilib::compare_vectors(res_v2_1, expected_v2_1, 0));
     REQUIRE(mpilib::compare_vectors(res_v2_2, expected_v2_2, 0));
+}
+
+TEST_CASE("QR decomposition", "[qr]") {
+    vecvec<double> v1{{12, -51, 4},
+                      {6,  167, -68},
+                      {-4, 24,  -41}};
+
+    vecvec<double> expected_q{{-0.857143, 0.394286,  0.331429},
+                              {-0.428571, -0.902857, -0.0342857},
+                              {0.285714,  -0.171429, 0.942857}};
+
+    vecvec<double> expected_r{{-14,         -21,  14},
+                              {5.97812e-18, -175, 70},
+                              {4.47505e-16, 0,    -35}};
+
+    auto res = qr_decomposition(v1);
+    REQUIRE(compare_vectors(res.first, expected_q, 0.01));
+    REQUIRE(compare_vectors(res.second, expected_r, 0.01));
 }
 
 

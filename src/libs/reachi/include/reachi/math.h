@@ -27,14 +27,26 @@ std::pair<unsigned long, unsigned long> shape(const vecvec<T> &matrix) {
 template<typename T>
 vecvec<T> operator*(const std::vector<T> &lhs, const std::vector<T> &rhs) {
     vecvec<T> res;
-    auto rhs_size = rhs.size();
-    res.resize(lhs.size(), std::vector<T>(rhs_size));
+    auto size = lhs.size();
+    //auto iter_size = size / 4;
+    res.resize(size, std::vector<T>(size));
 
-    for (auto row = 0; row < lhs.size(); ++row) {
-        for (auto column = 0; column < rhs.size(); ++column) {
+    for (auto row = 0; row < size; ++row) {
+        for (auto column = 0; column < size; ++column) {
             res[row][column] = lhs[row] * rhs[column];
         }
     }
+
+    /* for (auto row = 0; row < iter_size; row += 4) {
+        for (auto column = 0; column < iter_size; column += 4) {
+            res[row][column] = lhs[row] * rhs[column];
+            res[row + 1][column + 1] = lhs[row + 1] * rhs[column + 1];
+            res[row + 2][column + 2] = lhs[row + 2] * rhs[column + 2];
+            res[row + 3][column + 3] = lhs[row + 3] * rhs[column + 3];
+        }
+    }*/
+
+
 
     return res;
 }
@@ -289,37 +301,28 @@ std::vector<T> operator/(const std::vector<T> &lhs, const T scalar) {
     return res;
 }
 
-
+/***
+ * Calculate the dot product of two matrixes. If asymmetric eg. 2x3 3x2, then the matrix with the lowest row count must be first argument
+ * @tparam T
+ * @param lhs N x M matrix where n <= m
+ * @param rhs N x M matrix where n >= m
+ * @return N x N matrix
+ */
 template<typename T>
 vecvec<T> dot(const vecvec<T> &lhs, const vecvec<T> &rhs) {
     vecvec<T> res{};
 
     auto ls = shape(lhs);
     auto rs = shape(rhs);
-    unsigned long n, m;
-
-    //const vecvec<T>& n_matrix = std::move(lhs), m_matrix = std::move(rhs);
-
-    if (ls.first < rs.first) {
-        n = ls.first;
-        m = rs.second;
-    } else {
-        n = rs.first;
-        m = ls.second;
-        /*n_matrix = rhs;
-        m_matrix = lhs;*/
-    }
+    unsigned long n = ls.first, m = rs.second;
     res.resize(n, std::vector<T>(m));
 
     for (auto row = 0; row < n; ++row) {
         for (auto column = 0; column < m; ++column) {
             auto sum = 0.0;
 
-            for (auto i = 0; i < n; ++i) {
-                sum += n < m ?
-                       lhs[row][i] * rhs[i][column] :
-                       rhs[row][i] * lhs[i][column];
-            }
+            for (auto i = 0; i < ls.second; ++i)
+                sum += lhs[row][i] * rhs[i][column];
 
             res[row][column] = sum;
         }
@@ -338,9 +341,9 @@ std::vector<T> dot(const vecvec<T> &lhs, const std::vector<T> &rhs) {
     for (auto i = 0; i < size; ++i) {
         auto sum = (T) 0;
 
-        for (auto j = 0; j < size; ++j) {
+        for (auto j = 0; j < size; ++j)
             sum += lhs[i][j] * rhs[j];
-        }
+
         res[i] = sum;
     }
 
@@ -420,11 +423,10 @@ vecvec<T> slice(const vecvec<T> &lhs, int row_start = 0, int row_end = 0ul, int 
  * @return
  */
 template<typename T>
-std::vector<T> slice_to_vector(const vecvec<T> &lhs, int column_index, int row_start = 0, int row_end = 0ul) {
+std::vector<T> slice_to_vector(vecvec<T> &lhs, int column_index, int row_start = 0, int row_end = 0ul) {
     std::vector<T> res;
 
     if (row_end == 0ul) row_end = static_cast<int>(lhs.size());
-
     for (; row_start < row_end; ++row_start) {
         res.emplace_back(lhs[row_start][column_index]);
     }
@@ -486,7 +488,7 @@ double frobenius_norm(std::vector<double> &a);
 double
 is_eigen_right(unsigned long n, unsigned long k, vecvec<double> &a, vecvec<double> &x, std::vector<double> &lambda);
 
-std::vector<double> get_diagonal(unsigned long n, vecvec<double> &a);
+std::vector<double> get_diagonal(vecvec<double> &a, unsigned long n = 0ul);
 
 Eigen eig(const vecvec<double> &a, unsigned long it_max);
 
@@ -497,6 +499,8 @@ double distance_pathloss(double distance);
 double distance_pathloss(mpilib::geo::Location to, mpilib::geo::Location from);
 
 double distance_pathloss(Link link);
+
+double distance_pathloss(Optics::CLink link);
 
 double autocorrelation(double angle);
 
