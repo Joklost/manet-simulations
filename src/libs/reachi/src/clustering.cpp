@@ -167,10 +167,34 @@ std::vector<reachi::Optics::Cluster> reachi::Optics::cluster(std::vector<Node> &
             clusters.emplace_back(c);
         }
     }
-    /*
-     * TODO: Create clusters containing single nodes for any node not in a cluster.
-     */
+    clusterize_remaining(ordering, clusters);
+
     return clusters;
+}
+
+
+void reachi::Optics::clusterize_remaining(const std::vector<reachi::Node> &nodes, std::vector<reachi::Optics::Cluster> &clusters) {
+    auto cnodes = nodes;
+    unsigned long node_count = 0;
+    for (auto &cluster : clusters) {
+        node_count += cluster.size();
+
+        for (auto &node : cluster.get_nodes()) {
+            if (cluster.contains(node)) {
+                cnodes.erase(std::remove(cnodes.begin(), cnodes.end(), node), cnodes.end());
+            }
+        }
+    }
+    node_count = nodes.size() - node_count + clusters.size();
+    auto id = static_cast<uint32_t>(clusters.size());
+    for (auto &node : cnodes) {
+        id++;
+        std::vector<Node> single_node_cluster{node};
+        Optics::Cluster c{id, single_node_cluster};
+        clusters.push_back(c);
+    }
+
+    assert(node_count == clusters.size());
 }
 
 mpilib::geo::Location reachi::Optics::Cluster::centroid() const {

@@ -101,7 +101,10 @@ namespace reachi {
 
         ::std::vector<Cluster> cluster(::std::vector<Node> &ordering, double threshold);
 
-    private:
+
+
+private:
+        void clusterize_remaining(const std::vector<Node> &nodes, std::vector<Optics::Cluster> &clusters);
 
         void processed(Node &p);
 

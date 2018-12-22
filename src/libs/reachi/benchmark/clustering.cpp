@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 
     if (!reachi::cholesky::is_positive_definite(og_corr)) {
 //        og_corr = iterative_spectral(og_corr, 25, 0.001);
-return 0;
+        return 0;
     }
 
     std::cout << "pd: "  << reachi::cholesky::is_positive_definite(og_corr) << std::endl;
@@ -252,10 +252,10 @@ return 0;
                 }
                 link.set_pep(reachi::radiomodel::packet_error_probability(link.get_rssi(), 160));
                 std::cout
-                          << link.get_rssi()
-                          << " : "
-                          << link.get_pep()
-                          << std::endl;
+                        << link.get_rssi()
+                        << " : "
+                        << link.get_pep()
+                        << std::endl;
             }
         }
 

@@ -5,13 +5,13 @@
 
 #include <reachi/link.h>
 
-class linkmodel_interface {
+class lmc {
 public:
-    void update_model_data(std::vector<Link>);
+    void update_model_data(std::vector<Node>);
 
     std::vector<double> fetch_model();
 
-    void compute_linkmodel();
+    void compute_linkmodel(std::vector<Node> &nodes);
 
 private:
     std::vector<double> linkmodel;

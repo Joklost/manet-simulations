@@ -1,4 +1,4 @@
-#include "linkmodel_interface.h"
+#include "lmc.h"
 
 
 int main(int argc, char *argv[]) {

@@ -5,6 +5,14 @@
 #include <reachi/math.h>
 #include <reachi/svd.h>
 #include <mpilib/helpers.h>
+#include <mpilib/objectifier.h>
+
+
+struct packet {
+    int id;
+    std::vector<double> data;
+};
+
 
 int main(int argc, char *argv[]) {
     mpilib::geo::Location upper{57.0134, 9.99008};
@@ -14,46 +22,8 @@ int main(int argc, char *argv[]) {
     auto nodes = reachi::data::generate_nodes(10, upper, lower);
     auto links = reachi::data::create_link_vector(nodes, 1);
 
-    // testing original implementation
-    /*auto begin = std::chrono::steady_clock::now();
-
-    auto corr_org = generate_correlation_matrix_slow(links);
-    auto std_deviation_org = std::pow(11.4, 2);
-    auto sigma_org = corr_org * std_deviation_org;
-    auto cholesky_res_org = slow_cholesky(sigma_org);
-
-    auto end = std::chrono::steady_clock::now();
-    std::cout << "Original code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << std::endl;*/
-
-
-    // testing our implementation
-    /*   auto begin_1 = std::chrono::steady_clock::now();
-
-
-       auto corr_our = generate_correlation_matrix(links);
-       auto std_deviation_our = std::pow(11.4, 2);
-       auto sigma_our = corr_our * std_deviation_our;
-       auto cholesky_res_our = cholesky(sigma_our);
-
-       auto end_1 = std::chrono::steady_clock::now();
-       std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - begin_1).count() << std::endl;*/
-    //std::cout << cholesky_res_our << std::endl;
-
-
-
-    reachi::linalg::vecvec<double> data{{2, 5, 3},
-                        /*{1, 2, 1},
-                        {4, 1, 1},
-                        {3, 5, 2},
-                        {5, 3, 1},
-                        {4, 5, 5},*/
-                        {2, 4, 2},
-                        {2, 2, 5}};
-    auto begin_1 = std::chrono::steady_clock::now();
-
-    std::vector<double> singular_values, u, v {};
-    auto res = reachi::svd::svd(data,5);
-    auto end_1 = std::chrono::steady_clock::now();
-    std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::microseconds>(end_1 - begin_1).count()
-              << std::endl;
+    packet p{};
+    p.data.emplace_back(2.2);
+    auto res = mpilib::serialise(p);
+    std::cout << res << std::endl;
 }
