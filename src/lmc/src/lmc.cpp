@@ -6,7 +6,7 @@ std::vector<double> lmc::fetch_model() {
     return this->linkmodel;
 }
 
-void lmc::compute_linkmodel(std::vector<Node> &nodes) {
+void lmc::compute_linkmodel(std::vector<reachi::Node> &nodes) {
     /*
      * step 1: check if node information has been updated
      * step 2: do the clustering
@@ -14,7 +14,7 @@ void lmc::compute_linkmodel(std::vector<Node> &nodes) {
      * step 4: update the public accessable link model so that the controller can fetch the newest model
      */
 
-    Optics optics{};
+    reachi::Optics optics{};
 
     auto eps = 0.01;
     auto minpts = 2;
@@ -23,14 +23,12 @@ void lmc::compute_linkmodel(std::vector<Node> &nodes) {
 
     auto ordering = optics.compute_ordering(nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
-    auto links = create_link_vector(clusters, link_threshold);
+    auto links = reachi::data::create_link_vector(clusters, link_threshold);
 
 
-
-
-    compute_temporal_correlation(links, time, time_delta);
+    reachi::linkmodel::compute_spatial_correlation(links, time, time_delta);
 }
 
-void lmc::update_model_data(std::vector<Node>) {
+void lmc::update_model_data(std::vector<reachi::Node>) {
 
 }

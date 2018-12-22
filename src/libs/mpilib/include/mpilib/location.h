@@ -28,7 +28,11 @@ namespace mpilib {
 
             bool operator>=(const Location &rhs) const;
 
-            friend std::ostream &operator<<(std::ostream &os, const Location &location);
+            friend std::ostream &operator<<(std::ostream &os, const Location &location) {
+                os << "{latitude: " << location.get_latitude() << ", longitude: "
+                   << location.get_longitude() << "}";
+                return os;
+            }
 
             void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 

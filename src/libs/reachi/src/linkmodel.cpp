@@ -50,8 +50,8 @@ std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink>
 }
 
 
-std::vector<double> compute_temporal_correlation(const std::vector<reachi::Optics::CLink> &links,
-                                                 const double time, const double delta_time) {
+std::vector<double> reachi::linkmodel::compute_spatial_correlation(const std::vector<reachi::Optics::CLink> &links,
+                                                                   const double time, const double delta_time) {
     /* compute the temporal_coefficient */
     auto d_t = 1.0 * KM;
     auto d_r = 1.0 * KM;
@@ -64,6 +64,6 @@ std::vector<double> compute_temporal_correlation(const std::vector<reachi::Optic
     return sqrt(1 - temporal_coefficient) + l_fading * temporal_coefficient;
 }
 
-std::vector<double> compute_spatial_correlation() {
+std::vector<double> reachi::linkmodel::compute_temporal_correlation() {
     return std::vector<double>();
 }

@@ -7,11 +7,11 @@
 
 class lmc {
 public:
-    void update_model_data(std::vector<Node>);
+    void update_model_data(std::vector<reachi::Node>);
 
     std::vector<double> fetch_model();
 
-    void compute_linkmodel(std::vector<Node> &nodes);
+    void compute_linkmodel(std::vector<reachi::Node> &nodes);
 
 private:
     std::vector<double> linkmodel;
