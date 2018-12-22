@@ -52,18 +52,18 @@ namespace mpilib {
         }
     };
 
-/**
- * Wrapper for the std::for_each
- * function, that iterates a counter and invokes
- * the included binary function, accepting the
- * counter and the element from the iterable.
- * @tparam InputIt An iterable
- * @tparam BinaryFunction A function taking two parameters
- * @param first The beginning of the iterator
- * @param last The end of the iterator
- * @param start Where to start the counter
- * @param func The function called with each element
- */
+    /**
+     * Wrapper for the std::for_each
+     * function, that iterates a counter and invokes
+     * the included binary function, accepting the
+     * counter and the element from the iterable.
+     * @tparam InputIt An iterable
+     * @tparam BinaryFunction A function taking two parameters
+     * @param first The beginning of the iterator
+     * @param last The end of the iterator
+     * @param start Where to start the counter
+     * @param func The function called with each element
+     */
     template<class InputIt, class BinaryFunction>
     void enumerate(const InputIt first, const InputIt last, int start, const BinaryFunction &func) {
         auto counter = start;
@@ -101,57 +101,7 @@ namespace mpilib {
         return fabs(a - b) < epsilon;
     }
 
-
-#ifdef TWOBLUECUBES_SINGLE_INCLUDE_CATCH_HPP_INCLUDED
-
-    template<typename T>
-    bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
-        if (a.size() != b.size()) return false;
-        for (auto i = 0; i < a.size(); i++) {
-            if (a[i] != Approx(b[i]).margin(epsilon)) {
-                std::cout << a[i] << " != " << b[i] << std::endl;
-                return false;
-            }
-        }
-        return true;
-    }
-
-    template<typename T>
-    bool compare_vectors(vecvec<T> a, vecvec<T> b, T epsilon) {
-        if (a.size() != b.size()) return false;
-        for (auto i = 0; i < a.size(); i++) {
-            if (!compare_vectors(a[i], b[i], epsilon)) return false;
-        }
-        return true;
-    }
-#else
-
-    template<typename T>
-    bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
-        if (a.size() != b.size()) return false;
-        for (auto i = 0; i < a.size(); i++) {
-            if (!is_equal(a[i], b[i], epsilon)) {
-                std::cout << a[i] << " != " << b[i] << std::endl;
-                return false;
-            }
-        }
-        return true;
-    }
-
-    template<typename T>
-    bool compare_vectors(vecvec<T> a, vecvec<T> b, T epsilon) {
-        if (a.size() != b.size()) return false;
-        for (auto i = 0; i < a.size(); i++) {
-            if (!compare_vectors(a[i], b[i], epsilon)) return false;
-        }
-        return true;
-    }
-
-#endif
-
     uint64_t generate_link_id(uint32_t id1, uint32_t id2);
-
-
 }
 
 #endif /* MANETSIMS_HELPERS_H */

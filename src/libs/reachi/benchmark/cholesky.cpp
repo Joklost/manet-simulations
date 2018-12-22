@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
     mpilib::geo::Location lower{57.0044, 10.0066};
 
     //auto nodes = generate_nodes(static_cast<unsigned long>(atoi(argv[1])), upper, lower);
-    auto nodes = generate_nodes(10, upper, lower);
-    auto links = create_link_vector(nodes, 1);
+    auto nodes = reachi::data::generate_nodes(10, upper, lower);
+    auto links = reachi::data::create_link_vector(nodes, 1);
 
     // testing original implementation
     /*auto begin = std::chrono::steady_clock::now();
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
 
 
-    vecvec<double> data{{2, 5, 3},
+    reachi::linalg::vecvec<double> data{{2, 5, 3},
                         /*{1, 2, 1},
                         {4, 1, 1},
                         {3, 5, 2},
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     auto begin_1 = std::chrono::steady_clock::now();
 
     std::vector<double> singular_values, u, v {};
-    auto res = svd(data);
+    auto res = reachi::svd::svd(data,5);
     auto end_1 = std::chrono::steady_clock::now();
     std::cout << "Our code: " << std::chrono::duration_cast<std::chrono::microseconds>(end_1 - begin_1).count()
               << std::endl;

@@ -5,8 +5,15 @@
 #include <reachi/link.h>
 #include <reachi/math.h>
 
-std::vector<double> compute_temporal_correlation(const std::vector<Optics::CLink> &links, double time, double delta_time);
+namespace reachi {
+    namespace linkmodel {
 
-std::vector<double> compute_spatial_correlation();
+        ::std::vector<double>
+        compute_temporal_correlation(const ::std::vector<Optics::CLink> &links, double time, double delta_time);
+
+        ::std::vector<double> compute_spatial_correlation();
+
+    }
+}
 
 #endif //MANETSIMS_LINKMODEL_H

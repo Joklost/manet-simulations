@@ -29,8 +29,8 @@
                 }
 
 
-std::vector<Optics::Cluster> cluster(std::vector<Node> &nodes, double eps, int minpts) {
-    Optics optics{};
+std::vector<reachi::Optics::Cluster> cluster(std::vector<reachi::Node> &nodes, double eps, int minpts) {
+    reachi::Optics optics{};
 
     auto ordering = optics.compute_ordering(nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
@@ -76,7 +76,7 @@ void print_result(int graph_id, long cluster_count, double eps, long node_count,
             << std::endl;
 }
 
-void request_graph(mpilib::HttpClient &httpclient, std::vector<Optics::Cluster> clusters, int graph_id, double eps) {
+void request_graph(mpilib::HttpClient &httpclient, std::vector<reachi::Optics::Cluster> clusters, int graph_id, double eps) {
     std::vector<json> serialized_clusters{};
     serialized_clusters.reserve(clusters.size());
 
@@ -105,7 +105,7 @@ void request_graph(mpilib::HttpClient &httpclient, std::vector<Optics::Cluster> 
     httpclient.post("/request-graph", json_clusters);
 }
 
-long clusterize_remaining(const std::vector<Node> &nodes, std::vector<Optics::Cluster> &clusters) {
+long clusterize_remaining(const std::vector<reachi::Node> &nodes, std::vector<reachi::Optics::Cluster> &clusters) {
     auto cnodes = nodes;
     unsigned long node_count = 0;
     for (auto &cluster : clusters) {
@@ -121,8 +121,8 @@ long clusterize_remaining(const std::vector<Node> &nodes, std::vector<Optics::Cl
     auto id = static_cast<uint32_t>(clusters.size());
     for (auto &node : cnodes) {
         id++;
-        std::vector<Node> single_node_cluster{node};
-        Optics::Cluster c{id, single_node_cluster};
+        std::vector<reachi::Node> single_node_cluster{node};
+        reachi::Optics::Cluster c{id, single_node_cluster};
         clusters.push_back(c);
     }
 
@@ -144,34 +144,34 @@ int main(int argc, char *argv[]) {
     auto setup_start = std::chrono::steady_clock::now();
     /**/
 
-    auto nodes = generate_nodes(NODES, upper, lower);
+    auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
-    std::vector<Optics::Cluster> og_clusters{};
+    std::vector<reachi::Optics::Cluster> og_clusters{};
     og_clusters.reserve(nodes.size());
 
     for (auto &node : nodes) {
-        std::vector<Node> cluster{node};
+        std::vector<reachi::Node> cluster{node};
         og_clusters.emplace_back(node.get_id(), cluster);
     }
-    auto og_links = create_link_vector(og_clusters, LINK_THRESHOLD);
+    auto og_links = reachi::data::create_link_vector(og_clusters, LINK_THRESHOLD);
     std::cout << og_links.size() << std::endl;
 
     /* Compute distance part */
     std::vector<double> og_l_distance{};
-    std::for_each(og_links.cbegin(), og_links.cend(), [&og_l_distance](Optics::CLink link) {
-        og_l_distance.emplace_back(distance_pathloss(link.get_distance()));
+    std::for_each(og_links.cbegin(), og_links.cend(), [&og_l_distance](reachi::Optics::CLink link) {
+        og_l_distance.emplace_back(reachi::math::distance_pathloss(link.get_distance()));
     });
 
     /* Compute fading part */
-    auto og_corr = generate_correlation_matrix(og_links);
-    std::cout << "pd: " << is_positive_definite(og_corr) << std::endl;
+    auto og_corr = reachi::math::generate_correlation_matrix(og_links);
+    std::cout << "pd: " << reachi::cholesky::is_positive_definite(og_corr) << std::endl;
 
-    if (!is_positive_definite(og_corr)) {
+    if (!reachi::cholesky::is_positive_definite(og_corr)) {
 //        og_corr = iterative_spectral(og_corr, 25, 0.001);
 return 0;
     }
 
-    std::cout << "pd: "  << is_positive_definite(og_corr) << std::endl;
+    std::cout << "pd: "  << reachi::cholesky::is_positive_definite(og_corr) << std::endl;
 
 //    auto setup_end1 = std::chrono::steady_clock::now();
 //    auto setup_duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(setup_end1 - setup_start);
@@ -179,9 +179,9 @@ return 0;
 
     auto std_deviation = std::pow(11.4, 2);
     auto og_sigma = std_deviation * og_corr;
-    auto og_gaussian = generate_gaussian_vector(0.0, 1.0, og_links.size());
-    auto og_choleskied = cholesky_v2(og_sigma);
-    assert(mpilib::compare_vectors(og_sigma, og_choleskied * transpose(og_choleskied), 0.00001));
+    auto og_gaussian = reachi::math::generate_gaussian_vector(0.0, 1.0, og_links.size());
+    auto og_choleskied = reachi::cholesky::cholesky_v2(og_sigma);
+    assert(reachi::linalg::compare_vectors(og_sigma, og_choleskied * reachi::linalg::transpose(og_choleskied), 0.00001));
     auto og_l_fading = og_choleskied * og_gaussian;
 
     auto og_rssi = TX_DBM - (og_l_distance + og_l_fading);
@@ -190,7 +190,7 @@ return 0;
     og_pep.reserve(og_links.size());
 
     for (auto &rssi : og_rssi) {
-        og_pep.push_back(packet_error_probability(rssi, 160));
+        og_pep.push_back(reachi::radiomodel::packet_error_probability(rssi, 160));
     }
 
     /**/
@@ -220,19 +220,19 @@ return 0;
 
         auto cluster_count = clusters.size();
         auto node_count = clusterize_remaining(nodes, clusters);
-        auto links = create_link_vector(clusters, LINK_THRESHOLD);
+        auto links = reachi::data::create_link_vector(clusters, LINK_THRESHOLD);
 
         /* Compute distance part */
         std::vector<double> l_distance{};
-        std::for_each(links.cbegin(), links.cend(), [&l_distance](Optics::CLink link) {
-            l_distance.emplace_back(distance_pathloss(link.get_distance()));
+        std::for_each(links.cbegin(), links.cend(), [&l_distance](reachi::Optics::CLink link) {
+            l_distance.emplace_back(reachi::math::distance_pathloss(link.get_distance()));
         });
 
         /* Compute fading part */
-        auto corr = generate_correlation_matrix(links);
+        auto corr = reachi::math::generate_correlation_matrix(links);
         auto sigma = std_deviation * corr;
-        auto gaussian = generate_gaussian_vector(0.0, 1.0, links.size());
-        auto l_fading = cholesky(sigma) * gaussian;
+        auto gaussian = reachi::math::generate_gaussian_vector(0.0, 1.0, links.size());
+        auto l_fading = reachi::cholesky::cholesky(sigma) * gaussian;
 
         std::vector<double> rssi{TX_DBM - (l_distance + l_fading)};
 
@@ -250,7 +250,7 @@ return 0;
                 if (!link.contains(first, second)) {
                     continue;
                 }
-                link.set_pep(packet_error_probability(link.get_rssi(), 160));
+                link.set_pep(reachi::radiomodel::packet_error_probability(link.get_rssi(), 160));
                 std::cout
                           << link.get_rssi()
                           << " : "

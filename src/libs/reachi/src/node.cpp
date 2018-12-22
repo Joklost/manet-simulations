@@ -2,54 +2,49 @@
 #include <utility>
 #include <reachi/node.h>
 
-Node::Node(uint32_t id, mpilib::geo::Location location) : current_location(location) {
+reachi::Node::Node(uint32_t id, mpilib::geo::Location location) : current_location(location) {
     this->id = id;
 }
 
-uint32_t Node::get_id() const {
+uint32_t reachi::Node::get_id() const {
     return this->id;
 }
 
-const mpilib::geo::Location &Node::get_location() const {
+const mpilib::geo::Location &reachi::Node::get_location() const {
     return this->current_location;
 }
 
-bool Node::operator==(const Node &rhs) const {
+bool reachi::Node::operator==(const Node &rhs) const {
     return id == rhs.id;
 }
 
-bool Node::operator!=(const Node &rhs) const {
+bool reachi::Node::operator!=(const Node &rhs) const {
     return !(rhs == *this);
 }
 
-bool Node::operator<(const Node &rhs) const {
+bool reachi::Node::operator<(const Node &rhs) const {
     return id < rhs.id;
 }
 
-bool Node::operator>(const Node &rhs) const {
+bool reachi::Node::operator>(const Node &rhs) const {
     return rhs < *this;
 }
 
-bool Node::operator<=(const Node &rhs) const {
+bool reachi::Node::operator<=(const Node &rhs) const {
     return !(rhs < *this);
 }
 
-bool Node::operator>=(const Node &rhs) const {
+bool reachi::Node::operator>=(const Node &rhs) const {
     return !(*this < rhs);
 }
 
-std::ostream &operator<<(std::ostream &os, const Node &node) {
-    os << "id: " << node.id << " current_location: " << node.current_location;
-    return os;
-}
-
-void to_json(json &j, const Node &p) {
+void reachi::to_json(json &j, const reachi::Node &p) {
     j = json{{"id",  p.get_id()},
              {"lat", p.get_location().get_latitude()},
              {"lon", p.get_location().get_longitude()}};
 }
 
-void from_json(const json &j, Node &p) {
+void reachi::from_json(const json &j, reachi::Node &p) {
     auto id = j.at("id").get<uint32_t>();
     auto lat = j.at("lat").get<double>();
     auto lon = j.at("lon").get<double>();
@@ -57,41 +52,39 @@ void from_json(const json &j, Node &p) {
     p = {id, {lat, lon}};
 }
 
-void Node::update_location(mpilib::geo::Location &location, const int time) {
+void reachi::Node::update_location(mpilib::geo::Location &location, const int time) {
     location.set_time(time);
     this->location_history.emplace_back(this->current_location);
     this->current_location = location;
 }
 
-void Node::move(int time, double distance, double bearing) {
+void reachi::Node::move(int time, double distance, double bearing) {
     this->current_location.move(time, distance, bearing);
 }
 
-double Node::get_reachability_distance() const {
+double reachi::Node::get_reachability_distance() const {
     return reachability_distance;
 }
 
-void Node::set_reachability_distance(double reachability_distance) {
-    Node::reachability_distance = reachability_distance;
+void reachi::Node::set_reachability_distance(double reachability_distance) {
+    reachi::Node::reachability_distance = reachability_distance;
 }
 
-double Node::get_core_distance() const {
+double reachi::Node::get_core_distance() const {
     return core_distance;
 }
 
-void Node::set_core_distance(double core_distance) {
-    Node::core_distance = core_distance;
+void reachi::Node::set_core_distance(double core_distance) {
+    reachi::Node::core_distance = core_distance;
 }
 
-bool Node::is_processed() const {
+bool reachi::Node::is_processed() const {
     return processed;
 }
 
-void Node::set_processed(bool processed) {
-    Node::processed = processed;
+void reachi::Node::set_processed(bool processed) {
+    reachi::Node::processed = processed;
 }
 
-Node::Node() {
-
-}
+reachi::Node::Node() = default;
 

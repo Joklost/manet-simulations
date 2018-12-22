@@ -10,71 +10,71 @@
 
 using json = nlohmann::json;
 
-class Node {
-public:
-    Node();
+namespace reachi {
 
-    Node(uint32_t id, mpilib::geo::Location location);
+    class Node {
+    public:
+        Node();
 
-    uint32_t get_id() const;
+        Node(uint32_t id, mpilib::geo::Location location);
 
-    const mpilib::geo::Location &get_location() const;
+        uint32_t get_id() const;
 
-    void update_location(mpilib::geo::Location &location, int time);
+        const mpilib::geo::Location &get_location() const;
 
-    bool operator==(const Node &rhs) const;
+        void update_location(mpilib::geo::Location &location, int time);
 
-    bool operator!=(const Node &rhs) const;
+        bool operator==(const Node &rhs) const;
 
-    bool operator<(const Node &rhs) const;
+        bool operator!=(const Node &rhs) const;
 
-    bool operator>(const Node &rhs) const;
+        bool operator<(const Node &rhs) const;
 
-    bool operator<=(const Node &rhs) const;
+        bool operator>(const Node &rhs) const;
 
-    bool operator>=(const Node &rhs) const;
+        bool operator<=(const Node &rhs) const;
 
-    friend std::ostream &operator<<(std::ostream &os, const Node &node);
+        bool operator>=(const Node &rhs) const;
 
-    void move(int time, double distance /*kilometers */, double bearing /* degrees */);
+        void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
-    /* OPTICS */
+        /* OPTICS */
 
-    double get_reachability_distance() const;
+        double get_reachability_distance() const;
 
-    void set_reachability_distance(double reachability_distance);
+        void set_reachability_distance(double reachability_distance);
 
-    double get_core_distance() const;
+        double get_core_distance() const;
 
-    void set_core_distance(double core_distance);
+        void set_core_distance(double core_distance);
 
-    bool is_processed() const;
+        bool is_processed() const;
 
-    void set_processed(bool processed);
+        void set_processed(bool processed);
 
-private:
-    uint32_t id;
-    mpilib::geo::Location current_location;
-    std::vector<mpilib::geo::Location> location_history;
+    private:
+        uint32_t id;
+        mpilib::geo::Location current_location;
+        std::vector<mpilib::geo::Location> location_history;
 
-    /* OPTICS */
-    double reachability_distance{UNDEFINED};
-    double core_distance{UNDEFINED};
-    bool processed{};
-};
+        /* OPTICS */
+        double reachability_distance{UNDEFINED};
+        double core_distance{UNDEFINED};
+        bool processed{};
+    };
 
+    void to_json(json &j, const Node &p);
+
+    void from_json(const json &j, Node &p);
+
+}
 
 namespace std {
     template<>
-    struct hash<Node> {
-        std::size_t operator()(const Node &k) const {
+    struct hash<reachi::Node> {
+        std::size_t operator()(const reachi::Node &k) const {
             return std::hash<uint32_t>{}(k.get_id());
         }
     };
 }
-
-void to_json(json &j, const Node &p);
-
-void from_json(const json &j, Node &p);
-
 #endif /* MANETSIMS_MPI_NODE_H */

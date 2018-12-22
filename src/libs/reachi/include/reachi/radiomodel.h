@@ -3,6 +3,13 @@
 
 #include <cmath>
 
-double packet_error_probability(double rssi, int packetsize);
+namespace reachi {
+    namespace radiomodel {
+
+        double packet_error_probability(double rssi, int packetsize);
+
+    }
+}
+
 
 #endif //MANETSIMS_RADIOMODEL_H

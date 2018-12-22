@@ -6,8 +6,9 @@
 
 using json = nlohmann::json;
 
-std::vector<Node> generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
-    std::vector<Node> nodes{};
+std::vector<reachi::Node>
+reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
+    std::vector<reachi::Node> nodes{};
     nodes.reserve(count);
 
     auto lat_min = lower.get_latitude();
@@ -26,16 +27,17 @@ std::vector<Node> generate_nodes(unsigned long count, mpilib::geo::Location &upp
 
     for (uint32_t i = 1; i <= count; ++i) {
         mpilib::geo::Location l{gen_lat(), gen_lon()};
-        Node n{i, l};
+        reachi::Node n{i, l};
         nodes.emplace_back(n);
     }
 
     return nodes;
 }
 
-std::vector<Node>
-generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long count, double radius /* kilometer */) {
-    std::vector<Node> nodes{};
+std::vector<reachi::Node>
+reachi::data::generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long count,
+                               double radius /* kilometer */) {
+    std::vector<reachi::Node> nodes{};
     nodes.reserve(count);
 
     std::random_device rd;
@@ -53,14 +55,15 @@ generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long co
         auto x = (w * std::cos(t)) / std::cos(center.get_longitude());
         auto y = w * std::sin(t);
 
-        Node n{i, {center.get_latitude() + x, center.get_longitude() + y}};
+        reachi::Node n{i, {center.get_latitude() + x, center.get_longitude() + y}};
         nodes.emplace_back(n);
     }
 
     return nodes;
 };
 
-std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold /* kilometers */) {
+std::vector<reachi::Link>
+reachi::data::create_link_vector(std::vector<reachi::Node> &nodes, double threshold /* kilometers */) {
     std::vector<Link> links{};
 
     for (uint32_t i = 0; i < nodes.size(); ++i) {
@@ -79,7 +82,8 @@ std::vector<Link> create_link_vector(std::vector<Node> &nodes, double threshold 
     return links;
 }
 
-std::vector<Optics::CLink> create_link_vector(std::vector<Optics::Cluster> &clusters, double threshold /* km */) {
+std::vector<reachi::Optics::CLink>
+reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double threshold /* km */) {
     std::vector<Optics::CLink> links{};
 
     for (uint32_t i = 0; i < clusters.size(); ++i) {
@@ -98,30 +102,23 @@ std::vector<Optics::CLink> create_link_vector(std::vector<Optics::Cluster> &clus
     return links;
 }
 
-void visualise_nodes(std::vector<Node> &nodes) {
+void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes) {
     visualise_nodes(nodes, 10000);
 }
 
-void visualise_nodes(std::vector<Node> &nodes, unsigned long chunk_size) {
+void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes, unsigned long chunk_size) {
     mpilib::HttpClient httpclient{"http://localhost:8050"};
     httpclient.get("/clear");
 
     mpilib::for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &chunk_size](auto from, auto to) {
-/*        std::vector<json> serialized_nodes{};
-        serialized_nodes.reserve(chunk_size);
-
-        std::for_each(from, to, [&httpclient, &serialized_nodes](Node el) {
-            serialized_nodes.emplace_back(el.serialize());
-        });
-        */
-        std::vector<Node> node_chunk{from, to};
+        std::vector<reachi::Node> node_chunk{from, to};
 
         json j = node_chunk;
         httpclient.post_async("/updatechunk", j);
     });
 }
 
-void visualise_clusters(std::vector<Optics::Cluster> clusters) {
+void reachi::data::visualise_clusters(std::vector<reachi::Optics::Cluster> clusters) {
     mpilib::HttpClient httpclient{"http://localhost:8050"};
 
     std::vector<json> serialized_clusters{};

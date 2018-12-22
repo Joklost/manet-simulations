@@ -24,7 +24,5 @@
 /* Using declarations */
 using octet = unsigned char;
 
-template<typename T>
-using vecvec = std::vector<std::vector<T>>;
 
 #endif /* MANETSIMS_DEFINES_H */
