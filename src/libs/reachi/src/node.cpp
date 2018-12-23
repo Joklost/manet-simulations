@@ -1,6 +1,7 @@
 
 #include <utility>
 #include <reachi/node.h>
+#include <mpilib/node.h>
 
 reachi::Node::Node(uint32_t id, mpilib::geo::Location location) : current_location(location) {
     this->id = id;
@@ -87,4 +88,3 @@ void reachi::Node::set_processed(bool processed) {
 }
 
 reachi::Node::Node() = default;
-

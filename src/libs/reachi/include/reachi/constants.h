@@ -29,8 +29,10 @@
 #define MAX_LINK_DISTANCE 1
 #endif
 
+//#define UNDEFINED -0.1
+
 #define KM 1000
 #define KM_PER_DEGREE 111.320
-#define UNDEFINED -0.1
+
 
 #endif /* MANETSIMS_LINKMODEL_CONSTANTS_H */

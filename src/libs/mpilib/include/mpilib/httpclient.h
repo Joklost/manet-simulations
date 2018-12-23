@@ -16,7 +16,7 @@ namespace mpilib {
 
         cpr::Response get(std::string endpoint);
 
-        cpr::AsyncResponse getAsync(std::string endpoint);
+        cpr::AsyncResponse get_async(std::string endpoint);
 
         cpr::Response post(std::string endpoint, nlohmann::json &payload);
 

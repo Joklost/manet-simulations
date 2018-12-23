@@ -1,5 +1,5 @@
-#ifndef MANETSIMS_MPI_NODE_H
-#define MANETSIMS_MPI_NODE_H
+#ifndef MANETSIMS_REACHI_NODE_H
+#define MANETSIMS_REACHI_NODE_H
 
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -58,8 +58,8 @@ namespace reachi {
         std::vector<mpilib::geo::Location> location_history;
 
         /* OPTICS */
-        double reachability_distance{UNDEFINED};
-        double core_distance{UNDEFINED};
+        double reachability_distance{};
+        double core_distance{};
         bool processed{};
     };
 
@@ -77,4 +77,4 @@ namespace std {
         }
     };
 }
-#endif /* MANETSIMS_MPI_NODE_H */
+#endif /* MANETSIMS_REACHI_NODE_H */

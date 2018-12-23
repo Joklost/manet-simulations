@@ -8,7 +8,7 @@
 reachi::Optics::Optics() = default;
 
 double reachi::Optics::core_distance(Node &p) {
-    if (!mpilib::is_equal(p.get_core_distance(), UNDEFINED)) {
+    if (!mpilib::is_equal(p.get_core_distance(), reachi::UNDEFINED)) {
         return p.get_core_distance();
     }
 
@@ -24,7 +24,7 @@ double reachi::Optics::core_distance(Node &p) {
         return p.get_core_distance();
     }
 
-    return UNDEFINED;
+    return reachi::UNDEFINED;
 }
 
 std::vector<reachi::Optics::Neighbour> &reachi::Optics::compute_neighbours(Node &p) {
@@ -63,7 +63,7 @@ void reachi::Optics::update_seeds(Node &p, std::vector<uint32_t> &seeds) {
         }
 
         auto reachdist = std::max(coredist, distance_between(p.get_location(), o.get_location()));
-        if (mpilib::is_equal(o.get_reachability_distance(), UNDEFINED)) {
+        if (mpilib::is_equal(o.get_reachability_distance(), reachi::UNDEFINED)) {
             /* 'o' is not in seeds */
             o.set_reachability_distance(reachdist);
             seeds.emplace_back(o.get_id());
@@ -91,7 +91,8 @@ std::vector<reachi::Node> reachi::Optics::compute_ordering(std::vector<reachi::N
     this->minpts = minpts;
 
     for (auto &p : this->graph) {
-        p.second.set_reachability_distance(UNDEFINED);
+        p.second.set_reachability_distance(reachi::UNDEFINED);
+        p.second.set_core_distance(reachi::UNDEFINED);
         p.second.set_processed(false);
     }
 
@@ -99,7 +100,7 @@ std::vector<reachi::Node> reachi::Optics::compute_ordering(std::vector<reachi::N
         auto &p = this->graph[this->unprocessed.front()];
         this->processed(p);
 
-        if (mpilib::is_equal(this->core_distance(p), UNDEFINED)) {
+        if (mpilib::is_equal(this->core_distance(p), reachi::UNDEFINED)) {
             continue;
         }
 
@@ -115,7 +116,7 @@ std::vector<reachi::Node> reachi::Optics::compute_ordering(std::vector<reachi::N
 
             this->processed(q);
 
-            if (!mpilib::is_equal(this->core_distance(q), UNDEFINED)) {
+            if (!mpilib::is_equal(this->core_distance(q), reachi::UNDEFINED)) {
                 update_seeds(q, seeds);
             }
         }
@@ -144,7 +145,7 @@ std::vector<reachi::Optics::Cluster> reachi::Optics::cluster(std::vector<Node> &
 
         double reachdist{};
 
-        if (mpilib::is_equal(p.get_reachability_distance(), UNDEFINED)) {
+        if (mpilib::is_equal(p.get_reachability_distance(), reachi::UNDEFINED)) {
             reachdist = std::numeric_limits<double>::infinity();
         } else {
             reachdist = p.get_reachability_distance();
@@ -167,6 +168,7 @@ std::vector<reachi::Optics::Cluster> reachi::Optics::cluster(std::vector<Node> &
             clusters.emplace_back(c);
         }
     }
+
     clusterize_remaining(ordering, clusters);
 
     return clusters;

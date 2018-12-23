@@ -39,7 +39,8 @@ namespace mpilib {
         template<typename F, typename ...Args>
         static typename TimeT::rep execution(const F &&func, Args &&... args) {
             auto start = std::chrono::steady_clock::now();
-            std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
+            func(std::forward<Args>(args)...);
+//            std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
             auto duration = std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
             return duration.count();
         }
@@ -47,7 +48,8 @@ namespace mpilib {
         template<typename F, typename ...Args>
         static auto duration(const F &&func, Args &&... args) {
             auto start = std::chrono::steady_clock::now();
-            std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
+            func(std::forward<Args>(args)...);
+//            std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
             return std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
         }
     };
@@ -104,6 +106,14 @@ namespace mpilib {
     uint64_t generate_link_id(uint32_t id1, uint32_t id2);
 
     std::string processor_name(const char *processor_name, int world_rank);
+
+    /**
+     * Compute the transmission time required for transmitting a packet of size @octets
+     * @param baudrate The number of bits the radio can transmit per second
+     * @param octets The number of octets to transmit
+     * @return Time transmission will take, in microseconds
+     */
+    std::chrono::microseconds transmission_time(unsigned long baudrate, unsigned long octets);
 }
 
 #endif /* MANETSIMS_HELPERS_H */

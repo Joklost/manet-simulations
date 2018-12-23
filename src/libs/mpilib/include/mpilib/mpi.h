@@ -47,6 +47,10 @@ namespace mpi {
 
     Status recv(unsigned long *buf, int source, int tag);
 
+    int send(long buf, int dest, int tag);
+
+    Status recv(long *buf, int source, int tag);
+
     int send(int buf, int dest, int tag);
 
     Status recv(int *buf, int source, int tag);

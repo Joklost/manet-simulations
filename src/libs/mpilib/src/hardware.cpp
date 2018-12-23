@@ -11,21 +11,24 @@ void hardware::init(const mpilib::geo::Location &loc, bool debug) {
     int name_len{};
     char name[MPI_MAX_PROCESSOR_NAME];
     mpi::init(&hardware::world_size, &hardware::world_rank, &name_len, name);
-    hardware::processor_name = mpilib::processor_name(name, hardware::get_id());
+    hardware::processor_name = mpilib::processor_name(name, hardware::world_rank);
 
-    hardware::logger = spdlog::stdout_color_st(hardware::processor_name);
+    hardware::logger = spdlog::stdout_color_mt(hardware::processor_name);
     if (debug) {
         hardware::logger->set_level(spdlog::level::debug);
     }
 
     hardware::logger->debug("init()");
 
-    /* Subtract ctlr from world size. */
+    /* Subtract ctrlr from world size. */
     hardware::world_size = hardware::world_size - 1;
 
+    hardware::clock = hardware::now();
+    hardware::localtime = 0us;
+
     /* Handshake */
-    auto magic = mpi::recv<int>(CTLR, HANDSHAKE);
-    if (mpi::send(magic, CTLR, HANDSHAKE) == MPI_SUCCESS) {
+    auto magic = mpi::recv<int>(CTRLR, HANDSHAKE);
+    if (mpi::send(magic, CTRLR, HANDSHAKE) == MPI_SUCCESS) {
         hardware::set_location(loc);
     } else {
         hardware::deinit();
@@ -39,18 +42,21 @@ void hardware::deinit() {
     }
 
     hardware::logger->debug("deinit()");
-    mpi::send(hardware::world_rank, CTLR, DIE);
+    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, DIE);
     mpi::deinit();
     hardware::initialized = false;
 }
 
-void hardware::sleep(unsigned long duration) {
-    hardware::logger->debug("sleep(duration={})", duration);
-    mpi::send(hardware::localtime, CTLR, SLEEP);
-    mpi::send(duration, CTLR, SLEEP_DURATION);
+void hardware::sleep(std::chrono::microseconds duration) {
+    hardware::prepare_localtime();
+    hardware::logger->debug("sleep(localtime={}, duration={})", hardware::localtime, duration);
 
-    auto new_time = mpi::recv<unsigned long>(CTLR, SLEEP_ACK);
-    hardware::localtime = new_time;
+    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, SLEEP);
+    mpi::send(static_cast<unsigned long>(duration.count()), CTRLR, SLEEP_DURATION);
+
+    auto new_time = mpi::recv<unsigned long>(CTRLR, SLEEP_ACK);
+    hardware::localtime = std::chrono::microseconds{new_time};
+    hardware::clock = hardware::now();
 }
 
 bool hardware::set_location(const mpilib::geo::Location &loc) {
@@ -61,7 +67,7 @@ bool hardware::set_location(const mpilib::geo::Location &loc) {
     hardware::logger->debug("set_location(loc={})", loc);
 
     auto buffer = mpilib::serialise<mpilib::geo::Location>(loc);
-    return mpi::send(buffer, CTLR, SET_LOCATION) == MPI_SUCCESS;
+    return mpi::send(buffer, CTRLR, SET_LOCATION) == MPI_SUCCESS;
 }
 
 unsigned long hardware::get_id() {
@@ -78,4 +84,27 @@ unsigned long hardware::get_world_size() {
     }
 
     return static_cast<unsigned long>(hardware::world_size);
+}
+
+std::chrono::time_point<std::chrono::high_resolution_clock> hardware::now() {
+    return std::chrono::high_resolution_clock::now();
+}
+
+void hardware::prepare_localtime() {
+    /* Add execution time since last action to our localtime. */
+    auto now = hardware::now();
+    hardware::localtime = std::chrono::duration_cast<std::chrono::microseconds>(
+            (now - hardware::clock) + hardware::localtime
+    );
+}
+
+void hardware::report_localtime() {
+    if (!hardware::initialized) {
+        return;
+    }
+
+    hardware::prepare_localtime();
+    hardware::logger->debug("report_localtime(localtime={})", hardware::localtime);
+    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, SET_LOCAL_TIME);
+    hardware::clock = hardware::now();
 }

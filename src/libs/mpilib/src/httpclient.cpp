@@ -26,7 +26,7 @@ cpr::Response mpilib::HttpClient::get(std::string endpoint) {
     return response;
 }
 
-cpr::AsyncResponse mpilib::HttpClient::getAsync(std::string endpoint) {
+cpr::AsyncResponse mpilib::HttpClient::get_async(std::string endpoint) {
     auto response = cpr::GetAsync(cpr::Url{this->host + endpoint});
     return response;
 }

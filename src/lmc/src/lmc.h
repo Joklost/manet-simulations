@@ -3,18 +3,57 @@
 
 #include <vector>
 
+#include <mpilib/mpi.h>
+#include <mpilib/queue.h>
+#include <mpilib/node.h>
+
 #include <reachi/link.h>
 
-class lmc {
-public:
+
+enum Type {
+    update_location_t, poison_t
+};
+
+struct Action {
+    Type type;
+    int rank;
+
+    std::vector<octet> data;
+};
+
+
+class LinkModelComputer {
+    std::map<int, mpilib::Node> nodes{};
+
+    bool debug = false;
+    bool work = true;
+    mpilib::Queue<Action> queue{};
+
+    int world_size{};
+    int world_rank{};
+    int name_len{};
+    char processor_name[MPI_MAX_PROCESSOR_NAME]{};
+    std::shared_ptr<spdlog::logger> c;
+
+    std::vector<double> linkmodel;
+
     void update_model_data(std::vector<reachi::Node>);
 
     std::vector<double> fetch_model();
 
     void compute_linkmodel(std::vector<reachi::Node> &nodes);
 
-private:
-    std::vector<double> linkmodel;
+    bool handshake();
+
+    void recv();
+
+    void compute();
+
+public:
+
+    explicit LinkModelComputer(bool debug) : debug(debug) {}
+
+    void run();
 };
 
 /*
@@ -25,4 +64,4 @@ private:
  *
  */
 
-#endif //MANETSIMS_LINKMODEL_INTERFACE_H
+#endif /* MANETSIMS_LINKMODEL_INTERFACE_H */

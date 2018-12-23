@@ -11,9 +11,9 @@ namespace reachi {
 
     class Link {
     public:
-        Link(uint64_t id, Node node1, Node node2);
+        Link(uint64_t id, reachi::Node node1, reachi::Node node2);
 
-        const ::std::pair<Node, Node> &get_nodes() const;
+        const ::std::pair<reachi::Node, reachi::Node> &get_nodes() const;
 
         double get_distance() const;
 
@@ -34,7 +34,7 @@ namespace reachi {
     private:
         double distance;
         uint64_t id;
-        ::std::pair<Node, Node> nodes;
+        ::std::pair<reachi::Node, reachi::Node> nodes;
 
     };
 

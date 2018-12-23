@@ -47,6 +47,16 @@ int mpi::send(const unsigned long buf, const int dest, const int tag) {
     return MPI_Send(&buf, 1, MPI_UNSIGNED_LONG, dest, tag, MPI_COMM_WORLD);
 }
 
+mpi::Status mpi::recv(long *buf, int source, int tag) {
+    MPI_Status status{};
+    MPI_Recv(buf, 1, MPI_LONG, source, tag, MPI_COMM_WORLD, &status);
+    return mpi::Status{status};
+}
+
+int mpi::send(const long buf, const int dest, const int tag) {
+    return MPI_Send(&buf, 1, MPI_LONG, dest, tag, MPI_COMM_WORLD);
+}
+
 mpi::Status mpi::recv(unsigned long *buf, int source, int tag) {
     MPI_Status status{};
     MPI_Recv(buf, 1, MPI_UNSIGNED_LONG, source, tag, MPI_COMM_WORLD, &status);

@@ -9,6 +9,8 @@
 #include "node.h"
 
 namespace reachi {
+    constexpr double UNDEFINED = -0.1;
+
     using neighbour_t = ::std::pair<Node &, double>;
     using neighbourhood_t = ::std::vector<neighbour_t>;
 

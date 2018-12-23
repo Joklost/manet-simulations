@@ -13,10 +13,12 @@ struct Packet {
 };
 
 int main(int argc, char *argv[]) {
+    auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
+
     mpilib::geo::Location l1{57.01266813458001, 10.994625734716218};
     mpilib::geo::Location l2 = square(l1, 1.0);
     mpilib::geo::Location l = random_location(l1, l2);
-    hardware::init(l);
+    hardware::init(l, debug);
 
     auto id = hardware::get_id();
     std::string sid = std::string(3 - std::to_string(id).length(), '0') + std::to_string(id);
@@ -38,7 +40,7 @@ int main(int argc, char *argv[]) {
                 Packet p{id, selected};
                 hardware::broadcast(p);
             } else {
-                auto packets = hardware::listen<Packet>(1ul);
+                auto packets = hardware::listen<Packet>(1s);
 
                 for (const auto &item : packets) {
                     //console->info(item);

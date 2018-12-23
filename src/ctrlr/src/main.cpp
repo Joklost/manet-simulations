@@ -1,4 +1,4 @@
-#include "ctlr.h"
+#include "ctrlr.h"
 
 #include <iostream>
 
