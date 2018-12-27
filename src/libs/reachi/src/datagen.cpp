@@ -1,6 +1,7 @@
 #include <random>
 #include <mpilib/httpclient.h>
 #include <mpilib/helpers.h>
+#include <mpilib/geomath.h>
 
 #include <reachi/datagen.h>
 

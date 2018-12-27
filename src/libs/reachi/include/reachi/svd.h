@@ -50,7 +50,7 @@ namespace reachi {
             std::vector<linalg::vecvec<T>> us_times_vs;
 
             for (auto i = 0; i < matrix.size(); ++i) {
-                std::cout << "svd iteration " << i + 1 << " of " << matrix.size() << std::endl;
+//                std::cout << "svd iteration " << i + 1 << " of " << matrix.size() << std::endl;
                 auto matrix_for_1d = matrix;
 
                 if (i != 0) {

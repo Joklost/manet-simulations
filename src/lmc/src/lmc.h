@@ -11,7 +11,7 @@
 
 
 enum Type {
-    update_location_t, poison_t
+    update_location_t, should_receive_t, poison_t
 };
 
 struct Action {
@@ -19,10 +19,17 @@ struct Action {
     int rank;
 
     std::vector<octet> data;
+
+    int destination{};
+    double tx_power{};
+    double interference{};
 };
 
 
 class LinkModelComputer {
+    std::mutex mutex_;
+    std::condition_variable cond_;
+
     std::map<int, mpilib::Node> nodes{};
 
     bool debug = false;
@@ -35,19 +42,24 @@ class LinkModelComputer {
     char processor_name[MPI_MAX_PROCESSOR_NAME]{};
     std::shared_ptr<spdlog::logger> c;
 
+    bool is_valid = false;
     std::vector<double> linkmodel;
 
-    void update_model_data(std::vector<reachi::Node>);
-
-    std::vector<double> fetch_model();
-
-    void compute_linkmodel(std::vector<reachi::Node> &nodes);
+//    void update_model_data(std::vector<reachi::Node>);
+//
+//    std::vector<double> fetch_model();
+//
+//    void compute_linkmodel(std::vector<reachi::Node> &nodes);
 
     bool handshake();
 
     void recv();
 
+    void control();
+
     void compute();
+
+    void compute_link_model();
 
 public:
 

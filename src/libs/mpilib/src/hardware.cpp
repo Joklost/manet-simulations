@@ -23,13 +23,14 @@ void hardware::init(const mpilib::geo::Location &loc, bool debug) {
     /* Subtract ctrlr from world size. */
     hardware::world_size = hardware::world_size - 1;
 
-    hardware::clock = hardware::now();
-    hardware::localtime = 0us;
-
     /* Handshake */
     auto magic = mpi::recv<int>(CTRLR, HANDSHAKE);
     if (mpi::send(magic, CTRLR, HANDSHAKE) == MPI_SUCCESS) {
         hardware::set_location(loc);
+
+        mpi::recv<int>(CTRLR, READY);
+        hardware::clock = hardware::now();
+        hardware::localtime = 0us;
     } else {
         hardware::deinit();
         return;

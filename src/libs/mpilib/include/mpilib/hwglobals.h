@@ -4,7 +4,6 @@
 #include <spdlog/spdlog.h>
 #include <chrono>
 
-using namespace std::chrono_literals;
 
 #ifndef BAUDRATE
 #define BAUDRATE 34800

@@ -21,13 +21,18 @@
 #define UPDATE_LOCATION 44
 #define UPDATE_LOCATION_DATA 444
 #define SET_LOCAL_TIME 5
-#define LOCAL_TIME_REQ 55
-#define LOCAL_TIME_RSP 555
-#define WORLD_SIZE_REQ 6
-#define WORLD_SIZE_RSP 66
-#define NODE_INFO 7
+
+#define LM_NODE_INFO 7
+
+#define LM_SHOULD_RECEIVE 8
+#define LM_TX_POWER 88
+#define LM_INTERFERENCE 888
+#define LM_DESTINATION 8888
+#define LM_RESULT 88888
+
 
 #define HANDSHAKE 10
+#define READY 110
 #define DIE 101
 
 /* Using declarations */

@@ -4,6 +4,8 @@
 #include "location.h"
 
 #define EARTH_RADIUS_KM 6371.0
+#define KM 1000.0
+#define KM_PER_DEGREE 111.320
 
 namespace mpilib {
 

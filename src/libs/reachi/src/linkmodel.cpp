@@ -36,7 +36,7 @@ reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg
     return spd;
 }
 
-std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink> &links, double time) {
+std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink> &links, double time = 0.0) {
     auto corr = reachi::math::generate_correlation_matrix(links);
     if (!reachi::cholesky::is_positive_definite(corr))
         corr = ensure_positive_definiteness(corr);
@@ -46,15 +46,21 @@ std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink>
     auto autocorrelation_matrix = reachi::cholesky::cholesky(sigma);
 
     auto l_fading = autocorrelation_matrix * reachi::math::generate_gaussian_vector(0.0, 1.0, links.size());
-    return time == 0.0 ? l_fading : l_fading * time;
+    return mpilib::is_equal(time, 0.0) ? l_fading : l_fading * time;
 }
 
 
-std::vector<double> reachi::linkmodel::compute_spatial_correlation(const std::vector<reachi::Optics::CLink> &links,
-                                                                   const double time, const double delta_time) {
-    /* compute the temporal_coefficient */
-    auto d_t = 1.0 * KM;
-    auto d_r = 1.0 * KM;
+std::vector<double>
+reachi::linkmodel::compute_spatial_correlation(const std::vector<reachi::Optics::CLink> &links, double time) {
+    return compute_link_fading(links, time);
+
+}
+
+std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::vector<reachi::Optics::CLink> &links,
+                                                                    const double time, const double delta_time) {
+    /* TODO: Compute the temporal coefficient */
+    auto d_t = 1_km;
+    auto d_r = 1_km;
 
     auto temporal_coefficient = std::exp(-(std::log(2) * (20 / (d_t + d_r))));
 
@@ -64,6 +70,6 @@ std::vector<double> reachi::linkmodel::compute_spatial_correlation(const std::ve
     return sqrt(1 - temporal_coefficient) + l_fading * temporal_coefficient;
 }
 
-std::vector<double> reachi::linkmodel::compute_temporal_correlation() {
-    return std::vector<double>();
+::std::vector<double> reachi::linkmodel::compute(const std::vector<reachi::Optics::CLink> &links, double time) {
+    return compute_link_distance(links) + compute_link_fading(links, time); /* TODO: + temporal*/
 }

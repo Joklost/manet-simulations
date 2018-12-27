@@ -72,3 +72,23 @@ mpi::Status mpi::recv(int *buf, int source, int tag) {
     MPI_Recv(buf, 1, MPI_INT, source, tag, MPI_COMM_WORLD, &status);
     return mpi::Status{status};
 }
+
+int mpi::send(double buf, int dest, int tag) {
+    return MPI_Send(&buf, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
+}
+
+mpi::Status mpi::recv(double *buf, int source, int tag) {
+    MPI_Status status{};
+    MPI_Recv(buf, 1, MPI_DOUBLE, source, tag, MPI_COMM_WORLD, &status);
+    return mpi::Status{status};
+}
+
+int mpi::send(bool buf, int dest, int tag) {
+    return MPI_Send(&buf, 1, MPI_C_BOOL, dest, tag, MPI_COMM_WORLD);
+}
+
+mpi::Status mpi::recv(bool *buf, int source, int tag) {
+    MPI_Status status{};
+    MPI_Recv(buf, 1, MPI_C_BOOL, source, tag, MPI_COMM_WORLD, &status);
+    return mpi::Status{status};
+}

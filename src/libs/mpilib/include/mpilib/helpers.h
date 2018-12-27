@@ -11,6 +11,10 @@
 #include <spdlog/spdlog.h>
 
 #include "ostr.h"
+#include "location.h"
+
+using namespace std::chrono_literals;
+using namespace mpilib::geo::literals;
 
 namespace mpilib {
 
@@ -33,16 +37,17 @@ namespace mpilib {
         log_packet(c, prefix, *packet);
     }
 
-
+/*
     template<typename TimeT = std::chrono::milliseconds>
     struct measure {
-        template<typename F, typename ...Args>
-        static typename TimeT::rep execution(const F &&func, Args &&... args) {
+        template<typename R, typename F, typename ...Args>
+        static typename std::pair<R, long> execution(const F &&func, Args &&... args) {
             auto start = std::chrono::steady_clock::now();
-            func(std::forward<Args>(args)...);
-//            std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
+//            R result = func(std::forward<Args>(args)...);
+            auto val = std::invoke(std::forward<F>(func), std::forward<Args>(args)...);
+
             auto duration = std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
-            return duration.count();
+            return std::make_pair(val, duration.count());
         }
 
         template<typename F, typename ...Args>
@@ -53,7 +58,7 @@ namespace mpilib {
             return std::chrono::duration_cast<TimeT>(std::chrono::steady_clock::now() - start);
         }
     };
-
+*/
     /**
      * Wrapper for the std::for_each
      * function, that iterates a counter and invokes

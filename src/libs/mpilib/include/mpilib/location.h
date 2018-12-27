@@ -8,6 +8,13 @@ namespace mpilib {
 
     namespace geo {
 
+        namespace literals {
+            double operator ""_km(long double km);
+            double operator ""_km(unsigned long long km);
+            double operator ""_m(long double m);
+            double operator ""_m(unsigned long long m);
+        }
+
         class Location {
         public:
             Location();

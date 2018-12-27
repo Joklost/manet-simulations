@@ -9,7 +9,7 @@ void Controller::run() {
     if (this->debug) {
         this->c->set_level(spdlog::level::debug);
     }
-    this->c->debug("started, running with {} nodes", this->world_size);
+    this->c->debug("init(nodes={})", this->world_size);
 
     /* Ensure that the control worker is ready before using MPI. */
     auto control_worker = std::thread{&Controller::control, this};
@@ -26,6 +26,8 @@ void Controller::run() {
 
     receiver.join();
     control_worker.join();
+
+    this->c->debug("deinit()");
 
     mpi::deinit();
 }
@@ -165,10 +167,26 @@ void Controller::control() {
                 }
 
                 if (transmission.is_within(listen)) {
-                    /* TODO: Ask linkmodel if message should be received. */
+                    /* TODO: Compute interference. */
+                    /* Send (in order):
+                     * source (LM_SHOULD_RECEIVE),
+                     * destination (LM_DESTINATION),
+                     * tx_power (LM_TX_POWER),
+                     * interference (LM_INTERFERENCE)
+                     * to LMC. */
 
-                    if (transmission.rank + 1 == listen.rank || transmission.rank - 1 == listen.rank) {
+                    auto tx_power = 26.0;
+                    auto interference = 0.0;
+//                    mpi::send(transmission.rank, this->lmc_node, LM_SHOULD_RECEIVE);
+//                    mpi::send(listen.rank, this->lmc_node, LM_DESTINATION);
+//                    mpi::send(tx_power, this->lmc_node, LM_TX_POWER);
+//                    mpi::send(interference, this->lmc_node, LM_INTERFERENCE);
+//                    auto should_receive = mpi::recv<bool>(this->lmc_node, LM_RESULT);
+                    auto should_receive = true;
+                    if (should_receive) {
                         packets.emplace_back(transmission.data);
+//                    if (transmission.rank + 1 == listen.rank || transmission.rank - 1 == listen.rank) {
+//                        packets.emplace_back(transmission.data);
                     }
                 }
             }
@@ -195,6 +213,26 @@ void Controller::control() {
 
 bool Controller::handshake() {
     mpi::send(this->lmc_node, this->lmc_node, HANDSHAKE);
+
+    for (auto i = 1; i <= world_size; ++i) {
+        auto node_name = mpilib::processor_name(this->processor_name, i);
+        mpi::send(i, i, HANDSHAKE);
+        auto response = mpi::recv<int>(i, HANDSHAKE);
+        if (response == i) {
+            this->nodes.insert({i, {i}});
+            this->c->debug("handshake(target={}, status=success)", node_name);
+
+            mpi::Status status = mpi::probe(i, SET_LOCATION);
+            update_location(status);
+            auto node_buffer = mpilib::serialise(this->nodes[i]);
+            mpi::send(node_buffer, this->lmc_node, LM_NODE_INFO);
+
+        } else {
+            this->c->debug("handshake(target={}, status=fail)", node_name);
+            return false;
+        }
+    }
+
     auto response = mpi::recv<int>(this->lmc_node, HANDSHAKE);
 
     if (response != this->lmc_node) {
@@ -204,23 +242,9 @@ bool Controller::handshake() {
         this->c->debug("handshake(target=lmc, status=success)");
     }
 
+    /* Set the clocks on all nodes. */
     for (auto i = 1; i <= world_size; ++i) {
-        auto node_name = mpilib::processor_name(this->processor_name, i);
-        mpi::send(i, i, HANDSHAKE);
-        response = mpi::recv<int>(i, HANDSHAKE);
-        if (response == i) {
-            this->nodes.insert({i, {i}});
-            this->c->debug("handshake(target={}, status=success)", node_name);
-
-            mpi::Status status = mpi::probe(i, SET_LOCATION);
-            update_location(status);
-            auto node_buffer = mpilib::serialise(this->nodes[i]);
-            mpi::send(node_buffer, this->lmc_node, NODE_INFO);
-
-        } else {
-            this->c->debug("handshake(target={}, status=fail)", node_name);
-            return false;
-        }
+        mpi::send(i, i, READY);
     }
 
     return true;

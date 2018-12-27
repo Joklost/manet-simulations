@@ -55,6 +55,14 @@ namespace mpi {
 
     Status recv(int *buf, int source, int tag);
 
+    int send(double buf, int dest, int tag);
+
+    Status recv(double *buf, int source, int tag);
+
+    int send(bool buf, int dest, int tag);
+
+    Status recv(bool *buf, int source, int tag);
+
     template <typename T>
     T recv(int source, int tag) {
         T buf{};

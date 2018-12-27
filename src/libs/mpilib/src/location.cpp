@@ -94,3 +94,20 @@ mpilib::geo::Location::Location(int time, double latitude, double longitude) : t
                                                                                longitude(longitude) {}
 
 mpilib::geo::Location::Location() = default;
+
+double mpilib::geo::literals::operator ""_km(long double km) {
+    return static_cast<double>(km);
+}
+
+double mpilib::geo::literals::operator ""_km(unsigned long long km) {
+    return static_cast<double>(km);
+}
+
+double mpilib::geo::literals::operator ""_m(long double m) {
+    return static_cast<double>(m / KM);
+
+}
+
+double mpilib::geo::literals::operator ""_m(unsigned long long m) {
+    return m / KM;
+}

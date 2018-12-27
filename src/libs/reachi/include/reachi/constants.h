@@ -31,8 +31,5 @@
 
 //#define UNDEFINED -0.1
 
-#define KM 1000
-#define KM_PER_DEGREE 111.320
-
 
 #endif /* MANETSIMS_LINKMODEL_CONSTANTS_H */

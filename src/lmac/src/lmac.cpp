@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
 
     mpilib::geo::Location l1{57.01266813458001, 10.994625734716218};
-    auto l2 = mpilib::geo::square(l1, 1.0);
+    auto l2 = mpilib::geo::square(l1, 300_m);
     auto l = mpilib::geo::random_location(l1, l2);
 
     hardware::init(l, debug);
@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
         hardware::broadcast<TestPacket>(p);
     }
 
-    auto new_location = mpilib::geo::random_location(l1, l2);
-    hardware::set_location(new_location);
+//    auto new_location = mpilib::geo::random_location(l1, l2);
+//    hardware::set_location(new_location);
 
     hardware::deinit();
 
