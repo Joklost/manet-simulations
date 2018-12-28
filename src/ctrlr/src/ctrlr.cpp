@@ -1,4 +1,8 @@
 
+#include <random>
+
+#include <reachi/radiomodel.h>
+
 #include "ctrlr.h"
 
 void Controller::run() {
@@ -99,6 +103,20 @@ void Controller::recv() {
             this->queue.push({set_time_t, status.source, localtime});
         }
 
+        if (status.tag == LINK_MODEL) {
+            auto count = mpi::recv<unsigned long>(status.source, LINK_MODEL);
+            std::vector<mpilib::Link> link_model{};
+            link_model.reserve(count);
+            for (auto i = 0; i < count; ++i) {
+                auto link_buffer = mpi::recv<std::vector<octet>>(status.source, LINK_MODEL_LINK);
+                link_model.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
+            }
+
+            Action act{link_model_t, status.source};
+            act.link_model = link_model;
+            this->queue.push(act);
+        }
+
     }
 }
 
@@ -132,9 +150,15 @@ void Controller::control() {
             mpi::send(act.data, this->lmc_node, UPDATE_LOCATION_DATA);
         }
 
+        if (act.type == link_model_t) {
+            this->c->debug("update_linkmodel(links={})", act.link_model.size());
+            this->link_model = act.link_model;
+        }
+
         if (act.type == set_time_t) {
             /* Do nothing. */
         }
+
 
         if (this->transmission_actions.empty() && this->listen_actions.empty()) {
             continue;
@@ -152,61 +176,66 @@ void Controller::control() {
             continue;
         }
 
-        for (auto &listen : this->listen_actions) {
+        for (auto &rx : this->listen_actions) {
             /* We check if we have received an action/time update from all other nodes. */
-            if (listen.start + listen.duration > min_localtime || listen.is_processed) {
+            if (rx.start + rx.duration > min_localtime || rx.is_processed) {
                 continue;
             }
 
             std::vector<std::vector<octet>> packets{};
 
             /* we can process this listen action. */
-            for (auto &transmission : this->transmission_actions) {
-                if (listen.rank == transmission.rank) {
+            for (auto &tx : this->transmission_actions) {
+                if (rx.rank == tx.rank || !tx.is_within(rx)) {
                     continue;
                 }
 
-                if (transmission.is_within(listen)) {
-                    /* TODO: Compute interference. */
-                    /* Send (in order):
-                     * source (LM_SHOULD_RECEIVE),
-                     * destination (LM_DESTINATION),
-                     * tx_power (LM_TX_POWER),
-                     * interference (LM_INTERFERENCE)
-                     * to LMC. */
+                /* TODO: Compute interference. */
+                auto tx_power = 1.0;
+                auto interference = 0.0;
 
-                    auto tx_power = 26.0;
-                    auto interference = 0.0;
-//                    mpi::send(transmission.rank, this->lmc_node, LM_SHOULD_RECEIVE);
-//                    mpi::send(listen.rank, this->lmc_node, LM_DESTINATION);
-//                    mpi::send(tx_power, this->lmc_node, LM_TX_POWER);
-//                    mpi::send(interference, this->lmc_node, LM_INTERFERENCE);
-//                    auto should_receive = mpi::recv<bool>(this->lmc_node, LM_RESULT);
-                    auto should_receive = true;
-                    if (should_receive) {
-                        packets.emplace_back(transmission.data);
-//                    if (transmission.rank + 1 == listen.rank || transmission.rank - 1 == listen.rank) {
-//                        packets.emplace_back(transmission.data);
-                    }
+                auto it = std::find_if(this->link_model.begin(), this->link_model.end(), [&tx, &rx](auto link) {
+                    return (tx.rank == link.first && rx.rank == link.second) ||
+                           (tx.rank == link.second && rx.rank == link.first);
+                });
+
+                if (it == this->link_model.end()) {
+                    this->c->debug("should_receive(first={}, second={}, status=no_link)", tx.rank, rx.rank);
+                    continue;
+                }
+
+                auto rssi = tx_power - it.base()->pathloss;
+                auto pep = reachi::radiomodel::pep(rssi, tx.data.size(), interference);
+
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::bernoulli_distribution d(1.0 - pep);
+                auto should_receive = d(gen);
+
+                this->c->debug("should_receive(first={}, second={}, status={}, rssi={}, pep={})",
+                               tx.rank, rx.rank, should_receive, rssi, pep);
+
+                if (should_receive) {
+                    packets.emplace_back(tx.data);
                 }
             }
 
             this->c->debug("process_rx(rank={}, localtime={}, duration={}, packets={})",
-                           act.rank, act.localtime, act.duration, packets.size());
+                           rx.rank, rx.start, rx.duration, packets.size());
 
-            mpi::send(packets.size(), listen.rank, RX_PKT_COUNT);
+            mpi::send(packets.size(), rx.rank, RX_PKT_COUNT);
 
             for (auto &packet : packets) {
-                mpi::send(packet, listen.rank, RX_PKT_DATA);
+                mpi::send(packet, rx.rank, RX_PKT_DATA);
             }
 
-            mpi::send(listen.start + listen.duration, listen.rank, RX_PKT_ACK);
-            listen.is_processed = true;
+            mpi::send(rx.start + rx.duration, rx.rank, RX_PKT_ACK);
+            rx.is_processed = true;
         }
 
         /* Remove processed actions. */
         //this->listen_actions.erase(std::remove_if(this->listen_actions.begin(), this->listen_actions.end(),
-        //                                          [](ListenAction &action) -> bool { return action.processed; }));
+        //                                          [](Listen &action) -> bool { return action.processed; }));
     }
 }
 
@@ -225,7 +254,7 @@ bool Controller::handshake() {
             mpi::Status status = mpi::probe(i, SET_LOCATION);
             update_location(status);
             auto node_buffer = mpilib::serialise(this->nodes[i]);
-            mpi::send(node_buffer, this->lmc_node, LM_NODE_INFO);
+            mpi::send(node_buffer, this->lmc_node, NODE_INFO);
 
         } else {
             this->c->debug("handshake(target={}, status=fail)", node_name);
@@ -241,6 +270,16 @@ bool Controller::handshake() {
     } else {
         this->c->debug("handshake(target=lmc, status=success)");
     }
+
+    auto count = mpi::recv<unsigned long>(this->lmc_node, LINK_MODEL);
+    std::vector<mpilib::Link> link_model{};
+    link_model.reserve(count);
+    for (auto j = 0; j < count; ++j) {
+        auto link_buffer = mpi::recv<std::vector<octet>>(this->lmc_node, LINK_MODEL_LINK);
+        link_model.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
+    }
+    this->c->debug("set_linkmodel(links={})", link_model.size());
+    this->link_model = link_model;
 
     /* Set the clocks on all nodes. */
     for (auto i = 1; i <= world_size; ++i) {
@@ -259,7 +298,7 @@ mpilib::geo::Location Controller::update_location(const mpi::Status &status) {
     return loc;
 }
 
-bool TransmissionAction::is_within(ListenAction listen) {
+bool Transmission::is_within(Listen listen) {
     return this->start >= listen.start &&
            (this->start + this->duration) <= (listen.start + listen.duration);
 }

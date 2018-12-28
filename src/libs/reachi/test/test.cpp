@@ -381,8 +381,8 @@ TEST_CASE("Compute RSSI using spatial and temporal correlation", "[linkmodel]") 
 }
 
 TEST_CASE("Compute packet probability error", "[radiomodel]") {
-    REQUIRE(reachi::radiomodel::packet_error_probability(-105.3, 160) == Approx(0.097154).margin(0.00001));
-    REQUIRE(reachi::radiomodel::packet_error_probability(-104.0, 160) == Approx(0.014551).margin(0.00001));
+    REQUIRE(reachi::radiomodel::pep(-105.3, 160) == Approx(0.097154).margin(0.00001));
+    REQUIRE(reachi::radiomodel::pep(-104.0, 160) == Approx(0.014551).margin(0.00001));
 }
 
 TEST_CASE("Cholesky verify", "[cholesky]") {

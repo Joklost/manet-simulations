@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
     og_pep.reserve(og_links.size());
 
     for (auto &rssi : og_rssi) {
-        og_pep.push_back(reachi::radiomodel::packet_error_probability(rssi, 160));
+        og_pep.push_back(reachi::radiomodel::pep(rssi, 160));
     }
 
     /**/
@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
                 if (!link.contains(first, second)) {
                     continue;
                 }
-                link.set_pep(reachi::radiomodel::packet_error_probability(link.get_rssi(), 160));
+                link.set_pep(reachi::radiomodel::pep(link.get_rssi(), 160));
                 std::cout
                         << link.get_rssi()
                         << " : "

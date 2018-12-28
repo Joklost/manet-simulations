@@ -1,6 +1,7 @@
 #include <reachi/linkmodel.h>
 #include <reachi/datagen.h>
 #include <mpilib/node.h>
+#include <ostream>
 #include "lmc.h"
 //
 //std::vector<double> LinkModelComputer::fetch_model() {
@@ -85,19 +86,6 @@ void LinkModelComputer::recv() {
             auto loc = mpi::recv<std::vector<octet>>(status.source, UPDATE_LOCATION_DATA);
             this->queue.push({update_location_t, rank, loc});
         }
-
-//        if (status.tag == LM_SHOULD_RECEIVE) {
-//            auto source = mpi::recv<int>(status.source, status.tag);
-//            auto destination = mpi::recv<int>(status.source, LM_DESTINATION);
-//            auto tx_power = mpi::recv<double>(status.source, LM_TX_POWER);
-//            auto interference = mpi::recv<double>(status.source, LM_INTERFERENCE);
-//            Action act{should_receive_t, source};
-//            act.destination = destination;
-//            act.tx_power = tx_power;
-//            act.interference = interference;
-//            this->queue.push(act);
-//
-//        }
     }
 }
 
@@ -121,15 +109,13 @@ void LinkModelComputer::control() {
             this->cond_.notify_one();
         }
 
-        if (act.type == should_receive_t) {
-            /* Check link model indices. */
-            this->c->debug("should_receive(source={}, destination={}, tx_power={}, interference={})",
-                           act.rank, act.destination, act.tx_power, act.interference);
+        if (act.type == link_model_t) {
+            this->c->debug("update_linkmodel(links={})", act.link_model.size());
 
-            mpi::send(true, CTRLR, LM_RESULT);
-
-            if (!this->is_valid) {
-                this->cond_.notify_one();
+            mpi::send(this->link_model.size(), CTRLR, LINK_MODEL);
+            for (auto &link : this->link_model) {
+                auto link_buffer = mpilib::serialise(link);
+                mpi::send(link_buffer, CTRLR, LINK_MODEL_LINK);
             }
         }
     }
@@ -143,7 +129,7 @@ bool LinkModelComputer::handshake() {
     }
 
     for (auto i = 1; i <= this->world_size; ++i) {
-        auto node_buffer = mpi::recv<std::vector<octet>>(CTRLR, LM_NODE_INFO);
+        auto node_buffer = mpi::recv<std::vector<octet>>(CTRLR, NODE_INFO);
         auto node = mpilib::deserialise<mpilib::Node>(node_buffer);
         this->nodes.insert(std::make_pair(node.rank, node));
     }
@@ -151,6 +137,13 @@ bool LinkModelComputer::handshake() {
     /* Wait for first Link Model to compute, and send ready signal to controller. */
     compute_link_model();
     mpi::send(this->world_rank, CTRLR, HANDSHAKE);
+
+    /* Send link model to controller. */
+    mpi::send(this->link_model.size(), CTRLR, LINK_MODEL);
+    for (auto &link : this->link_model) {
+        auto link_buffer = mpilib::serialise(link);
+        mpi::send(link_buffer, CTRLR, LINK_MODEL_LINK);
+    }
 
     return true;
 }
@@ -179,7 +172,7 @@ void LinkModelComputer::compute_link_model() {
     auto eps = 0.01;
     auto minpts = 2;
 
-    auto link_threshold = 1500_m;
+    auto link_threshold = 350_m;
 
     auto time = 0.0, time_delta = 0.0;
     std::vector<reachi::Node> model_nodes{};
@@ -189,14 +182,35 @@ void LinkModelComputer::compute_link_model() {
 
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
-    auto model_links = reachi::data::create_link_vector(clusters, link_threshold);
+    auto links = reachi::data::create_link_vector(clusters, link_threshold);
 
-    this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), model_links.size());
+    this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), links.size());
 
     auto start = std::chrono::steady_clock::now();
-    auto link_model = reachi::linkmodel::compute(model_links);
+    auto link_model = reachi::linkmodel::compute(links);
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
     this->c->debug("compute_done(execution={})", duration.count());
 
+    std::vector<mpilib::Link> model{};
+
+    /* Expand clusters to get the actual model. */
+    for (auto i = 0; i < links.size(); ++i) {
+        auto &link = links[i];
+        auto &c1 = link.get_clusters().first;
+        auto &c2 = link.get_clusters().second;
+        auto rssi = link_model[i];
+
+        for (auto &n1 : c1.get_nodes()) {
+            for (auto &n2 : c2.get_nodes()) {
+                model.push_back({static_cast<int>(n1.get_id()), static_cast<int>(n2.get_id()),
+                                 rssi, link.get_distance()});
+            }
+        }
+    }
+
+    this->link_model = model;
     this->is_valid = true;
+
+    Action act{link_model_t};
+    act.link_model = model;
 }

@@ -2,16 +2,15 @@
 #define MANETSIMS_LINKMODEL_INTERFACE_H
 
 #include <vector>
+#include <map>
 
 #include <mpilib/mpi.h>
 #include <mpilib/queue.h>
 #include <mpilib/node.h>
-
-#include <reachi/link.h>
-
+#include <mpilib/link.h>
 
 enum Type {
-    update_location_t, should_receive_t, poison_t
+    update_location_t, link_model_t, poison_t
 };
 
 struct Action {
@@ -20,9 +19,7 @@ struct Action {
 
     std::vector<octet> data;
 
-    int destination{};
-    double tx_power{};
-    double interference{};
+    std::vector<mpilib::Link> link_model;
 };
 
 
@@ -43,7 +40,8 @@ class LinkModelComputer {
     std::shared_ptr<spdlog::logger> c;
 
     bool is_valid = false;
-    std::vector<double> linkmodel;
+
+    std::vector<mpilib::Link> link_model{};
 
 //    void update_model_data(std::vector<reachi::Node>);
 //

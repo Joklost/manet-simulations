@@ -4,6 +4,7 @@
 #include <mpilib/helpers.h>
 #include <mpilib/geomath.h>
 #include <mpilib/ostr.h>
+#include <mpilib/link.h>
 
 reachi::Link::Link(uint64_t id, Node node1, Node node2) : nodes(std::make_pair(node1, node2)) {
     this->id = id;

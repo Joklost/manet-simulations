@@ -7,26 +7,27 @@
 #include <mpilib/mpi.h>
 #include <mpilib/queue.h>
 #include <mpilib/node.h>
+#include <mpilib/link.h>
 
 enum Type {
-    transmit_t, listen_t, sleep_t, set_time_t, update_location_t, poison_t
+    transmit_t, listen_t, sleep_t, set_time_t, update_location_t, link_model_t, poison_t
 };
 
 
-struct ListenAction {
+struct Listen {
     unsigned long start{};
     unsigned long duration{};
     int rank{};
     bool is_processed{};
 };
 
-struct TransmissionAction {
+struct Transmission {
     unsigned long start{};
     unsigned long duration{};
     int rank{};
     std::vector<octet> data;
 
-    bool is_within(ListenAction listen);
+    bool is_within(Listen listen);
 };
 
 struct Action {
@@ -35,14 +36,17 @@ struct Action {
     unsigned long localtime;
     unsigned long duration;
     std::vector<octet> data;
+
+    std::vector<mpilib::Link> link_model;
 };
 
 class Controller {
     int lmc_node{};
     std::map<int, mpilib::Node> nodes{};
+    std::vector<mpilib::Link> link_model;
 
-    std::vector<TransmissionAction> transmission_actions{};
-    std::vector<ListenAction> listen_actions{};
+    std::vector<Transmission> transmission_actions{};
+    std::vector<Listen> listen_actions{};
 
     mpilib::Queue<Action> queue{};
     bool debug = false;
@@ -66,6 +70,7 @@ public:
     explicit Controller(bool debug) : debug(debug) {}
 
     void run();
+
 };
 
 #endif //MANETSIMS_CTRL_H

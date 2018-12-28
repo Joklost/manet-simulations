@@ -6,10 +6,9 @@
 namespace reachi {
     namespace radiomodel {
 
-        double packet_error_probability(double rssi, int packetsize);
+        double pep(double rssi, unsigned long packetsize, double interference = 0.0);
 
     }
 }
-
 
 #endif //MANETSIMS_RADIOMODEL_H
