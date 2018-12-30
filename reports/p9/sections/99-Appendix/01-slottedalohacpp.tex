@@ -1,0 +1,47 @@
+\chapter{Slotted ALOHA C++}\label{app:slottedaloha}
+\begin{cpp}{Modern C++ implementation of the Slotted ALOHA protocol.}{minted:cpp:slottedaloha}
+#include <random>
+#include <ostream>
+
+#include <mpilib/hardware.h>
+
+struct Packet {
+    unsigned long rank{};
+    unsigned long selected{};
+
+    friend std::ostream &operator<<(std::ostream &os, const Packet &packet) {
+        os << "Packet{rank: " << packet.rank << ", selected: " << packet.selected << "}";
+        return os;
+    }
+};
+
+int main(int argc, char *argv[]) {
+    mpilib::geo::Location l{57.012668, 10.994625};
+    hardware::init(l);
+
+    auto id = hardware::get_id();
+    auto slots = hardware::get_world_size();
+    std::random_device rd{};
+    std::mt19937 eng{rd()};
+    std::uniform_int_distribution<unsigned long> dist{0ul, slots};
+
+    for (auto i = 0; i < 4; ++i) {
+        auto selected = dist(eng);
+        for (auto current = 0; current < slots; ++current) {
+            if (selected == current) {
+                Packet p{id, selected};
+                auto duration = hardware::broadcast(p);
+                hardware::sleep(200ms - duration);
+            } else {
+                auto packets = hardware::listen<Packet>(200ms);
+                
+                for (const auto &item : packets) {
+                    std::cout << item << std::endl;    
+                }
+            }
+        }
+    }
+
+    hardware::deinit();
+}
+\end{cpp}

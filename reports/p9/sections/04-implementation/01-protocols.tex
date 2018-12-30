@@ -1,55 +1,54 @@
-\section{Hardware Emulator}\label{sec:mpiprotocol}
-In this section, we will introduce the hardware functions required to emulate the radio hardware on a wireless sensor node, as well as a sample protocol that we can implement, using these functions. \autoref{sec:saloha} will present the Slotted ALOHA protocol, and \autoref{sec:hwfuncspseudo} will present the three functions, along with pseudocode descriptions of these.
+\section{Hardware Emulation}\label{sec:mpiprotocol}
+In this section, we will introduce the hardware functions required to emulate the radio hardware on a wireless sensor node. The three essential functions for hardware emulation is: broadcasting (\autoref{algo:hwfuncstransmit}), listening (\autoref{algo:hwfuncslisten}), and sleeping (\autoref{algo:hwfuncssleep}). Additionally, a function for reporting the current local time (\autoref{algo:hwfuncsupdatelocaltime}) to the controller is added. This function should be used whenever none of the above functions are applicable, and will allow the controller to continue processing requests from other nodes.
 
-\subsection{Slotted ALOHA}\label{sec:saloha}
-%In this section we will present an implementation of the Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}, using the hardware interface from \autoref{sec:hardwareinterface}. 
-Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, that enable communication between nodes in a wireless network, by randomly selecting a time slot to transmit, while listening in every other time slot. Pseudocode describing the Slotted ALOHA protocol can be seen in \autoref{algo:slottedaloha}. This method of selecting time slots for transmitting will have a high probability of collisions happening, where multiple nodes transmit at the same time.\medbreak
+%as well as a sample protocol that we can implement, using these functions. 
 
-%An important part of any \gls{tdma} protocol is that only a single node should transmit at a given timeslot, otherwise collisions will occur. Thus, the Slotted ALOHA protocol is a good choice for 
-% TODO: Add number of arguments as parameter
+%\autoref{sec:saloha} will present the Slotted ALOHA protocol, and \autoref{sec:hwfuncspseudo} will present the three functions, along with pseudocode descriptions of these.
+
+%\subsection{Hardware Functions}\label{sec:hwfuncspseudo}
+
+
 \begin{algorithm}[ht]
     \DontPrintSemicolon
-    \SetKwFunction{FSlottedALOHA}{Slotted ALOHA}
-    \SetKwProg{Fn}{procedure}{}{}
+    \SetAlgorithmName{Data Structure}{Data Structure}
 
-    \Fn{\FSlottedALOHA{}}{
-        \Repeat{\textit{protocol terminates}}{
-            selected $\leftarrow$ randomly select a slot $\in$ {1, 2, \dots, S}\;
-
-            \ForEach{current $\in$ {1, 2, \dots, S}}{
-                \If{select = current}{
-                    \KwTransmit\;
-                }
-                \Else{
-                    \KwListen\;
-                }
-            }
-        }
-    }
-
-    \caption{The Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}.}
-    \label{algo:slottedaloha}
+    \textbf{Structure} Message \{ action, source, localtime, duration, data \}\;
+    \;
+    clock $\leftarrow$ \Now\;
+    localtime $\leftarrow$ 0\;
+    id $\leftarrow$ unique identifier\;
+ 
+    \caption{The shared variables and structures used by the hardware functions.}
+    \label{algo:protocolsharedstate}
 \end{algorithm}
 
-\todo[inline]{At some point, we should be able to create a graph to measure received packets and collisions for the Slotted ALOHA protocol.}
+\todo[inline]{fix autoref for data structure}
+\todo[inline]{fix ref for virtual time}
 
-\subsection{Hardware Functions}\label{sec:hwfuncspseudo}
-The three essential functions for hardware emulation is: broadcasting (\autoref{algo:hwfuncstransmit}), listening (\autoref{algo:hwfuncslisten}), and sleeping (\autoref{algo:hwfuncssleep}).
-  
+The shared state for the hardware functions consist of three variables (\autoref{algo:protocolsharedstate}): \texttt{clock}, \texttt{localtime}, and \texttt{id}. The \texttt{clock} variable is used to measure the real-time spent by the node, between calls to the hardware function. \texttt{localtime} is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:virtualtime}). Finally the \texttt{id} variable is a unique identifier assigned to each particular node. A common element for all of the hardware functions is that we initially update the \texttt{localtime} variable with the elapsed time since the \texttt{clock} variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The \texttt{clock} variable is reset at the end of all of the functions, after an acknowledgement has been received from the controller.\medbreak
+
 \begin{algorithm}[ht]
     \DontPrintSemicolon
+    \KwResult{The time it took to broadcast the packet}
     \SetKwFunction{FBroadcast}{Broadcast}
     \SetKwProg{Fn}{Function}{}{}
     
     \Fn{\FBroadcast{packet}}{
-        \KwSend packet \KwTo controller\;
-        \KwAwait ack \KwFrom controller\;
+        localtime $\leftarrow$ (\Now $-$ clock) $+$ localtime\;
+        duration $\leftarrow$ transmission\_time(|packet|)\;
+        m $\leftarrow$ \{ transmit, id, localtime, duration, packet \}\;
+        \Send m \KwTo controller\;
+        localtime $\leftarrow$ \Await ack \From controller\;
+        clock $\leftarrow$ \Now\;
+        \KwRet duration\;
     }
+
     \caption{The Broadcast Function.}
     \label{algo:hwfuncstransmit}
 \end{algorithm}
 
-The \texttt{Broadcast} function takes any arbitrary data packet, sends this to the controller using the \gls{mpi}, and waits for an acknowledgement from the controller. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet.
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function takes any arbitrary data packet, sends this to the controller using the \gls{mpi}, and waits for an acknowledgement from the controller. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet. The duration required for transmitting a packet is computed using the baudrate, as specified by the hardware parameters described in \autoref{sed:baudrate}. This is sent to the controller, along with the packet, and we wait for an acknowledgement from the controller, containing our new local time.\medbreak
+\todo[inline]{fix ref for baudrate}
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -57,16 +56,20 @@ The \texttt{Broadcast} function takes any arbitrary data packet, sends this to t
     \SetKwFunction{FListen}{Listen}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FListen{time}}{
+    \Fn{\FListen{duration}}{
+        localtime $\leftarrow$ (\Now $-$ clock) $+$ localtime\;
+        m $\leftarrow$ \{ listen, id, localtime, duration \}\;
+        \Send m \KwTo controller\;
+
         packets $\leftarrow$ empty list\;
-    
-        \KwSend time \KwTo controller\;
-        c $\leftarrow$ \KwAwait count \KwFrom controller\;
+        c $\leftarrow$ \Await count \From controller\;
         \For{i $\leftarrow$ 0 \KwTo c}{
-            p $\leftarrow$ \KwAwait packet \KwFrom controller\;
-            \KwAppend p \KwTo packets\;
+            p $\leftarrow$ \Await packet \From controller\;
+            \Append p \KwTo packets\;
         }
-        
+
+        localtime $\leftarrow$ \Await ack \From controller\;
+        clock $\leftarrow$ \Now\;
         \KwRet packets\;
     }
     
@@ -74,20 +77,41 @@ The \texttt{Broadcast} function takes any arbitrary data packet, sends this to t
     \label{algo:hwfuncslisten}
 \end{algorithm}
 
-The \texttt{Listen} function takes an amount of time units, and sends this to the controller. The controller will return any packets the listening node have received within the time interval.
+The \texttt{Listen} (\autoref{algo:hwfuncslisten}) function takes a duration, and sends this, along with the updated local time, to the controller. The controller will return any packets the listening node have received within the duration, as well as an acknowledgement containing the new local time of the node.\medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FSleep}{Sleep}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FSleep{time}}{
-        \KwSend time \KwTo controller\;
-        \KwAwait wakeup \KwFrom controller\;
+    \Fn{\FSleep{duration}}{
+        localtime $\leftarrow$ (\Now $-$ clock) $+$ localtime\;
+        m $\leftarrow$ \{ sleep, id, localtime, duration \}\;
+        \Send m \KwTo controller\;
+        localtime $\leftarrow$ \Await ack \From controller\;
+        clock $\leftarrow$ \Now\;
     }
     
     \caption{The Sleep Function.}
     \label{algo:hwfuncssleep}
 \end{algorithm}
 
-The \texttt{Sleep} function also takes an amount of time units, and sends this to the controller. The controller will in turn send a wakeup message to the node after the time has passed.
+The \texttt{Sleep} (\autoref{algo:hwfuncssleep}) function also takes an duration, and sends this, along with the updated local time to the controller. The controller will send an acknowledgement containing the new local time of the node.\medbreak
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FReportLocalTime}{ReportLocalTime}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FReportLocalTime{}}{
+        localtime $\leftarrow$ (\Now $-$ clock) $+$ localtime\;
+        m $\leftarrow$ \{ report-localtime, id, localtime \}\;
+        \Send m \KwTo controller\;
+        clock $\leftarrow$ \Now\;
+    }
+    
+    \caption{The ReportLocaltime Function.}
+    \label{algo:hwfuncsupdatelocaltime}
+\end{algorithm}
+
+Finally, the \texttt{ReportLocalTime} (\autoref{algo:hwfuncsupdatelocaltime}) function is included in the case where none of the above hardware functions are applicable. The function will send a message to the controller with the updated local time, and reset the \texttt{clock} variable.

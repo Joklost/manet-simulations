@@ -1,0 +1,33 @@
+
+\section{Slotted ALOHA}\label{sec:saloha}
+%In this section we will present an implementation of the Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}, using the hardware interface from \autoref{sec:hardwareinterface}. 
+Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, that enable communication between nodes in a wireless network, by randomly selecting a time slot to transmit, while listening in every other time slot. Pseudo code describing the Slotted ALOHA protocol can be seen in \autoref{algo:slottedaloha}. This method of selecting time slots for transmitting will have a high probability of collisions happening, where multiple nodes transmit at the same time, which make this protocol an ideal candidate for simulating collisions and packet loss.\medbreak
+
+%An important part of any \gls{tdma} protocol is that only a single node should transmit at a given timeslot, otherwise collisions will occur. Thus, the Slotted ALOHA protocol is a good choice for 
+% TODO: Add number of arguments as parameter
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FSlottedALOHA}{Slotted ALOHA}
+    \SetKwProg{Fn}{procedure}{}{}
+
+    \Fn{\FSlottedALOHA{S}}{
+        \Repeat{\textit{protocol terminates}}{
+            selected $\leftarrow$ randomly select a slot $\in$ {1, 2, \dots, S}\;
+
+            \ForEach{current $\in$ {1, 2, \dots, S}}{
+                \If{select = current}{
+                    duration $\leftarrow$ Broadcast(select)\;
+                    Sleep(200us - duration)\;
+                }
+                \Else{
+                    packets $\leftarrow$ Listen(200us)\;
+                }
+            }
+        }
+    }
+
+    \caption{The Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}.}
+    \label{algo:slottedaloha}
+\end{algorithm}
+
+\todo[inline]{At some point, we should be able to create a graph to measure received packets and collisions for the Slotted ALOHA protocol.}
