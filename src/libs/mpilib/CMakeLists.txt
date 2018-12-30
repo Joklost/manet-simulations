@@ -18,7 +18,7 @@ install(TARGETS mpilib EXPORT MPILibLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(mpilib spdlog cpr mpich)
+target_link_libraries(mpilib spdlog mpich)
 
 enable_testing()
 
