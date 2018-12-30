@@ -43,14 +43,13 @@ namespace reachi {
          */
         template<typename T>
         std::tuple<std::vector<T>, linalg::vecvec<T>, linalg::vecvec<T>>
-        svd(const linalg::vecvec<T> &matrix, const int max_iteration, const double epsilon = 0.1 /*1e-10*/) {
+        svd(const linalg::vecvec<T> &matrix, const int max_iteration, const double epsilon = 0.1 /* 1e-10 */) {
             std::vector<T> singular_values;
             linalg::vecvec<T> us, vs, matrix_1d_cache;
 
             std::vector<linalg::vecvec<T>> us_times_vs;
 
             for (auto i = 0; i < matrix.size(); ++i) {
-//                std::cout << "svd iteration " << i + 1 << " of " << matrix.size() << std::endl;
                 auto matrix_for_1d = matrix;
 
                 if (i != 0) {

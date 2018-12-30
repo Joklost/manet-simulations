@@ -77,7 +77,9 @@ reachi::linalg::vecvec<double> reachi::math::generate_correlation_matrix(std::ve
     std::sort(links.begin(), links.end());
 
     for (auto i = 0; i < size; ++i) {
-        for (auto j = 0; j < size; ++j) {
+        for (auto j = 0; j < i + 2; ++j) {
+            if (j == size) continue;
+
             if (links[i] == links[j]) {
                 corr[i][j] = 1.0;
             } else if (links[i] != links[j] && has_common_node_optics(links[i], links[j])) {
@@ -94,9 +96,10 @@ reachi::linalg::vecvec<double> reachi::math::generate_correlation_matrix(std::ve
                                                         lj_unique.centroid());
                 auto value = autocorrelation(angle);
 
-                if (value >= CORRELATION_COEFFICIENT_THRESHOLD)
-                    corr[i][j] = value;
-            }
+                //if (value >= CORRELATION_COEFFICIENT_THRESHOLD)
+                corr[i][j] = value;
+            } else if (j > i)
+                corr[i][j] = 0.000001;
         }
     }
 

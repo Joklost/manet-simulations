@@ -183,6 +183,7 @@ void LinkModelComputer::compute_link_model() {
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
     auto links = reachi::data::create_link_vector(clusters, link_threshold);
+    for (const auto &item : links) this->c->debug("lmc_dd: distance={}", item.get_distance());
 
     this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), links.size());
 
@@ -198,12 +199,12 @@ void LinkModelComputer::compute_link_model() {
         auto &link = links[i];
         auto &c1 = link.get_clusters().first;
         auto &c2 = link.get_clusters().second;
-        auto rssi = link_model[i];
+        auto pathloss = link_model[i];
 
         for (auto &n1 : c1.get_nodes()) {
             for (auto &n2 : c2.get_nodes()) {
                 model.push_back({static_cast<int>(n1.get_id()), static_cast<int>(n2.get_id()),
-                                 rssi, link.get_distance()});
+                                 pathloss, link.get_distance()});
             }
         }
     }

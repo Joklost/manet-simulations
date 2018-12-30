@@ -86,6 +86,7 @@ reachi::data::create_link_vector(std::vector<reachi::Node> &nodes, double thresh
 std::vector<reachi::Optics::CLink>
 reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double threshold /* km */) {
     std::vector<Optics::CLink> links{};
+    uint64_t id_count = 0;
 
     for (uint32_t i = 0; i < clusters.size(); ++i) {
         for (uint32_t j = i; j < clusters.size(); ++j) {
@@ -93,9 +94,10 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
                 continue;
             }
 
-            Optics::CLink l{mpilib::generate_link_id(i, j), clusters[i], clusters[j]};
+            Optics::CLink l{id_count, clusters[i], clusters[j]};
             if (l.get_distance() < threshold or threshold <= 0.01) {
                 links.emplace_back(l);
+                id_count++;
             }
         }
     }

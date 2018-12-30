@@ -40,6 +40,21 @@ namespace reachi {
         double frobenius_norm(::std::vector<double> &a);
 
         template<typename T>
+        vecvec<T> normalize_vecvec(const vecvec<T> &matrix, const T min, const T max) {
+            vecvec<T> res;
+            auto size = matrix.size();
+            res.resize(size, std::vector<T>(size));
+
+            for (auto row = 0; row < size; ++row) {
+                for (auto column = 0; column < size; ++column) {
+                    res[row][column] = (matrix[row][column] - min) / (max - min);
+                }
+            }
+
+            return res;
+        }
+
+        template<typename T>
         ::std::pair<unsigned long, unsigned long> shape(const vecvec<T> &matrix) {
             return ::std::make_pair(matrix.size(), matrix[0].size());
         }
@@ -53,7 +68,7 @@ namespace reachi {
          */
         template<typename T>
         vecvec<T> dot(const vecvec<T> &lhs, const vecvec<T> &rhs) {
-            vecvec<T> res{};
+            vecvec<T> res;
 
             auto ls = shape(lhs);
             auto rs = shape(rhs);

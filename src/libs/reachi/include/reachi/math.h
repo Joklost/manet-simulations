@@ -32,6 +32,7 @@ namespace reachi {
             return vec;
         }
 
+
         double distance_pathloss(double distance);
 
         double distance_pathloss(mpilib::geo::Location to, mpilib::geo::Location from);

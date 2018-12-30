@@ -17,10 +17,12 @@ std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLin
 }
 
 reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg::vecvec<double> &matrix) {
-    auto svd_res = reachi::svd::svd(matrix, 2);
+    auto b = (matrix + reachi::linalg::transpose(matrix)) / 2.0;
+    auto svd_res = reachi::svd::svd(b, 5);
 
     auto h = std::get<2>(svd_res) * std::get<0>(svd_res) * reachi::linalg::transpose(std::get<2>(svd_res));
-    auto spd = (matrix + h) / 2.0;
+    auto spd = (b + h) / 2.0;
+    spd = (spd + reachi::linalg::transpose(spd)) / 2.0;
 
     auto scalar = 0.0;
     while (!reachi::cholesky::is_positive_definite(spd)) {
@@ -28,7 +30,7 @@ reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg
         auto min_eig = eigen.values.back();
 
         scalar++;
-        spd = spd + ((-min_eig * std::pow(scalar, 2) +
+        spd = spd + (((-min_eig * std::pow(scalar, 2)) +
                       (std::numeric_limits<double>::epsilon() * std::abs(min_eig))) *
                      reachi::linalg::identity(spd.size()));
     }
@@ -39,9 +41,10 @@ reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg
 std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink> &links, double time = 0.0) {
     auto corr = reachi::math::generate_correlation_matrix(links);
     if (!reachi::cholesky::is_positive_definite(corr)) {
-        std::cout << "ensuring spd" << std::endl;
+        std::cout << "ensuring psd" << std::endl;
         corr = ensure_positive_definiteness(corr);
     }
+
     auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
     auto sigma = std_deviation * corr;
     auto autocorrelation_matrix = reachi::cholesky::cholesky(sigma);
@@ -72,5 +75,5 @@ std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::v
 }
 
 ::std::vector<double> reachi::linkmodel::compute(const std::vector<reachi::Optics::CLink> &links, double time) {
-    return compute_link_distance(links);// + compute_link_fading(links, time); /* TODO: + temporal*/
+    return compute_link_distance(links) + compute_link_fading(links, time); /* TODO: + temporal*/
 }
