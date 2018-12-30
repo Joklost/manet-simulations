@@ -2,44 +2,17 @@
 #include <reachi/datagen.h>
 #include <mpilib/node.h>
 #include <ostream>
+
 #include "lmc.h"
-//
-//std::vector<double> LinkModelComputer::fetch_model() {
-//    return this->linkmodel;
-//}
-//
-//void LinkModelComputer::compute_linkmodel(std::vector<reachi::Node> &nodes) {
-//    /*
-//     * step 1: check if node information has been updated
-//     * step 2: do the clustering
-//     * step 3: calculate the temporal correlation with current data
-//     * step 4: update the public accessable link model so that the controller can fetch the newest model
-//     */
-//
-//    reachi::Optics optics{};
-//
-//    auto eps = 0.01;
-//    auto minpts = 2;
-//    auto link_threshold = 0.150;
-//    auto time = 0.0, time_delta = 0.0;
-//
-//    auto ordering = optics.compute_ordering(nodes, eps, minpts);
-//    auto clusters = optics.cluster(ordering);
-//    auto links = reachi::data::create_link_vector(clusters, link_threshold);
-//
-//
-//    reachi::linkmodel::compute_spatial_correlation(links, time, time_delta);
-//}
-//
-//void LinkModelComputer::update_model_data(std::vector<reachi::Node>) {
-//
-//}
 
 void LinkModelComputer::run() {
 
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
-    this->c = spdlog::stdout_color_mt("lmc");
+
+    this->c = spdlog::basic_logger_mt("lmc", "logs/lmc.log");
+    //this->c = spdlog::stdout_color_mt("lmc");
+
     if (this->debug) {
         this->c->set_level(spdlog::level::debug);
     }

@@ -34,16 +34,16 @@ int main(int argc, char *argv[]) {
 
     for (auto i = 0; i < 3; ++i) {
         auto selected = dist(eng);
-        //console->info("selected={}", selected);
         for (auto current = 0; current < slots; ++current) {
             if (selected == current) {
                 Packet p{id, selected};
-                hardware::broadcast(p);
+                auto duration = hardware::broadcast(p);
+                hardware::sleep(200ms - duration);
             } else {
-                auto packets = hardware::listen<Packet>(1s);
+                auto packets = hardware::listen<Packet>(200ms);
 
                 for (const auto &item : packets) {
-                    //console->info(item);
+                    console->info(item);
                 }
             }
         }

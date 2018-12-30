@@ -9,7 +9,8 @@ void Controller::run() {
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
     this->lmc_node = this->world_size + 1;
-    this->c = spdlog::stdout_color_mt("ctrlr");
+    this->c = spdlog::basic_logger_mt("ctrlr", "logs/ctrlr.log");
+    //this->c = spdlog::stdout_color_mt("ctrlr");
     if (this->debug) {
         this->c->set_level(spdlog::level::debug);
     }
