@@ -1,20 +1,23 @@
 \section{Centralised Controller}\label{sec:mpicontroller}
 The centralised controller consist of two concurrent procedures. The \texttt{MessageHandler} procedure (\autoref{algo:mpimessagehandler}), and the \texttt{Controller} procedure (\autoref{algo:mpicontrollerpart}). A shared state is used to manage the data between the two procedures (\autoref{algo:mpisharedstate}). \medbreak
+\todo[inline]{fix autoref for data structure}
 
 In essence, the centralised controller works by gathering all requests from all nodes in the \texttt{MessageHandler} procedure for a given time slot, and by processing, and responding to the requests in the \texttt{Controller} procedure.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
+    \SetAlgorithmName{Data Structure}{Data Structure}
     
     \textbf{Structure} Message \{ action, source, data, time \}\;
     \textbf{Structure} Node \{ id, state, time, packets \}\; % location
     \;
     
+    
     nodes $\leftarrow$ map containing all nodes with id as key\;
     transmissions $\leftarrow$ empty map\;
     currenttime $\leftarrow$ 0\;
  
-    \caption{The shared state variables and structures used by the centralised controller.}
+    \caption{The shared state variables and structures used by the controller.}
     \label{algo:mpisharedstate}
 \end{algorithm}
 
