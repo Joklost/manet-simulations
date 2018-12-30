@@ -5,6 +5,7 @@ set(BUILD_CPR_TESTS OFF CACHE BOOL "Don't build cpr tests")
 find_package(CURL)
 if(CURL_FOUND)
     set(USE_SYSTEM_CURL ON CACHE BOOL "Use the system curl for faster builds")
+    set(CURL_CA_PATH_SET NONE)
 endif()
 
 find_package(OpenSSL)
