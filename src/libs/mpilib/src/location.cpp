@@ -38,14 +38,14 @@ mpilib::geo::random_location(const mpilib::geo::Location &upper_bound, const mpi
     auto lat_max = upper_bound.get_latitude();
     std::random_device rd_lat;
     std::default_random_engine eng_lat(rd_lat());
-    std::uniform_real_distribution dist_lat{lat_min, lat_max};
+    std::uniform_real_distribution<double> dist_lat{lat_min, lat_max};
     auto gen_lat = std::bind(dist_lat, eng_lat);
 
     auto lon_min = lower_bound.get_longitude();
     auto lon_max = upper_bound.get_longitude();
     std::random_device rd_lon;
     std::default_random_engine eng_lon(rd_lon());
-    std::uniform_real_distribution dist_lon{lon_min, lon_max};
+    std::uniform_real_distribution<double> dist_lon{lon_min, lon_max};
     auto gen_lon = std::bind(dist_lon, eng_lon);
 
     return {gen_lat(), gen_lon()};

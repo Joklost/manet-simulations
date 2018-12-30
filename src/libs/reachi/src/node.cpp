@@ -38,7 +38,7 @@ bool reachi::Node::operator<=(const Node &rhs) const {
 bool reachi::Node::operator>=(const Node &rhs) const {
     return !(*this < rhs);
 }
-
+#if 0
 void reachi::to_json(json &j, const reachi::Node &p) {
     j = json{{"id",  p.get_id()},
              {"lat", p.get_location().get_latitude()},
@@ -52,7 +52,7 @@ void reachi::from_json(const json &j, reachi::Node &p) {
 
     p = {id, {lat, lon}};
 }
-
+#endif
 void reachi::Node::update_location(mpilib::geo::Location &location, const int time) {
     location.set_time(time);
     this->location_history.emplace_back(this->current_location);

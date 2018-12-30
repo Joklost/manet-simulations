@@ -4,9 +4,9 @@
 #include <mpilib/geomath.h>
 
 #include <reachi/datagen.h>
-
+#if 0
 using json = nlohmann::json;
-
+#endif
 std::vector<reachi::Node>
 reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
     std::vector<reachi::Node> nodes{};
@@ -16,14 +16,14 @@ reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, 
     auto lat_max = upper.get_latitude();
     std::random_device rd_lat;
     std::default_random_engine eng_lat(rd_lat());
-    std::uniform_real_distribution dist_lat{lat_min, lat_max};
+    std::uniform_real_distribution<double> dist_lat{lat_min, lat_max};
     auto gen_lat = std::bind(dist_lat, eng_lat);
 
     auto lon_min = lower.get_longitude();
     auto lon_max = upper.get_longitude();
     std::random_device rd_lon;
     std::default_random_engine eng_lon(rd_lon());
-    std::uniform_real_distribution dist_lon{lon_min, lon_max};
+    std::uniform_real_distribution<double> dist_lon{lon_min, lon_max};
     auto gen_lon = std::bind(dist_lon, eng_lon);
 
     for (uint32_t i = 1; i <= count; ++i) {
@@ -43,7 +43,7 @@ reachi::data::generate_cluster(mpilib::geo::Location &center, uint32_t begin, un
 
     std::random_device rd;
     std::default_random_engine eng(rd());
-    std::uniform_real_distribution dist{0.0, 1.0};
+    std::uniform_real_distribution<double> dist{0.0, 1.0};
     auto gen = std::bind(dist, eng);
 
     for (uint32_t i = begin; i < begin + count; ++i) {
@@ -104,7 +104,7 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
 
     return links;
 }
-
+#if 0
 void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes) {
     visualise_nodes(nodes, 10000);
 }
@@ -142,3 +142,4 @@ void reachi::data::visualise_clusters(std::vector<reachi::Optics::Cluster> clust
     json j = serialized_clusters;
     httpclient.post_async("/colornodes", j);
 }
+#endif

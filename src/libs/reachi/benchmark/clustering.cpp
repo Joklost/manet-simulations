@@ -12,6 +12,10 @@
 #include <mpilib/helpers.h>
 #include <mpilib/httpclient.h>
 
+int main(int argc, char *argv[]) {
+}
+#if 0
+
 #define MIN_PTS 2
 #define MIN_EPS 0.01
 #define MAX_EPS 0.10
@@ -75,7 +79,6 @@ void print_result(int graph_id, long cluster_count, double eps, long node_count,
     std::cout
             << std::endl;
 }
-
 void request_graph(mpilib::HttpClient &httpclient, std::vector<reachi::Optics::Cluster> clusters, int graph_id, double eps) {
     std::vector<json> serialized_clusters{};
     serialized_clusters.reserve(clusters.size());
@@ -278,3 +281,4 @@ int main(int argc, char *argv[]) {
         future.wait();
     }
 }
+#endif

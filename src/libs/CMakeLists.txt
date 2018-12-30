@@ -14,7 +14,7 @@ else()
     set(CMAKE_USE_OPENSSL OFF CACHE BOOL "OPENSSL not found")
 endif()
 
-add_subdirectory(json)
+#add_subdirectory(json)
 add_subdirectory(Catch2)
 add_subdirectory(cpr)
 add_subdirectory(spdlog)

@@ -5,6 +5,7 @@
 #include <limits>
 #include <cmath>
 #include <queue>
+#include <unordered_map>
 
 #include "node.h"
 

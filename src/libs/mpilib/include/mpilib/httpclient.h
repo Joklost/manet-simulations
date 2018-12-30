@@ -1,8 +1,8 @@
 #ifndef MANETSIMS_HTTPCLIENT_H
 #define MANETSIMS_HTTPCLIENT_H
-
+#if 0
 #include <string>
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 #include <cpr/cpr.h>
 #include <spdlog/spdlog.h>
 
@@ -24,6 +24,6 @@ namespace mpilib {
     };
 
 }
-
+#endif
 
 #endif //MANETSIMS_HTTPCLIENT_H

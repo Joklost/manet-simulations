@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.7)
 
 project(manetsims VERSION 1.0)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS -pthread)
 
 include(GNUInstallDirs)
@@ -28,6 +28,8 @@ endif ()
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/libs/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif ()
+
+include_directories(${JSON_INCLUDE_DIRS})
 
 set(MPI_EXECUTABLE_SUFFIX ".mpich")
 find_package(MPI REQUIRED)
