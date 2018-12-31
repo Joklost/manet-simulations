@@ -11,11 +11,11 @@
 \pagenumbering{roman} %use roman page numbering in the frontmatter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/00-Front-Matter/frontpage.tex}
-%\input{sections/00-Front-Matter/colophon.tex}
-%\input{sections/00-Front-Matter/titlepages.tex}
+\input{sections/00-Front-Matter/01-frontpage.tex}
+\input{sections/00-Front-Matter/02-colophon.tex}
+\input{sections/00-Front-Matter/03-titlepages.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\listoftodos
+\listoftodos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \cleardoublepage
@@ -25,17 +25,19 @@
 \tableofcontents
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/00-Front-Matter/preface.tex}
+\input{sections/00-Front-Matter/04-preface.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %mainmatter
 \pagenumbering{arabic} %use arabic page numbering in the mainmatter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/00-Front-Matter/05-Introduction.tex}
+\input{sections/00-Front-Matter/05-Introduction.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\input{sections/01-Preliminaries/00-main.tex}
+\input{sections/01-Preliminaries/00-main.tex}
+\input{sections/02-link-modelling/00-main.tex}
+\input{sections/03-mpi/00-main.tex}
 \input{sections/04-implementation/00-main.tex}
 
 %\nocite{*}
