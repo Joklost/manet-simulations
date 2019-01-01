@@ -1,0 +1,53 @@
+\subsection{Packet Error Probability}\label{sec:pep}
+Now that we are able to simulate the \gls{rssi} when transmitting on from one node to another, we need to be able to simulate whether the packet should arrive on the receiving node. With radio communication, there is a chance that a receiving node may not receive the entire packet correctly, which is why we need some way of computing the probability of this happening. For this, we introduce \acrfull{pep}. The computations in this section are derived from \cite{massoud2007digital}, as well as personal communication with the author of \cite{paper:linkmodel}. \medbreak
+
+To begin we calculate the noise power $P_{N,db}$ in \acrshort{db}. The noise power is calculated with the thermal noise and noise figure. For the Reachi devices we assume that the $thermal\_noise = -119.66$ \acrshort{db} and the $noise\_figure = 4.2$ \acrshort{db}.
+
+\begin{eq}\label{eq:noisepower}
+    P_{N,dB} = thermal\_noise + noise\_figure
+\end{eq}
+
+Next we calculate the \gls{snr} $\gamma_{dB}$ in \acrshort{db}. The \gls{snr} is the ratio between signal and noise, that compares the level of the signal to the level of the background noise, and is computed by subtracting the noise power computed in \autoref{eq:noisepower}. We expand upon this further to include the interference of other transmissions happening at the same time. This is done by computing the \gls{rssi} from interfering transmitters, and subtracting this from the \gls{snr}, which gives us the \acrlong{snir}:
+
+\todo[inline]{add interference to equation}
+\begin{eq}
+    \gamma_{dB} = RSSI_{dBm} - P_{N,dB} - \text{interference}
+\end{eq}
+
+We use this to compute the bit error probability:
+
+%\begin{eq}
+%    \gamma = 10^{\frac{\gamma_{dB}}{10}}
+%\end{eq}
+
+\begin{eq}
+    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}}{10}}}{2} \right)} \right)
+\end{eq}
+
+which we finally can use to compute the \acrlong{pep}:
+
+%\begin{eq}
+%    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{\gamma}{2} \right)} \right)
+%\end{eq}
+
+\begin{eq}
+    P_p = 1 - \left( 1 - P_b \right) ^{packet\_size}
+\end{eq}
+
+
+
+If we assume that the \gls{rssi} between a transmitter and a receiver is $-105.3$ \acrshort{dbm}, with no outside interference, the probability that a transmission of 20 bytes would be unsuccessful is:
+
+\begin{eq}
+    \gamma_{dB} = -105.3 - (-119.66 + 4.2) = 10.16
+\end{eq}
+
+\begin{eq}
+    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}}{10}}}{2} \right)} \right) = 6.386 \cdot 10^{-4}
+\end{eq}
+
+\begin{eq}
+    P_p = 1 - \left( 1 - P_b \right) ^{20 \cdot 8} = 0.097
+\end{eq}
+
+Which equals to a probability of approximately 10 \% packet loss, with no interference, and an \gls{rssi} of $-105.3$ \acrshort{dbm}.

@@ -24,9 +24,8 @@ In this section, we will introduce the hardware functions required to emulate th
 \end{algorithm}
 
 \todo[inline]{fix autoref for data structure}
-\todo[inline]{fix ref for virtual time}
 
-The shared state for the hardware functions consist of three variables (\autoref{algo:protocolsharedstate}): \texttt{clock}, \texttt{localtime}, and \texttt{id}. The \texttt{clock} variable is used to measure the real-time spent by the node, between calls to the hardware function. \texttt{localtime} is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:virtualtime}). Finally the \texttt{id} variable is a unique identifier assigned to each particular node. A common element for all of the hardware functions is that we initially update the \texttt{localtime} variable with the elapsed time since the \texttt{clock} variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The \texttt{clock} variable is reset at the end of all of the functions, after an acknowledgement has been received from the controller.\medbreak
+The shared state for the hardware functions consist of three variables (\autoref{algo:protocolsharedstate}): \texttt{clock}, \texttt{localtime}, and \texttt{id}. The \texttt{clock} variable is used to measure the real-time spent by the node, between calls to the hardware function. \texttt{localtime} is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:realvvirtual}). Finally the \texttt{id} variable is a unique identifier assigned to each particular node. A common element for all of the hardware functions is that we initially update the \texttt{localtime} variable with the elapsed time since the \texttt{clock} variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The \texttt{clock} variable is reset at the end of all of the functions, after an acknowledgement has been received from the controller.\medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -48,7 +47,7 @@ The shared state for the hardware functions consist of three variables (\autoref
     \label{algo:hwfuncstransmit}
 \end{algorithm}
 
-The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function takes any arbitrary data packet, sends this to the controller using the \gls{mpi}, and waits for an acknowledgement from the controller. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet. The duration required for transmitting a packet is computed using the baudrate, as specified by the hardware parameters described in \autoref{sed:baudrate}. This is sent to the controller, along with the packet, and we wait for an acknowledgement from the controller, containing our new local time.\medbreak
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function takes any arbitrary data packet, sends this to the controller using the \gls{mpi}, and waits for an acknowledgement from the controller. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet. The duration required for transmitting a packet is computed using the baudrate, as specified by the hardware parameters described in \autoref{sec:radio-communication}. This is sent to the controller, along with the packet, and we wait for an acknowledgement from the controller, containing our new local time.\medbreak
 \todo[inline]{fix ref for baudrate}
 
 \begin{algorithm}[ht]

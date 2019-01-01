@@ -1,13 +1,12 @@
+\subsection{The Cholesky Decomposition}\label{sec:cholesky}
+In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the covariance matrix in the stochastic shadow fading part. The Cholesky decomposition is a decomposition algorithm for \gls{symmetric}, \gls{pd-matrix} into the product of a \gls{lt-matrix} and its \gls{conjugate-transpose}, and is primarily used for solving systems of linear equations~\cite{Press:2007:NRE:1403886}.
 
-\section{Optimization}\label{sec:optimization}
 % \subsection{Cholesky decomposition}\label{sec:cholesky}
 %In this section we present and describe the Cholesky decomposition, and the problem it creates for our computation time, and how we propose to optimise the decomposition algorithm for our particular needs.
-
+%sec:simulatingvalues
 % The cholesky decomposition or cholesky factorization is a matrix decomposition, of a positive-definite matrix, resulting in a lower triangular matrix and its conjugate transpose.
 
-In \autoref{sec:linkmodel} we utilise the Cholesky decomposition in \autoref{eq:pathlossstoch}. The Cholesky decomposition or Cholesky factorization is a matrix decomposition, on a \gls{pd-matrix}. The decomposition results in a \gls{lt-matrix} and its \gls{conjugate-transpose}. The Cholesky decomposition is an expensive computation of cubic time complexity, as such we intend to speed up the algorithm. Furthermore since the decomposition requires an \gls{pd-matrix} to work, we choose to verify our auto-correlation matrix before decomposing it, to ensure that the decomposition will run correctly.
-
-In the following sections we discuss our optimizations.
+%In \autoref{sec:linkmodel} we utilise the Cholesky decomposition in \autoref{eq:pathlossstoch}. The Cholesky decomposition is a matrix decomposition, on a \gls{pd-matrix}. The decomposition results in a \gls{lt-matrix} and its \gls{conjugate-transpose}. The Cholesky decomposition is an expensive computation of cubic time complexity, as such we intend to speed up the algorithm. Furthermore since the decomposition requires an \gls{pd-matrix} to work, we choose to verify our auto-correlation matrix before decomposing it, to ensure that the decomposition will run correctly.
 
 % is a decomposition of a Hermitian, positive-definite matrix into the product of a lower triangular matrix and its conjugate transpose,
 
