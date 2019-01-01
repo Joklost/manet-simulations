@@ -1,3 +1,5 @@
+\section{Optimising the Link Model}\label{sec:optimization}
+
 \subsection{Clustering}\label{sec:clustering}
 Another way of optimising the computation of the link model is to introduce clustering of nodes, used to reduce the amount of links required for the link model computation. As mentioned in \autoref{sec:pathloss}, links existing in the same physical environment should experience the same shadow fading \gls{pathloss}. This means that we should be able to compute clusters of nodes, and use the clusters to faster compute the link model of multiple nodes at the same time, as we would, depending on the number of clusters, have a far smaller link matrix. \medbreak
 

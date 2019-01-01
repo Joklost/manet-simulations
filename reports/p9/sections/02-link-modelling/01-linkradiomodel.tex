@@ -1,22 +1,26 @@
-\section{Link Modelling}\label{sec:linkmodel}
+\section{Link Path Loss}\label{sec:linkmodel}
 
-In this section, we will present a method for simulating \gls{manet} link \gls{pathloss} from \cite{paper:linkmodel}. For our simulations, we would like to be able to simulate the performance of a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues}...
-Note that the actual values used in this Section, is specific to the Reachi\todo[inline]{Introduce Reachi earlier in the report.} devices, and are based on on-site measurements.
+In this section, we will present a method for simulating \gls{manet} link \gls{pathloss} from \cite{paper:linkmodel}. For our simulations, we would like to be able to simulate the performance of a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues} present the method, as well as present an example of simulating the \gls{pathloss} on a network. Note that the actual values used in this Section, is specific to the Reachidevices, and are based on on-site measurements.
+\todo[inline]{Introduce Reachi earlier in the report.} 
 
 \subsection{Units}
-In the following sections, we will be using different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrfull{db}~\cite{website:isadbdbm}, and the transmission power as \acrfull{dbm}~\cite{website:isadbdbm}.
+In the following sections, we will be using different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrfull{db}~\cite{website:isadbdbm}, and the transmission power, as well as the \gls{rssi}, as \acrfull{dbm}~\cite{website:isadbdbm}.
 
 \subsection{Path Loss}\label{sec:pathloss}
-The \gls{pathloss} of a link is dependent on the distance between transmitter and receiver, as well as a stochastic shadow fading term. The \gls{pathloss} vector \vect{PL_{db}} is the sum of two parts:
+The \gls{pathloss} of a link is dependent on the distance between transmitter and receiver, as well as a stochastic shadow fading term. The \gls{pathloss} vector \vect{l_{pl}} is the sum of two parts:
 
 %\vect{l_{pl}} = \vect{l_d} + \vect{l_{fading}}
 
-\begin{description}
-    \item[\vect{PL_{determ,dB}(d)}]: A deterministic distance dependent part, which describes the mean signal attenuation at any given link distance (distance between transmitter and receiver), in \gls{db}. It is a vector of size $n$, where $n$ is the number of links in the network.
-    \item[\vect{PL_{fading,dB}}]: A stochastic slow/shadow fading part, which specifies the local mean of the signal, in \gls{db}. The slow fading variable is, more or less, constant in the same local area, as it is caused by terrain, buildings, vegetation, and cars. It is a vector of size $n$, where $n$ is the number of links in the network.
+\begin{description}[style=nextline]
+    \item[$\vect{l_d}$] A deterministic distance dependent part, which describes the mean signal attenuation at any given link distance (distance between transmitter and receiver), in \gls{db}. It is a vector of size $n$, where $n$ is the number of links in the network.
+    \item[$\vect{l_{fading}}$] A stochastic slow/shadow fading part, which specifies the local mean of the signal, in \gls{db}. The slow fading variable is, more or less, constant in the same local area, as it is caused by terrain, buildings, vegetation, and cars. It is a vector of size $n$, where $n$ is the number of links in the network.
 \end{description}
+%\begin{eq}\label{eq:pathlossdb}
+%    \vect{PL_{dB}} = \vect{PL_{determ,dB}(d)} + \vect{PL_{fading,dB}}
+%\end{eq}
+
 \begin{eq}\label{eq:pathlossdb}
-    \vect{PL_{dB}} = \vect{PL_{determ,dB}(d)} + \vect{PL_{fading,dB}}
+    \vect{l_{pl}} = \vect{l_d} + \vect{l_{fading}}
 \end{eq}
 
 The deterministic distance dependent \gls{pathloss} is an independent value, while the stochastic slow/shadow fading value depends on physical objects and terrain. This means that links existing in the same physical environment should have a similar slow fading. The similarity is modelled by introducing a correlation between the slow fading on different links:
@@ -26,16 +30,10 @@ The deterministic distance dependent \gls{pathloss} is an independent value, whi
     \item[Auto correlation (intralink)] describes the correlation in the development of slow fading for a single link over time (\textbf{temporal correlation}).
 \end{description}
 
-The \gls{pathloss} can be used, along with the transmission power in \acrshort{dbm} ($P_{tx,dBm}$) to simulate the \gls{rssi} on a link.
+The \gls{pathloss} can be used, along with the transmission power in \acrshort{dbm} to simulate the \gls{rssi} on a link.
 %\begin{eq}\label{eq:computerssi}
 %    RSSI_{dBm} = P_{tx,dBm} - PL_{dB}
 %\end{eq}
-
-\begin{eq}\label{eq:pathlosslink}
-    \vect{l_{pl}} = \vect{l_d} + \vect{l_{fading}}
-\end{eq}
-
-\todo[inline]{use the same notation everywhere}
 
 \subsection{Simulating Link Path Loss}\label{sec:simulatingvalues}
 In this Section, we will summarise how \gls{pathloss} and \gls{rssi} values are simulated for a \gls{manet} according to \cite{paper:linkmodel}, and we will present how we expect to use this in our own simulations. Again, note that the values used throughout this section are based on on-site measurements made with the Reachi devices in the Philippines and are heavily dependent on the environment, as described in \cite{paper:linkmodel}. \medbreak
@@ -143,7 +141,7 @@ For our sample network \textbf{G}, we can compute the distance dependent part as
         \end{bmatrix}
 \end{eq} \medbreak
 
-With the distance dependent part computed, we can move on to the stochastic slow fading part. This part is a bit more complicated, as it is not an independent value like the distance dependent part. Instead, the values depend on the correlation between links, and as such, we need the correlations introduced in \autoref{sec:pathloss}. First, we introduce the spatial correlation. $\textbf{C}$ is the correlation matrix determining the correlation coefficient between links. $\textbf{C}$ is a quadratic matrix of size $M \times M$, where $M = len(\vect{l})$.
+With the distance dependent part computed, we can move on to the stochastic slow fading part. This part is a bit more complicated, as it is not an independent value like the distance dependent part. Instead, the values depend on the correlation between links, and as such, we need the correlations presented in \autoref{sec:pathloss}. First, we introduce the spatial correlation. $\textbf{C}$ is the correlation matrix determining the correlation coefficient between links. $\textbf{C}$ is a quadratic matrix of size $M \times M$, where $M = len(\vect{l})$.
 
 %\begin{eq}\label{eq:nodesfunc}
 %    nodes(l) = \left\{n_i, n_j\right\}
@@ -227,59 +225,88 @@ Again, coming back to our sample graph \textbf{G}, and assuming that all devices
 
 where $\rho_{\Delta t} = e^{-\frac{10+10}{20}\ln (2)} = 0.5$, $\vect{x}$ would be a new realisation of the Gaussian vector, and $\textbf{Q}_{\textbf{G}}$ would be recomputed based on the new locations of the nodes, should the angles between the nodes have changed. \medbreak
 
-With this, the vectors \vect{l_d} and \vect{l_{fading}} can be combined as shown in \autoref{eq:pathlosslink}, to generate total \gls{pathloss} for all unique links in the network. All that remains is to subtract the \gls{pathloss} for a particular link $l_i$, as well as the interference noise from neighbouring nodes, from the transmission power, to compute the \gls{rssi} in \acrshort{dbm}. $P_{tx}(l)$ is a function returning the transmission power of the transmitting node in a given link.
+With this, the vectors \vect{l_d} and \vect{l_{fading}} can be combined as in \autoref{eq:pathlossdb}, to generate the \gls{pathloss} vector $\vect{l_{pl}}$ for all unique links in the network.
 
-\begin{eq}\label{eq:rssidbm}
-    RSSI_{dBm} = P_{tx}(l_i) - l_{pl,i} - noise
+\begin{eq}\label{eq:pathlosslink}
+    \vect{l_{pl,\textbf{G}}}(t) = \vect{l_{d,\textbf{G}}} + \vect{l_{fading,\textbf{G}}}(t)
 \end{eq}
 
-
-\begin{eq}\label{eq:pathlossfadingG}
-    \vect{l_{fading, \textbf{G}}} = 
-        \textbf{Q}_{\textbf{G}} \cdot \vect{x}
-        =
-        \begin{bmatrix}
-            -5.79\\
-            -4.34\\
-            \vdots \\
-            10.04\\
-        \end{bmatrix}
-\end{eq} \medbreak
+All that remains is to subtract the \gls{pathloss} for a particular link $l$, from the transmission power of the transmitting node, to compute the \gls{rssi} in \acrshort{dbm}. For example, if a node in our sample graph \textbf{G} transmits with a transmission power of $26$ \acrshort{dbm}, the \gls{rssi} on the receiving node would be:
 
 
+%$P_{tx}(l)$ is a function returning the transmission power of the transmitting node in a given link.
 
+\begin{eq}\label{eq:rssidbm}
+    RSSI_{dBm}(l_1, t = 0) = 26 \ \text{dBm} - l_{pl,\textbf{G},l_1}(t) = {-60.21} \ \text{dBm}
+\end{eq}
 
+%\begin{eq}\label{eq:pathlosslink}
+%    \vect{l_{pl}}(t) = \vect{l_d} + \vect{l_{fading}}(t)
+%\end{eq}
 
-
-
-
-
-
+%\begin{eq}\label{eq:pathlossfadingG}
+%    \vect{l_{fading, \textbf{G}}} = 
+%        \textbf{Q}_{\textbf{G}} \cdot \vect{x}
+%        =
+%        \begin{bmatrix}
+%            -5.79\\
+%            -4.34\\
+%            \vdots \\
+%            10.04\\
+%        \end{bmatrix}
+%\end{eq} \medbreak
 
 
 \subsection{Packet Error Probability}
-\todo[inline]{Describe the computations.}
-The packet error probability is the probability for a packet being erroneous, eg. the entire packet will not be received. To begin we calculate the noise power $P_{N,db}$. The noise power is calculated with the thermal noise and noise figure. For the Reachi devices the $thermal\_noise = -119.66$ and the $noise\_figure = 4.2$.
-\begin{eq}
+Now that we are able to simulate the \gls{rssi} when transmitting on from one node to another, we need to be able to simulate whether the packet should arrive on the receiving node. With radio communication, there is a chance that a receiving node may not receive the entire packet correctly, which is why we need some way of computing the probability of this happening. For this, we introduce \acrfull{pep}. The computations in this section are derived from \cite{massoud2007digital}, as well as personal communication with the author of \cite{paper:linkmodel}. \medbreak
+
+To begin we calculate the noise power $P_{N,db}$ in \acrshort{db}. The noise power is calculated with the thermal noise and noise figure. For the Reachi devices we assume that the $thermal\_noise = -119.66$ and the $noise\_figure = 4.2$.
+
+\begin{eq}\label{eq:noisepower}
     P_{N,dB} = thermal\_noise + noise\_figure
 \end{eq}
 
-Next we calculate the \gls{snr} $\gamma_{dB}$. The \gls{snr} is the ratio between signal and noise, and is done to remove the calculated noise from the signal giving a more real world representation.
+Next we calculate the \gls{snr} $\gamma_{dB}$ in \acrshort{db}. The \gls{snr} is the ratio between signal and noise, that compares the level of the signal to the level of the background noise, and is computed by subtracting the noise power computed in \autoref{eq:noisepower}. We expand upon this further to include the interference of other transmissions happening at the same time. This is done by computing the \gls{rssi} from interfering transmitters, and subtracting this from the \gls{snr}, which gives us the \acrlong{snir}:
+
+\todo[inline]{add interference to equation}
 \begin{eq}
-    \gamma_{dB} = RSSI_{dBm} - P_{N,dB}
+    \gamma_{dB} = RSSI_{dBm} - P_{N,dB} - \text{interference}
 \end{eq}
 
+We use this to compute the bit error probability:
+
+%\begin{eq}
+%    \gamma = 10^{\frac{\gamma_{dB}}{10}}
+%\end{eq}
 
 \begin{eq}
-    \gamma = 10^{\frac{\gamma_{dB}}{10}}
+    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}}{10}}}{2} \right)} \right)
 \end{eq}
 
-\begin{eq}
-    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{\gamma}{2} \right)} \right)
-\end{eq}
+which we finally can use to compute the \acrlong{pep}:
+
+%\begin{eq}
+%    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{\gamma}{2} \right)} \right)
+%\end{eq}
 
 \begin{eq}
     P_p = 1 - \left( 1 - P_b \right) ^{packet\_size}
 \end{eq}
 
-\todo[inline]{We need an actual citable source for this.}
+
+
+If we assume that the \gls{rssi} between a transmitter and a receiver is $-105.3$ \acrshort{dbm}, with no outside interference, the probability that a transmission of 20 bytes would be unsuccessful is:
+
+\begin{eq}
+    \gamma_{dB} = -105.3 - (-119.66 + 4.2) = 10.16
+\end{eq}
+
+\begin{eq}
+    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}}{10}}}{2} \right)} \right) = 6.386 \cdot 10^{-4}
+\end{eq}
+
+\begin{eq}
+    P_p = 1 - \left( 1 - P_b \right) ^{20 \cdot 8} = 0.097
+\end{eq}
+
+Which equals to a probability of approximately 10 \% packet loss, with no interference, and an \gls{rssi} of $-105.3$ \acrshort{dbm}.
