@@ -16,7 +16,8 @@ std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLin
     return l_distance;
 }
 
-reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg::vecvec<double> &matrix) {
+reachi::linalg::vecvec<double>
+reachi::linkmodel::ensure_positive_definiteness(const reachi::linalg::vecvec<double> &matrix) {
     auto b = (matrix + reachi::linalg::transpose(matrix)) / 2.0;
     auto svd_res = reachi::svd::svd(b, 5);
 
@@ -40,13 +41,15 @@ reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg
 
 std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink> &links, double time = 0.0) {
     auto corr = reachi::math::generate_correlation_matrix(links);
-    if (!reachi::cholesky::is_positive_definite(corr)) {
-        std::cout << "ensuring psd" << std::endl;
-        corr = ensure_positive_definiteness(corr);
-    }
 
     auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
     auto sigma = std_deviation * corr;
+
+    if (!reachi::cholesky::is_positive_definite(sigma)) {
+        std::cout << "ensuring psd" << std::endl;
+        sigma = reachi::linkmodel::ensure_positive_definiteness(sigma);
+    }
+
     auto autocorrelation_matrix = reachi::cholesky::cholesky(sigma);
 
     auto l_fading = autocorrelation_matrix * reachi::math::generate_gaussian_vector(0.0, 1.0, links.size());

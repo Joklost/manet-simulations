@@ -7,6 +7,7 @@
 
 namespace reachi {
     namespace linkmodel {
+        reachi::linalg::vecvec<double> ensure_positive_definiteness(const reachi::linalg::vecvec<double> &matrix);
 
         ::std::vector<double> compute(const std::vector<reachi::Optics::CLink> &links, double time = 0.0);
 
