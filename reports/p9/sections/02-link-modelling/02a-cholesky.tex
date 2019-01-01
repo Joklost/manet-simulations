@@ -1,5 +1,41 @@
 \subsection{The Cholesky Decomposition}\label{sec:cholesky}
-In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the covariance matrix in the stochastic shadow fading part. The Cholesky decomposition is a decomposition algorithm for \gls{symmetric}, \gls{pd-matrix} into the product of a \gls{lt-matrix} and its \gls{conjugate-transpose}, and is primarily used for solving systems of linear equations~\cite{Press:2007:NRE:1403886}.
+In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the covariance matrix in the stochastic shadow fading part. The Cholesky decomposition is a decomposition algorithm for \gls{symmetric}, \gls{pd-matrix} into the product of a \gls{lt-matrix} and its \gls{conjugate-transpose}, and is primarily used for solving systems of linear equations~\cite{Press:2007:NRE:1403886}. In this Section, we will present and describe the Cholesky decomposition, as well as the problems the decomposition creates for our computation time of the stochastic shadow fading part of the link model, as well as possible ways for us to optimise our usage of the Cholesky decomposition. \autoref{algo:cholesky} contains a pseudo code description of the Cholesky decomposition. \medbreak
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \KwResult{The Cholesky decomposition of the input matrix}
+    \SetKwFunction{Cholesky}{Cholesky}
+    \SetKwProg{Fn}{Function}{:}{}
+    \Fn{\Cholesky{matrix, N}}{
+        result $\leftarrow$ empty matrix of size N $\times$ N \;
+       \For{n $\leftarrow$ 0, n < N}{
+            \For{m $\leftarrow$ 0, m < n + 1}{
+                sum $\leftarrow$ 0\;
+                \For{i $\leftarrow$ 0, i < m}{
+                    sum $\leftarrow$ sum + result$_{n,i} \cdot$ result$_{m,i}$\;
+                }
+                \If{n = m}{
+                    \If{$\text{matrix}_{n,n} - \text{sum} \leq 0$}{
+                        throw error; matrix is not positive-definite
+                    }
+
+                    results$_{n,m}$ $\leftarrow$ $\sqrt{\text{matrix}_{n,n} - \text{sum}}$\;
+                }
+                \Else{
+                    results$_{n,m} \leftarrow \frac{1}{\text{result}_{m,m}} \cdot (\text{matrix}_{n,m} - sum)$\;
+                }
+            }
+        }
+        \KwRet result
+    }
+    \caption{Cholesky decomposition}
+    \label{algo:cholesky}
+\end{algorithm}
+\medbreak
+The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool~\cite{website:nearestspd} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required for computing the link model, however. \medbreak
+
+Another major issue we have, is the computational time required by for the Cholesky decomposition. \medbreak
+\todo[inline]{WIP}
 
 % \subsection{Cholesky decomposition}\label{sec:cholesky}
 %In this section we present and describe the Cholesky decomposition, and the problem it creates for our computation time, and how we propose to optimise the decomposition algorithm for our particular needs.
@@ -25,29 +61,18 @@ In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the
 % our intended improvements
 
 
-\begin{algorithm}[ht]
-    \DontPrintSemicolon
-    \KwResult{}
-    \SetKwFunction{Cholesky}{Cholesky}
-    \SetKwProg{Fn}{Function}{:}{}
-    \Fn{\Cholesky{matrix}}{
-        result$_{n,m}$\;
-       \For{n = 0, n < matrix.size}{
-            \For{m = 0, m < n + 1}{
-                sum = 0\;
-                \For{i = 0, i < m}{
-                    sum = sum + result$_{n,i} \cdot$ result$_{m,i}$\;
-                }
-                \If{n == m}{
-                    results$_{n,m}$ = $\sqrt{\text{matrix}_{n,n} - \text{sum}}$\;
-                }
-                \Else{
-                    results$_{n,m} = \frac{1}{\text{result}_{m,m}} \cdot (\text{matrix}_{n,m} - sum)$\;
-                }
-            }
-        }
-        \KwRet result
-    }
-    \caption{Cholesky decomposition}
-    \label{algo:cholesky}
-\end{algorithm}
+
+%\begin{table}[H]
+%    \centering
+%    \begin{tabular}{|l|l|l|l|}
+%    \hline
+%    Nodes & Links & NearestSPD & Cholesky        \\\hline
+%    10    & 45    & 43 ms      & \textless{}1 ms \\\hline
+%    20    & 190   & 9 s        & 2 ms            \\\hline
+%    30    & 435   & 144 s      & 26 ms           \\\hline
+%    \end{tabular}
+%    \caption{Computation time measurement for NearestSPD and Cholesky decomposition.}
+%    \label{table:spdcholeskytime}
+%\end{table}
+
+\todo[inline]{Add table showing computation time for different sized matrices. with/without nearest SPD?}

@@ -29,33 +29,33 @@ The \gls{pathloss} can be used, along with the transmission power in \acrshort{d
 \subsection{Simulating Link Path Loss}\label{sec:simulatingvalues}
 In this Section, we will summarise how \gls{pathloss} and \gls{rssi} values are simulated for a \gls{manet} according to \cite{paper:linkmodel}, and we will present how we expect to use this in our own simulations. Again, note that the values used throughout this section are based on on-site measurements made with the Reachi devices in the Philippines and are heavily dependent on the environment, as described in \cite{paper:linkmodel}. \medbreak
 
-With a \gls{manet} consisting of $N$ nodes, we have the link matrix $\textbf{L}$.
+%With a \gls{manet} consisting of $N$ nodes, we have the link matrix $\textbf{L}$.
 
-\begin{eq}
-    \textbf{L} = 
-    \begin{bmatrix}
-        0 & l'_{1,2} & l'_{1,3} & \dots & l'_{1,N} \\
-        l'_{2,1} & 0 & l'_{2,3} & \dots & l'_{2,N} \\
-        l'_{3,1} & l'_{3,2} & 0 & \dots & l'_{3,N} \\
-        \vdots & \vdots & \vdots & \vdots & \vdots \\
-        l'_{N,1} & l'_{N,2} & l'_{N,3} & \dots & 0 \\
-\end{bmatrix}
-\end{eq}
+%\begin{eq}
+%    \textbf{L} = 
+%    \begin{bmatrix}
+%        0 & l'_{1,2} & l'_{1,3} & \dots & l'_{1,N} \\
+%        l'_{2,1} & 0 & l'_{2,3} & \dots & l'_{2,N} \\
+%        l'_{3,1} & l'_{3,2} & 0 & \dots & l'_{3,N} \\
+%        \vdots & \vdots & \vdots & \vdots & \vdots \\
+%        l'_{N,1} & l'_{N,2} & l'_{N,3} & \dots & 0 \\
+%\end{bmatrix}
+%\end{eq}
+%
+%Links are undirected and show equal loss in both directions. The diagonal $l'_{i, i}$ is zero, as there is no link from a node to itself. From the link matrix $\textbf{L}$, we can identify the unique links in the link matrix as the vector \vect{l}, that contains all unique links in the link matrix; the elements of the upper triangle of the link matrix, excluding the diagonal.
+%
+%\begin{eq}\label{eq:uniquelinkvec}
+%    \vect{l} =
+%    \begin{bmatrix}
+%        l'_{1,2} & l'_{1,3} & \dots & l'_{1,N} & l'_{2,3} & l'_{2,4} & \dots & l'_{2,N} & \dots l'_{N-1,N}
+%    \end{bmatrix}^T
+%\end{eq}
+%
+%The length of the unique link vector of a fully connected network is denoted by the function $len(\vect{l})$.
 
-Links are undirected and show equal loss in both directions. The diagonal $l'_{i, i}$ is zero, as there is no link from a node to itself. From the link matrix $\textbf{L}$, we can identify the unique links in the link matrix as the vector \vect{l}, that contains all unique links in the link matrix; the elements of the upper triangle of the link matrix, excluding the diagonal.
-
-\begin{eq}\label{eq:uniquelinkvec}
-    \vect{l} =
-    \begin{bmatrix}
-        l'_{1,2} & l'_{1,3} & \dots & l'_{1,N} & l'_{2,3} & l'_{2,4} & \dots & l'_{2,N} & \dots l'_{N-1,N}
-    \end{bmatrix}^T
-\end{eq}
-
-The length of the unique link vector is denoted by the function $len(\vect{l})$.
-
-\begin{eq}\label{eq:lengthoflinks}
-    len(\vect{l}) = \sum\limits_{i=1}^{k=N-1} i = \frac{N(N+1)}{2} - N
-\end{eq}
+%\begin{eq}\label{eq:lengthoflinks}
+%    len(\vect{l}) = \sum\limits_{i=1}^{k=N-1} i = \frac{N(N+1)}{2} - N
+%\end{eq}
 
 \begin{figure}[H]
     \centering
@@ -80,7 +80,7 @@ The length of the unique link vector is denoted by the function $len(\vect{l})$.
     \label{figure:lm-sample}
 \end{figure}
 
-\autoref{figure:lm-sample} is a sample network graph \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. The length of a $l$ link will be denoted by the function $d(l)$, and the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links. The graph \textbf{G} would be equivalent to the following link vector:
+\autoref{figure:lm-sample} is a sample network graph \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, and the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links. The graph \textbf{G} would be equivalent to the following link vector:
 
 \begin{eq}\label{eq:uniquelinkvecG}
     \vect{l_\textbf{G}} =
@@ -100,7 +100,7 @@ First, we compute the distance dependent part of the path loss. The deterministi
         \end{bmatrix}
 \end{eq}
 
-where the \gls{pathloss} exponent $\gamma = 5.5$, the constant offset $c = -18.8$, $d(l_i)$ is the distance between the two nodes of the link, in meters, and $n = len(\vect{l})$. The \gls{pathloss} exponent is obtained by \gls{tls} regression in \cite{paper:linkmodel}, and the constant offset is the signal strength of a link with $d(l) = 1$, in \gls{db}. \medbreak
+where the \gls{pathloss} exponent $\gamma = 5.5$, the constant offset $c = -18.8$, $d(l_i)$ is the distance between the two nodes of the link, in meters. The \gls{pathloss} exponent is obtained by \gls{tls} regression in \cite{paper:linkmodel}, and the constant offset is the signal strength of a link with $d(l) = 1$, in \gls{db}. \medbreak
 
 For our sample network \textbf{G}, we can compute the distance dependent part as follows:
 \begin{eq}\label{eq:pathlossdetermG}
