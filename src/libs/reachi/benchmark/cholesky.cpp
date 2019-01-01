@@ -6,7 +6,6 @@
 #include <reachi/svd.h>
 #include <reachi/linkmodel.h>
 #include <reachi/clustering.h>
-#include <reachi/ostr.h>
 #include <mpilib/helpers.h>
 #include <mpilib/objectifier.h>
 
@@ -38,13 +37,16 @@ int main(int argc, char *argv[]) {
 
         if (!reachi::cholesky::is_positive_definite(sigma)) {
             std::cout << "ensuring psd" << std::endl;
+            auto spdstart = std::chrono::high_resolution_clock::now();
             sigma = reachi::linkmodel::ensure_positive_definiteness(sigma);
+            auto spdduration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - spdstart);
+            std::cout << "spdduration: " << spdduration.count() << std::endl;
         }
 
         auto start = std::chrono::high_resolution_clock::now();
         auto c = reachi::cholesky::cholesky(sigma);
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start);
-        std::cout << "duration: " << duration << "\n" << std::endl;
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start);
+        std::cout << "duration: " << duration.count() << "\n" << std::endl;
 
     }
 
