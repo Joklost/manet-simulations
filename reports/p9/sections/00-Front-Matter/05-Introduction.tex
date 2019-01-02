@@ -1,12 +1,12 @@
 \chapter{Introduction}
 % - motivation / aim
 % - Why do the project?
-Verifying that \gls{manet} protocols work as intended, is essential if the protocol is to be used in a real world setting, especially in critically important settings. Testing a \gls{manet} protocol with many nodes and emulating the setting the protocol will be used in can be problematic, as the setting might be hard to recreate in a way that makes the collection of data possible or/and scaling the emulation can be very complicated.\medbreak
+Verifying that \gls{manet} protocols work as intended, is essential if the protocol is to be used in a real world setting, especially in critically important settings. Testing a \gls{manet} protocol with many nodes and emulating the setting the protocol will be used in can be problematic, as the setting might be hard to recreate in a way that makes the collection of data possible or creating a large enough network.\medbreak
 % tickle some more
 % - Run the actual software, in a realistic setting
 
 
-This gives reason to develop a framework, capable of simulating arbitrary \gls{manet} protocols. Further designing the framework to run on a cluster will allow for the usage of \gls{mpi}, thus increasing the possible scale and speed of the simulation.
+This gives reason to develop a framework, capable of simulating arbitrary \gls{manet} protocols. Designing the framework to run on a cluster will allow for the usage of \gls{mpi}, thus increasing the possible scale and speed of the simulation.
 Since the protocols are of the wireless nature, we need a way to simulate the probability of loosing a packet or the packet containing errors. In other words calculating the \gls{pep}.
 
 At the time of writing, there exists several well-established \gls{mpi} implementations for several languages. Our framework will utilise one of those well-established implementations and add a layer on top of that, where the \gls{pep} calculations will happen.
