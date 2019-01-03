@@ -1,6 +1,10 @@
 #ifndef MANETSIMS_DEFINES_H
 #define MANETSIMS_DEFINES_H
 
+#ifndef BAUDRATE
+#define BAUDRATE 34800
+#endif
+
 /* Id/Source */
 #define CTRLR 0
 

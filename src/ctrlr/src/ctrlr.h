@@ -16,14 +16,14 @@ enum Type {
 
 struct Listen {
     unsigned long start{};
-    unsigned long duration{};
+    unsigned long end{};
     int rank{};
     bool is_processed{};
 };
 
 struct Transmission {
     unsigned long start{};
-    unsigned long duration{};
+    unsigned long end{};
     int rank{};
     std::vector<octet> data;
 
@@ -43,9 +43,10 @@ struct Action {
 class Controller {
     int lmc_node{};
     std::map<int, mpilib::Node> nodes{};
-    std::vector<mpilib::Link> link_model;
+    std::vector<std::vector<double>> link_model;
+    //std::vector<mpilib::Link> link_model;
 
-    std::vector<Transmission> transmission_actions{};
+    std::vector<Transmission> transmit_actions{};
     std::vector<Listen> listen_actions{};
 
     mpilib::Queue<Action> queue{};

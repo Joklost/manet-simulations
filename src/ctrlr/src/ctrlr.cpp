@@ -9,11 +9,12 @@ void Controller::run() {
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
     this->lmc_node = this->world_size + 1;
-    this->c = spdlog::basic_logger_mt("ctrlr", "logs/ctrlr.log");
-    //this->c = spdlog::stdout_color_mt("ctrlr");
+
+    this->c = spdlog::stdout_color_mt("ctrlr");
     if (this->debug) {
         this->c->set_level(spdlog::level::debug);
     }
+
     this->c->debug("init(nodes={})", this->world_size);
 
     /* Ensure that the control worker is ready before using MPI. */
@@ -66,29 +67,20 @@ void Controller::recv() {
 
         if (status.tag == TX_PKT) {
             auto localtime = mpi::recv<unsigned long>(status.source, TX_PKT);
-            auto duration = mpi::recv<unsigned long>(status.source, TX_PKT_DURATION);
             auto packet = mpi::recv<std::vector<octet>>(status.source, TX_PKT_DATA);
-            this->c->debug("register_tx(source={}, tag={}, localtime={}, duration={}, size={})",
-                           status.source, status.tag, localtime, duration, packet.size());
-            this->nodes[status.source].localtime = localtime + duration;
+            auto duration = static_cast<unsigned long>(mpilib::transmission_time(BAUDRATE, packet.size()).count());
             this->queue.push({transmit_t, status.source, localtime, duration, packet});
         }
 
         if (status.tag == RX_PKT) {
             auto localtime = mpi::recv<unsigned long>(status.source, RX_PKT);
             auto duration = mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
-            this->c->debug("register_rx(source={}, tag={}, localtime={}, duration={})",
-                           status.source, status.tag, localtime, duration);
-            this->nodes[status.source].localtime = localtime + duration;
             this->queue.push({listen_t, status.source, localtime, duration});
         }
 
         if (status.tag == SLEEP) {
             auto localtime = mpi::recv<unsigned long>(status.source, SLEEP);
             auto duration = mpi::recv<unsigned long>(status.source, SLEEP_DURATION);
-            this->c->debug("register_sleep(source={}, tag={}, localtime={}, duration={})",
-                           status.source, status.tag, localtime, duration);
-            this->nodes[status.source].localtime = localtime + duration;
             this->queue.push({sleep_t, status.source, localtime, duration});
         }
 
@@ -100,7 +92,6 @@ void Controller::recv() {
         if (status.tag == SET_LOCAL_TIME) {
             auto localtime = mpi::recv<unsigned long>(status.source, SET_LOCAL_TIME);
             this->c->debug("register_localtime(source={}, tag={}, localtime={})", status.source, status.tag, localtime);
-            this->nodes[status.source].localtime = localtime;
             this->queue.push({set_time_t, status.source, localtime});
         }
 
@@ -122,6 +113,9 @@ void Controller::recv() {
 }
 
 void Controller::control() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
     while (this->work) {
         auto act = this->queue.pop();
 
@@ -133,17 +127,22 @@ void Controller::control() {
         if (act.type == transmit_t) {
             this->c->debug("process_tx(rank={}, localtime={}, duration={}, size={})",
                            act.rank, act.localtime, act.duration, act.data.size());
-            this->transmission_actions.push_back({act.localtime, act.duration, act.rank, act.data});
-            mpi::send(act.localtime + act.duration, act.rank, TX_PKT_ACK);
+            this->nodes[act.rank].localtime = act.localtime + act.duration;
+            this->transmit_actions.push_back({act.localtime, act.localtime + act.duration, act.rank, act.data});
         }
 
         if (act.type == listen_t) {
-            this->listen_actions.push_back({act.localtime, act.duration, act.rank});
+            this->nodes[act.rank].localtime = act.localtime + act.duration;
+            this->listen_actions.push_back({act.localtime, act.localtime + act.duration, act.rank});
         }
 
         if (act.type == sleep_t) {
             this->c->debug("process_sleep(rank={}, localtime={}, duration={})", act.rank, act.localtime, act.duration);
-            mpi::send(act.localtime + act.duration, act.rank, SLEEP_ACK);
+            this->nodes[act.rank].localtime = act.localtime + act.duration;
+        }
+
+        if (act.type == set_time_t) {
+            this->nodes[act.rank].localtime = act.localtime;
         }
 
         if (act.type == update_location_t) {
@@ -152,77 +151,93 @@ void Controller::control() {
         }
 
         if (act.type == link_model_t) {
-            this->c->debug("update_linkmodel(links={})", act.link_model.size());
-            this->link_model = act.link_model;
+            auto links = act.link_model.size();
+            this->c->debug("update_linkmodel(links={})", links);
+
+            std::vector<std::vector<double>> new_link_model{};
+            new_link_model.resize(links, std::vector<double>(links));
+
+            for (auto &item : act.link_model) {
+                new_link_model[item.first][item.second] = item.pathloss;
+                new_link_model[item.second][item.first] = item.pathloss;
+            }
+            this->link_model = std::move(new_link_model);
         }
 
-        if (act.type == set_time_t) {
-            /* Do nothing. */
-        }
 
-
-        if (this->transmission_actions.empty() && this->listen_actions.empty()) {
+        if (this->transmit_actions.empty() && this->listen_actions.empty()) {
             continue;
         }
 
-        unsigned long min_localtime = std::numeric_limits<unsigned long>::max();
+        unsigned long ctrlr_time = std::numeric_limits<unsigned long>::max();
         for (const auto &item : this->nodes) {
             auto &node = item.second;
-            if (node.localtime < min_localtime) {
-                min_localtime = node.localtime;
+            if (node.localtime < ctrlr_time) {
+                ctrlr_time = node.localtime;
             }
         }
 
-        if (min_localtime == std::numeric_limits<unsigned long>::max()) {
+        if (ctrlr_time == std::numeric_limits<unsigned long>::max()) {
             continue;
         }
 
+        /* Remove processed transmission and listen actions. */
+        this->listen_actions.erase(
+                std::remove_if(
+                        this->listen_actions.begin(), this->listen_actions.end(),
+                        [](const Listen &l) -> bool {
+                            return l.is_processed;
+                        }
+                ), this->listen_actions.end()
+        );
+
         for (auto &rx : this->listen_actions) {
             /* We check if we have received an action/time update from all other nodes. */
-            if (rx.start + rx.duration > min_localtime || rx.is_processed) {
+            if (rx.end > ctrlr_time || rx.is_processed) {
                 continue;
             }
 
             std::vector<std::vector<octet>> packets{};
 
-            /* we can process this listen action. */
-            for (auto &tx : this->transmission_actions) {
+            /* We can process this listen action. */
+            for (auto &tx : this->transmit_actions) {
                 if (rx.rank == tx.rank || !tx.is_within(rx)) {
                     continue;
                 }
 
-                /* TODO: Compute interference. */
-                auto tx_power = 1.0;
+                auto tx_power = -40.0;
                 auto interference = 0.0;
+                auto pathloss = this->link_model[rx.rank][tx.rank];
 
-                auto it = std::find_if(this->link_model.begin(), this->link_model.end(), [&tx, &rx](auto link) {
-                    return (tx.rank == link.first && rx.rank == link.second) ||
-                           (tx.rank == link.second && rx.rank == link.first);
-                });
-
-                if (it == this->link_model.end()) {
+                if (mpilib::is_equal(pathloss, 0.0)) {
                     this->c->debug("should_receive(first={}, second={}, status=no_link)", tx.rank, rx.rank);
                     continue;
                 }
 
-                auto rssi = tx_power - it.base()->pathloss;
+                for (auto &tx_inner : this->transmit_actions) {
+                    /* If tx outer and tx inner intersects. */
+                    if (tx.rank == tx_inner.rank)  {
+                        continue;
+                    }
+
+                    if (tx.end > tx_inner.start && tx.start < tx_inner.end) {
+                        interference += this->link_model[rx.rank][tx_inner.rank];
+                    }
+                }
+
+                auto rssi = tx_power - pathloss;
                 auto pep = reachi::radiomodel::pep(rssi, tx.data.size(), interference);
 
-                std::random_device rd;
-                std::mt19937 gen(rd());
                 std::bernoulli_distribution d(1.0 - pep);
                 auto should_receive = d(gen);
 
-                this->c->debug("should_receive(first={}, second={}, status={}, rssi={}, pep={})",
-                               tx.rank, rx.rank, should_receive, rssi, pep);
+                this->c->debug("should_receive(first={}, second={}, status={}, pep={}, rssi={}, interference={})",
+                               tx.rank, rx.rank, should_receive, pep, rssi, interference);
 
                 if (should_receive) {
                     packets.emplace_back(tx.data);
                 }
             }
-
-            this->c->debug("process_rx(rank={}, localtime={}, duration={}, packets={})",
-                           rx.rank, rx.start, rx.duration, packets.size());
 
             mpi::send(packets.size(), rx.rank, RX_PKT_COUNT);
 
@@ -230,13 +245,8 @@ void Controller::control() {
                 mpi::send(packet, rx.rank, RX_PKT_DATA);
             }
 
-            mpi::send(rx.start + rx.duration, rx.rank, RX_PKT_ACK);
             rx.is_processed = true;
         }
-
-        /* Remove processed actions. */
-        //this->listen_actions.erase(std::remove_if(this->listen_actions.begin(), this->listen_actions.end(),
-        //                                          [](Listen &action) -> bool { return action.processed; }));
     }
 }
 
@@ -279,8 +289,18 @@ bool Controller::handshake() {
         auto link_buffer = mpi::recv<std::vector<octet>>(this->lmc_node, LINK_MODEL_LINK);
         link_model.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
     }
+
+    auto links = link_model.size();
     this->c->debug("set_linkmodel(links={})", link_model.size());
-    this->link_model = link_model;
+
+    std::vector<std::vector<double>> new_link_model{};
+    new_link_model.resize(links, std::vector<double>(links));
+
+    for (auto &item : link_model) {
+        new_link_model[item.first][item.second] = item.pathloss;
+        new_link_model[item.second][item.first] = item.pathloss;
+    }
+    this->link_model = std::move(new_link_model);
 
     /* Set the clocks on all nodes. */
     for (auto i = 1; i <= world_size; ++i) {
@@ -301,5 +321,5 @@ mpilib::geo::Location Controller::update_location(const mpi::Status &status) {
 
 bool Transmission::is_within(Listen listen) {
     return this->start >= listen.start &&
-           (this->start + this->duration) <= (listen.start + listen.duration);
+           this->end <= listen.end;
 }

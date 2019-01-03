@@ -39,16 +39,16 @@ int main(int argc, char *argv[]) {
         hardware::sleep(20ms);
 
         TestPacket p{id, l};
-        hardware::broadcast<TestPacket>(p);
+        hardware::broadcast(mpilib::serialise(p));
         hardware::sleep(180ms);
     } else {
-        auto packets = hardware::listen<TestPacket>(200ms);
+        auto packets = hardware::listen(200ms);
         for (const auto &packet : packets) {
-            hardware::logger->info(packet);
+            hardware::logger->info(mpilib::deserialise<TestPacket>(packet));
         }
 
         TestPacket p{id, l};
-        hardware::broadcast<TestPacket>(p);
+        hardware::broadcast(mpilib::serialise(p));
     }
 
 //    auto new_location = mpilib::geo::random_location(l1, l2);

@@ -10,8 +10,7 @@ void LinkModelComputer::run() {
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
 
-    this->c = spdlog::basic_logger_mt("lmc", "logs/lmc.log");
-    //this->c = spdlog::stdout_color_mt("lmc");
+    this->c = spdlog::stdout_color_mt("lmc");
 
     if (this->debug) {
         this->c->set_level(spdlog::level::debug);
@@ -145,7 +144,7 @@ void LinkModelComputer::compute_link_model() {
     auto eps = 0.01;
     auto minpts = 2;
 
-    auto link_threshold = 350_m;
+    auto link_threshold = 1_km;
 
     auto time = 0.0, time_delta = 0.0;
     std::vector<reachi::Node> model_nodes{};
@@ -156,7 +155,6 @@ void LinkModelComputer::compute_link_model() {
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
     auto links = reachi::data::create_link_vector(clusters, link_threshold);
-    for (const auto &item : links) this->c->debug("lmc_dd: distance={}", item.get_distance());
 
     this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), links.size());
 

@@ -5,9 +5,6 @@
 #include <chrono>
 
 
-#ifndef BAUDRATE
-#define BAUDRATE 34800
-#endif
 
 namespace hardware {
     extern std::chrono::time_point<std::chrono::high_resolution_clock> clock;

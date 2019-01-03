@@ -36,7 +36,7 @@ namespace mpilib {
             bool operator>=(const Location &rhs) const;
 
             friend std::ostream &operator<<(std::ostream &os, const Location &location) {
-                os << "{latitude: " << std::fixed << location.get_latitude() << ", longitude: "
+                os << "Location{latitude: " << std::fixed << location.get_latitude() << ", longitude: "
                    << std::fixed << location.get_longitude() << "}";
                 return os;
             }

@@ -78,5 +78,5 @@ std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::v
 }
 
 ::std::vector<double> reachi::linkmodel::compute(const std::vector<reachi::Optics::CLink> &links, double time) {
-    return compute_link_distance(links) + compute_link_fading(links, time); /* TODO: + temporal*/
+    return compute_link_distance(links);// + compute_link_fading(links, time); /* TODO: + temporal*/
 }
