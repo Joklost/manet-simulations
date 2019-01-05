@@ -5,6 +5,7 @@
 #include <reachi/cholesky.h>
 #include <reachi/svd.h>
 #include <reachi/qr.h>
+#include <reachi/ostr.h>
 
 std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLink> &links) {
     std::vector<double> l_distance{};
@@ -16,39 +17,93 @@ std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLin
     return l_distance;
 }
 
+
 reachi::linalg::vecvec<double>
-reachi::linkmodel::ensure_positive_definiteness(const reachi::linalg::vecvec<double> &matrix) {
-    auto b = (matrix + reachi::linalg::transpose(matrix)) / 2.0;
-    auto svd_res = reachi::svd::svd(b, 5);
+reachi::linkmodel::nearest_SPD(const reachi::linalg::vecvec<double> &matrix) {
+    auto svd_res = reachi::svd::svd(matrix, 20);
 
     auto h = std::get<2>(svd_res) * std::get<0>(svd_res) * reachi::linalg::transpose(std::get<2>(svd_res));
-    auto spd = (b + h) / 2.0;
-    spd = (spd + reachi::linalg::transpose(spd)) / 2.0;
+    auto spd = (matrix + h) / 2.0;
 
-    auto scalar = 0.0;
+    uint32_t scalar = 1;
+    uint32_t multiplier = 1;
     while (!reachi::cholesky::is_positive_definite(spd)) {
-        auto eigen = reachi::linalg::eig(spd, 10);
+        auto eigen = reachi::linalg::eig(spd, 30);
         auto min_eig = eigen.values.back();
 
+        spd = spd + (-min_eig * reachi::math::next_power_of_2(scalar) +
+                     (std::numeric_limits<double>::epsilon() * std::abs(min_eig))) *
+                    reachi::linalg::identity(spd.size());
+
+        std::cout << spd[0][0] << std::endl;
         scalar++;
-        spd = spd + (((-min_eig * std::pow(scalar, 2)) +
-                      (std::numeric_limits<double>::epsilon() * std::abs(min_eig))) *
-                     reachi::linalg::identity(spd.size()));
+
     }
 
     return spd;
 }
 
+
+reachi::linalg::vecvec<double> reachi::linkmodel::near_PD(const reachi::linalg::vecvec<double> &matrix) {
+    auto x = matrix;
+
+    while (true) {
+        auto y = x;
+        auto eigen = reachi::linalg::eig(x, 10);
+        auto q = eigen.vectors;
+        auto d = eigen.values;
+        /* d = ::std::vector<double>{2.4142136, 1.0000000, -0.4142136};
+        q = {{0.5000000, 7.071068e-01,  -0.5000000},
+             {0.7071068, 7.850462e-16,  0.7071068},
+             {0.5000000, -7.071068e-01, -0.5000000}}; */
+
+        std::vector<int> p;
+        auto eigen_tolerance = 1e-06 * d.front();
+        for (auto i = 0; i < d.size(); ++i) {
+            if (d[i] > eigen_tolerance)
+                p.emplace_back(i);
+        }
+
+        std::sort(p.begin(), p.end());
+        q = reachi::linalg::slice_column_from_index_list(q, p);
+        auto q_t = q;
+
+        for (auto index = 0, column = 0; index < p.size(); ++index, ++column) {
+            for (auto &row : q)
+                row[column] = row[column] * d[index];
+        }
+
+        x = reachi::linalg::crossprod(reachi::linalg::transpose(q), q_t);
+        x = reachi::linalg::diag(x, 1.0);
+
+        auto diff = y - x;
+        auto conv = reachi::linalg::infinity_norm(diff) / reachi::linalg::infinity_norm(y);
+
+        if (conv <= 1e-07) {
+            return x;
+        }
+    }
+}
+
+
 std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink> &links, double time = 0.0) {
     auto corr = reachi::math::generate_correlation_matrix(links);
+    if (!reachi::cholesky::is_positive_definite(corr)) {
+        std::cout << "ensuring spd" << std::endl;
+        corr = reachi::linkmodel::near_PD(corr);
+    }
+
+    if (!reachi::cholesky::is_positive_definite(corr)) {
+        std::cout << "near PD failed" << std::endl;
+    }
 
     auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
     auto sigma = std_deviation * corr;
 
-    if (!reachi::cholesky::is_positive_definite(sigma)) {
-        std::cout << "ensuring psd" << std::endl;
-        sigma = reachi::linkmodel::ensure_positive_definiteness(sigma);
-    }
+    /*if (!reachi::cholesky::is_positive_definite(sigma)) {
+        std::cout << "ensuring spd" << std::endl;
+        sigma = reachi::linkmodel::nearest_SPD(sigma);
+    }*/
 
     auto autocorrelation_matrix = reachi::cholesky::cholesky(sigma);
 
@@ -80,3 +135,5 @@ std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::v
 ::std::vector<double> reachi::linkmodel::compute(const std::vector<reachi::Optics::CLink> &links, double time) {
     return compute_link_distance(links);// + compute_link_fading(links, time); /* TODO: + temporal*/
 }
+
+

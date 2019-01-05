@@ -27,9 +27,9 @@ namespace reachi {
                 current_v = reachi::linalg::dot(b, last_v);
                 current_v = current_v / reachi::linalg::frobenius_norm(current_v);
 
-                if (std::abs(reachi::linalg::dot(current_v, last_v)) > 1 - epsilon || iteration == max_iteration) {
+                if (std::abs(reachi::linalg::dot(current_v, last_v)) > 1 - epsilon || iteration == max_iteration)
                     return current_v;
-                }
+
                 iteration++;
             }
         }
@@ -43,7 +43,8 @@ namespace reachi {
          */
         template<typename T>
         std::tuple<std::vector<T>, linalg::vecvec<T>, linalg::vecvec<T>>
-        svd(const linalg::vecvec<T> &matrix, const int max_iteration, const double epsilon = 0.1 /* 1e-10 */) {
+        svd(const linalg::vecvec<T> &matrix, const int max_iteration, const double epsilon = 1e-10 /* 0.1 */) {
+            auto matrix_transposed = reachi::linalg::transpose(matrix);
             std::vector<T> singular_values;
             linalg::vecvec<T> us, vs, matrix_1d_cache;
 
@@ -52,16 +53,18 @@ namespace reachi {
             for (auto i = 0; i < matrix.size(); ++i) {
                 auto matrix_for_1d = matrix;
 
-                if (i != 0) {
+                for (auto j = 0; j < i; ++j) matrix_for_1d = matrix_for_1d - (singular_values[j] * (us[j] * vs[j]));
+                
+                /*if (i != 0) {
                     matrix_for_1d = matrix_for_1d - singular_values.back() * (us.back() * vs.back());
                     matrix_for_1d = matrix_for_1d - matrix_1d_cache;
                 }
 
-                matrix_1d_cache = matrix_for_1d;
+                matrix_1d_cache = matrix_for_1d;*/
 
 
                 auto u = svd_1d(matrix_for_1d, epsilon, max_iteration);
-                auto v_unnormalized = reachi::linalg::dot(reachi::linalg::transpose(matrix), u);
+                auto v_unnormalized = reachi::linalg::dot(matrix_transposed, u);
                 auto sigma = reachi::linalg::frobenius_norm(v_unnormalized);
                 auto v = v_unnormalized / sigma;
 
@@ -72,7 +75,6 @@ namespace reachi {
 
             return std::make_tuple(singular_values, reachi::linalg::transpose(us), vs);
         }
-
     }
 }
 

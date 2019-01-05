@@ -39,6 +39,37 @@ namespace reachi {
 
         double frobenius_norm(::std::vector<double> &a);
 
+        double infinity_norm(linalg::vecvec<double> &matrix);
+
+        template<typename T>
+        vecvec<T> transpose(const vecvec<T> matrix) {
+            vecvec<T> vec{};
+            auto rows = matrix.size();
+            auto row_size = matrix.front().size();
+
+            if (rows == row_size) {
+                vec.resize(rows, ::std::vector<T>(row_size));
+
+                for (auto i = 0; i < rows; i++) {
+                    for (auto j = 0; j < row_size; j++) {
+                        vec[j][i] = matrix[i][j];
+                    }
+                }
+
+                return vec;
+            }
+
+            vec.resize(row_size, ::std::vector<T>(rows));
+
+            for (auto i = 0; i < row_size; i++) {
+                for (auto j = 0; j < rows; j++) {
+                    vec[i][j] = matrix[j][i];
+                }
+            }
+            return vec;
+        }
+
+
         template<typename T>
         vecvec<T> normalize_vecvec(const vecvec<T> &matrix, const T min, const T max) {
             vecvec<T> res;
@@ -57,6 +88,64 @@ namespace reachi {
         template<typename T>
         ::std::pair<unsigned long, unsigned long> shape(const vecvec<T> &matrix) {
             return ::std::make_pair(matrix.size(), matrix[0].size());
+        }
+
+        template<typename T>
+        vecvec<T> diag(const vecvec<T> &lhs) {
+            vecvec<T> res;
+            auto size = lhs.size();
+            res.resize(size, ::std::vector<T>(size));
+
+            for (auto i = 0; i < size; ++i)
+                res[i][i] = lhs[i][i];
+
+            return res;
+        }
+
+        template<typename T>
+        vecvec<T> diag(const vecvec<T> &lhs, const T value) {
+            auto res = lhs;
+
+            for (auto i = 0; i < lhs.size(); ++i) {
+                res[i][i] = value;
+            }
+
+            return res;
+        }
+
+        template<typename T>
+        vecvec<T> crossprod(const vecvec<T> &lhs, const vecvec<T> &rhs) {
+            vecvec<T> res, a, b;
+            unsigned long a_size, b_size;
+
+            a = lhs;
+            b = rhs;
+
+            a_size = a.front().size();
+            b_size = b.size();
+            res.resize(a_size, ::std::vector<T>(b_size));
+
+            for (auto i = 0; i < a_size; ++i) {
+                for (auto j = 0; j < b_size; ++j) {
+                    auto sum = (T) 0;
+                    if (i == j) {
+                        for (auto k = 0; k < a.size(); ++k)
+                            sum += std::pow(a[k][i], 2);
+                    } else {
+                        for (auto k = 0; k < a.size(); ++k)
+                            sum += a[k][i] * b[j][k];
+                    }
+
+                    res[i][j] = sum;
+                }
+            }
+
+            return res;
+        }
+
+        template<typename T>
+        vecvec<T> crossprod(const vecvec<T> &lhs) {
+            return crossprod(lhs, transpose(lhs));
         }
 
         /***
@@ -124,6 +213,22 @@ namespace reachi {
 
             return res;
         }
+
+        template<typename T>
+        vecvec<T> slice_column_from_index_list(const vecvec<T> &lhs, const ::std::vector<int> &indexes) {
+            vecvec<T> res;
+            auto size = lhs.size();
+            res.resize(size, ::std::vector<T>{});
+
+            for (const auto &index : indexes) {
+                for (auto row = 0; row < lhs.size(); ++row) {
+                    res[row].emplace_back(lhs[row][index]);
+                }
+            }
+
+            return res;
+        }
+
 
         /***
          *
@@ -193,24 +298,9 @@ namespace reachi {
             return res;
         }
 
-        template<typename T>
-        vecvec<T> transpose(const vecvec<T> matrix) {
-            auto rows = matrix.size();
-            auto row_size = matrix[0].size();
-
-            vecvec<T> vec{};
-            vec.resize(rows, ::std::vector<T>(row_size));
-
-            for (auto i = 0; i < rows; i++) {
-                for (auto j = 0; j < row_size; j++) {
-                    vec[j][i] = matrix[i][j];
-                }
-            }
-
-            return vec;
-        }
 
 #ifdef TWOBLUECUBES_SINGLE_INCLUDE_CATCH_HPP_INCLUDED
+
         template<typename T>
         bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
             if (a.size() != b.size()) return false;
@@ -230,6 +320,7 @@ namespace reachi {
             }
             return true;
         }
+
 #else
 
         template<typename T>
@@ -397,6 +488,45 @@ template<typename T>
     }
 
     return res;
+}
+
+template<typename T>
+reachi::linalg::vecvec<T> operator+(const reachi::linalg::vecvec<T> &lhs, const reachi::linalg::vecvec<T> &rhs) {
+    if (lhs.size() != rhs.size() && lhs.front().size() != rhs.front().size())
+        throw "Vecvec's must be of the same size";
+
+    reachi::linalg::vecvec<T> res;
+    auto size = lhs.size();
+    res.resize(size, ::std::vector<T>(size));
+
+    for (auto row = 0; row < size; ++row) {
+        for (auto column = 0; column < size; ++column) {
+            res[row][column] = lhs[row][column] + rhs[row][column];
+        }
+    }
+
+    return res;
+}
+
+
+template<typename T>
+reachi::linalg::vecvec<T> operator+(const reachi::linalg::vecvec<T> &lhs, const T scalar) {
+    reachi::linalg::vecvec<T> res;
+    auto size = lhs.size();
+    res.resize(size, ::std::vector<T>(size));
+
+    for (auto row = 0; row < size; ++row) {
+        for (auto column = 0; column < size; ++column) {
+            res[row][column] = lhs[row][column] + scalar;
+        }
+    }
+
+    return res;
+}
+
+template<typename T>
+reachi::linalg::vecvec<T> operator+(const T scalar, const reachi::linalg::vecvec<T> &rhs) {
+    return rhs + scalar;
 }
 
 template<typename T>

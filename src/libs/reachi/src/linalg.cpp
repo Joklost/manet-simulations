@@ -13,17 +13,6 @@ reachi::linalg::vecvec<double> reachi::linalg::identity(unsigned long n) {
     return ret;
 }
 
-reachi::linalg::vecvec<double> reachi::linalg::diag(::std::vector<double> &v) {
-    auto n = v.size();
-    vecvec<double> c{};
-    c.resize(n, ::std::vector<double>(n));
-
-    for (auto i = 0; i < n; ++i) {
-        c[i][i] = v[i];
-    }
-
-    return c;
-}
 
 double reachi::linalg::frobenius_norm(vecvec<double> &a) {
     if (a.empty() or a.front().empty()) {
@@ -53,9 +42,9 @@ double reachi::linalg::frobenius_norm(::std::vector<double> &a) {
 }
 
 double reachi::linalg::is_eigen_right(unsigned long n, unsigned long k,
-                                    vecvec<double> &a,
-                                    vecvec<double> &x,
-                                    ::std::vector<double> &lambda) {
+                                      vecvec<double> &a,
+                                      vecvec<double> &x,
+                                      ::std::vector<double> &lambda) {
     vecvec<double> c{};
     c.resize(n, ::std::vector<double>(k));
 
@@ -239,6 +228,21 @@ reachi::linalg::Eigen reachi::linalg::eig(const vecvec<double> &c, unsigned long
 
     Eigen result{v, d, it_num, rot_num};
     return result;
+}
+
+double reachi::linalg::infinity_norm(reachi::linalg::vecvec<double> &matrix) {
+    double res = 0ul;
+
+    for (const auto &row : matrix) {
+        auto sum = 0.0;
+        for (const auto &item : row)
+            sum += item;
+
+        if (res == 0ul || sum > res)
+            res = sum;
+    }
+
+    return res;
 }
 
 

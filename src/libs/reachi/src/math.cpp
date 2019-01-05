@@ -174,4 +174,16 @@ reachi::linalg::vecvec<double> reachi::math::generate_correlation_matrix(std::ve
     return corr;
 }
 
+uint64_t reachi::math::next_power_of_2(uint32_t n) {
+    uint64_t res = 1;
+
+    if (n && !(n & (n - 1)))
+        return n;
+
+    while (res < n)
+        res <<= 1;
+
+    return res;
+}
+
 

@@ -33,6 +33,8 @@ namespace reachi {
         }
 
 
+        uint64_t next_power_of_2(uint32_t n);
+
         double distance_pathloss(double distance);
 
         double distance_pathloss(mpilib::geo::Location to, mpilib::geo::Location from);
