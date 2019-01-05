@@ -1,6 +1,6 @@
 \section{Link Path Loss}\label{sec:linkmodel}
 
-In this section, we will present a method for simulating \gls{manet} link \gls{pathloss} from \cite{paper:linkmodel}. For our simulations, we would like to be able to simulate the performance of a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues} present the method, as well as present an example of simulating the \gls{pathloss} on a network. Note that the actual values used in this Section, is specific to the Reachi devices, and are based on on-site measurements.
+In this section, we present a method for simulating \gls{manet} link \gls{pathloss} from \cite{paper:linkmodel}. For our simulations, we want to simulate the performance of a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues} present the method, as well as an example of simulating the \gls{pathloss} on a network topology.% Note that the actual values used in this Section, is specific to the Reachi devices, and are based on on-site measurements. 
 
 \subsection{Units}
 In the following sections, we will be using different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrfull{db}~\cite{website:isadbdbm}, and the transmission power, as well as the \gls{rssi}, as \acrfull{dbm}~\cite{website:isadbdbm}.
@@ -75,7 +75,8 @@ In this Section, we will summarise how \gls{pathloss} and \gls{rssi} values are 
     \label{figure:lm-sample}
 \end{figure}
 
-\autoref{figure:lm-sample} is a sample network graph \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, and the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links. The graph \textbf{G} would be equivalent to the following link vector:
+\autoref{figure:lm-sample} is a sample network graph \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, $nodes(l)$ is a function that return the set of nodes of a link $l$, and the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links that share a common node ($ k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset $). \smallbreak
+The graph \textbf{G} would be equivalent to the following link vector:
 
 \begin{eq}\label{eq:uniquelinkvecG}
     \vect{l_\textbf{G}} =
@@ -126,16 +127,17 @@ With the distance dependent part computed, we can move on to the stochastic slow
 \begin{eq}\label{eq:correlationmatrix}
     \textbf{C} = 
     \begin{cases} 
-        r_{k,l} \left( \theta(k,l) \right) & \text{if} \  k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset \\
+        r \left( k, l \right) & \text{if} \  k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset \\
         1 & \text{if} \ k = l \\
         0 & \text{otherwise}
     \end{cases} 
 \end{eq}
 
-$\theta(k,l)$ is the angle between links $k$ and $l$, $nodes(l)$ is a function that returns the set of nodes of a link $l$, and $r_{k,l} \left( \theta(k,l) \right)$ is an auto-correlation function, and it is parameterised based on the Reachi measurements in \cite{paper:linkmodel}.
+%$\theta(k,l)$ is the angle between links $k$ and $l$, $nodes(l)$ is a function that returns the set of nodes of a link $l$, and 
+The function $r \left( k, l \right)$ is an auto-correlation function, and it is parameterised based on the Reachi measurements in \cite{paper:linkmodel}.
 
 \begin{eq}\label{eq:pathlossautocorrelation}
-    r_{k,l}\left( \theta(k,l) \right) = 0.595e^{-0.064 * \theta(k,l)} + 0.092
+    r\left( k, l \right) = 0.595e^{-0.064 * \theta(k,l)} + 0.092
 \end{eq}
 
 With this, we can generate the correlation matrix for our sample graph \textbf{G} as:
@@ -149,7 +151,7 @@ With this, we can generate the correlation matrix for our sample graph \textbf{G
         0.094 & 0.125 & 0     & 1     & 0.125 & 0.094 \\
         0.125 & 0     & 0.125 & 0.125 & 1     & 0.125 \\
         0     & 0.125 & 0.094 & 0.094 & 0.125 & 1     \\
-\end{bmatrix}
+    \end{bmatrix}
 \end{eq}
 
 The correlation matrix $\textbf{C}$ is used to create the covariance matrix $\boldsymbol{\Sigma} = \sigma^2\textbf{C}$ by multiplying the correlation matrix with a standard deviation of $\sigma = 11.4$ \gls{db} squared. Next, we draw an \gls{iid} multivariate Gaussian vector, with the standard deviation $I = 1$.
@@ -160,27 +162,50 @@ The correlation matrix $\textbf{C}$ is used to create the covariance matrix $\bo
 
 The independent variables in the vector are made dependent by multiplication with the lower triangular Cholesky decomposition~\cite[p. 143]{Golub:1996:MC:248979}\cite[p. 100]{Press:2007:NRE:1403886} (\autoref{algo:cholesky}) of the covariance matrix $\textbf{Q} = cholesky\left(\boldsymbol{\Sigma}\right)$.
 
+%{11.4, 0, 0, 0, 0, 0}
+%{1.42955, 11.31, 0, 0, 0, 0}
+%{1.07017, 1.30566, 11.2743, 0, 0, 0}
+%{1.07017, 1.3057, -0.252793, 11.2715, 0, 0}
+%{1.42955, -0.180692, 1.33076, 1.3609, 11.1472, 0}
+%{0, 1.44093, 0.915234, 0.935987, 1.2618, 11.1614}
+
+%{-0.121966, -1.08682, 0.68429, -1.07519, 0.0332695, 0.744836};
+
+
+%{-1.39041, -12.4664, 6.17022, -13.8368, -0.158379, 6.41379};
 \begin{eq}\label{eq:pathlossstoch}
     \vect{l_{fading}} = \textbf{Q}\vect{x}
 \end{eq}
 
-With this, it is possible for us to compute a single realisation of the \gls{pathloss} of a link matrix, accounting for the distance dependent \gls{pathloss} and the spatial correlation. For our sample graph \textbf{G}, this could be:
+%With this, it is possible for us to compute a single realisation of the \gls{pathloss} of a link matrix, accounting for the distance dependent \gls{pathloss} and the spatial correlation. 
+For our sample graph \textbf{G}, this could be:
 
 \begin{eq}\label{eq:pathlossfadingG}
     \vect{l_{fading, \textbf{G}}} = 
-        \textbf{Q}_{\textbf{G}} \cdot \vect{x}
-        =
+        \textbf{Q}_{\textbf{G}} 
+    \cdot
         \begin{bmatrix}
-            -5.79\\
-            -4.34\\
-            \vdots \\
-            10.04\\
+            -0.122\\
+            -1.087\\
+            0.684\\
+            -1.075\\
+            0.033\\
+            0.744
         \end{bmatrix}
-\end{eq} \medbreak
+    =
+        \begin{bmatrix}
+            -1.390\\
+            -12.466\\
+            6.170\\
+            -13.837\\
+            -0.158\\
+            6.413
+        \end{bmatrix}
+\end{eq}
 
 Note that as $\vect{x}$ is stochastic, the values in \autoref{eq:pathlossfadingG} are a random realisation of the stochastic shadow fading part. \medbreak
 
-Next, the shadow fading part is expanded to include the temporal correlation. $l_{fading}\left(t\right)$ is the vector describing the shadow fading \gls{pathloss} at time $t$. As the distance dependent part is not time dependent, it needs no further modifications.
+Next, the shadow fading part is expanded to include the temporal correlation.The vector $l_{fading}\left(t\right)$ describes the shadow fading \gls{pathloss} at time $t$. As the distance dependent part is not time dependent, it needs no further modifications.
 
 \begin{eq}\label{eq:pathlosstemporal}
     \vect{l_{fading}}(t + \Delta t) = \overbrace{\textbf{Q}(t + \Delta t)\vect{x}}^{spatial correlation} \overbrace{\sqrt{1 - \rho_{\Delta t}} + \vect{l_{fading}}(t)\rho_{\Delta t}}^{temporal correlation}

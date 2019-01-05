@@ -1,9 +1,14 @@
 \subsection{Clustering}\label{sec:clustering}
 %Another way of optimising the computation of the link model is to introduce clustering of nodes, used to reduce the amount of links required for the link model computation. 
-As mentioned in \autoref{sec:pathloss}, links existing in the same physical environment should experience the same shadow fading \gls{pathloss}. This means that we should be able to compute clusters of nodes, and use the clusters to faster compute the link model of multiple nodes at the same time, as we would, depending on the number of clusters, have a far smaller link matrix. \medbreak
+The second for of optimising the computation of the link model, is to introduce clustering of nodes. As mentioned in \autoref{sec:pathloss}, links existing in the same physical environment should experience the same shadow fading \gls{pathloss}. This means that we will be able to cluster nodes with a minimum loss of precision, provided that we minimise the angles 
 
-For our purposes, we have chosen to use a density-based clustering algorithm, more specifically the \gls{optics} algorithm (\autoref{algo:optics}). The idea behind density-based clustering is that for every node in a cluster, the neighbourhood, within a given radius, has to contain at least a minimum number of other nodes~\cite[p.~50]{Ankerst:1999:OOP:304182.304187}. A set of nodes in a network, $\textbf{N} \subseteq \mathcal{X}$, along with a distance parameter $\varepsilon$, denoting the maximum radius of a nodes neighbourhood, and $MinNodes \geq 2$ denoting the minimum number of nodes required to form a cluster, such that a single node will not be considered a cluster. The goal is to find a set of clusters, $C$, such that we are able to form a new network with the centroids of our set of clusters, as well any outlying node not contained in a cluster, $\text{NOISE} \subseteq \textbf{N}$, while minimising the radius of the clusters.
+minimise the difference of the angles between links before and after clustering (correlation)
 
+%This means that we should be able to compute clusters of nodes, and use the clusters to faster compute the link model of multiple nodes at the same time, as we would, depending on the number of clusters, have a far smaller link matrix. \medbreak
+
+%For our purposes, we have chosen to use a density-based clustering algorithm, more specifically the \gls{optics} algorithm (\autoref{algo:optics}). The idea behind density-based clustering is that for every node in a cluster, the neighbourhood, within a given radius, has to contain at least a minimum number of other nodes~\cite[p.~50]{Ankerst:1999:OOP:304182.304187}. A set of nodes in a network, $\textbf{N} \subseteq \mathcal{X}$, along with a distance parameter $\varepsilon$, denoting the maximum radius of a nodes neighbourhood, and $MinNodes \geq 2$ denoting the minimum number of nodes required to form a cluster, such that a single node will not be considered a cluster. The goal is to find a set of clusters, $C$, such that we are able to form a new network with the centroids of our set of clusters, as well any outlying node not contained in a cluster, $\text{NOISE} \subseteq \textbf{N}$, while minimising the radius of the clusters.
+
+\subsubsection{Metric Space}
 % Minimise the diameter using parameters
 % Maximum diameter as input, give me the smallest number of k-nodes, such that every other node is within the diameter of at least one node.
 % Output: Some number of nodes, which is the smallest possible diameter
@@ -17,7 +22,9 @@ A metric space is a pair $( \mathcal{X}, d )$ where $ \mathcal{X} $ is a set and
     \item Triangle inequality: $d(x, z) \leq d(x, y) + d(y, z)$
 \end{itemize}
 
+\subsubsection{Problem Statement}
 
+A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with parameters $\varepsilon$. The goal is to find a subset of clusters, such that the maximum angle between any node to nodes in the cluster is minimised. 
 
 \begin{itemize}
     \item Input: a set $\textbf{N} \subseteq \mathcal{X}$, and parameters $\varepsilon$ and $MinNodes$.
@@ -28,6 +35,8 @@ A metric space is a pair $( \mathcal{X}, d )$ where $ \mathcal{X} $ is a set and
 \end{itemize}
 \todo[inline]{How to describe the goal?}
 %\todo[inline]{How to describe the goal? Is it the goal of the particular clustering algorithm, or our goal for using the clustering algorithm? In the second case, the goal is to reduce the number of overall nodes in the network, by creating clusters of nodes very close to each other, and using the centroid of the clusters for the link model.}
+
+\subsubsection{Approximation using OPTICS}
 
 The way we want to use the \gls{optics} algorithm is to create many clusters with a higher density (a lower value for $\varepsilon$), as bigger, lower density clusters, would not make sense for the purposes of the link model. The \gls{optics} algorithm in itself does not assign cluster memberships to nodes in the network~\cite[p.~52]{Ankerst:1999:OOP:304182.304187}. Instead, the algorithm produces a particular ordering of the nodes, from which we can extract actual cluster memberships from. This ordering is produced by computing two values for every node in the network-: the \textit{core-distance} (\autoref{eq:coredist}) and the \textit{reachability-distance} (\autoref{eq:reachdist}) Additionally, a node is a \textit{core node} if at least $MinNodes$ are found within its $\varepsilon$-neighbourhood~\cite[p.~52]{Ankerst:1999:OOP:304182.304187}. 
 \begin{equation}\label{eq:coredist}

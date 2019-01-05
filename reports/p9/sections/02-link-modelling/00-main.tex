@@ -1,4 +1,27 @@
 \chapter{Link Modelling}\label{ch:linkmodel}
+This chapter...\medbreak
+
+\todo[inline]{Outline the scenario, what is a link, what is a network, and so on\medbreak
+We would like to estimate the probability of packet loss, based on the topology of a network. How likely is it that a transmission will happen successfully between two nodes.\medbreak
+We never mention that a topology is not static. It's a changing network with mobile nodes.
+}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.7\textwidth]{figures/manet_with_terrain.png}
+    \caption{A sample wireless network topology.}
+    \label{figure:manetwithter}
+\end{figure}
+
+\autoref{figure:manetwithter} shows a sample wireless network topology for a \acrfull{manet}. The network consists of mobile devices (nodes), and the communication between these (links). Nodes are \doublequote{linked} with other nodes when they are able to communicate wirelessly. Wireless communication relies on the transmission and reception of electromagnetic waves~\cite[p.~10]{paper:linkmodel} (radio signals), and the strength, or quality, of a wireless link is described by the signal loss occurring when propagating the signal from transmitter to receiver. In \cite{paper:linkmodel}, the term \gls{pathloss} is used to describe this signal loss, and is determined in part by the physical distance between transmitter and receiver, but also by physical objects and terrain, like buildings or forests. \autoref{sec:linkmodel} will elaborate further on the \gls{pathloss} of a link, as well as present a method for simulating the \gls{pathloss} for a mobile network topology. Another major consideration for mobile networks is that the topology is dynamic. Nodes move around, causing existing links to disappear, or new links to appear, thus changing the topology of the network.
+
+%Whether nodes are able to communicate wirelessly with each other depends on the \gls{pathloss} 
+
+%In \autoref{figure:manetwithter} we see a topology of six nodes, with seven communication links between them.
+%When working with wireless mobile networks, it is important keep in mind that the topology these networks are dynamic. Nodes move, causing the topology to change. When nodes move in or out of reach of other nodes, links will appear or disappear dynamically.
+
+%to keep two things in mind: First, the topology a mobile network is, per definition, dynamic.
+
 \input{sections/02-link-modelling/01-linkradiomodel.tex}
 
 \input{sections/02-link-modelling/02-optimization.tex}
