@@ -17,7 +17,7 @@ namespace reachi {
         ::std::vector<double>
         compute_temporal_correlation(const ::std::vector<Optics::CLink> &links, double time, double delta_time);
 
-        reachi::linalg::vecvec<double> near_PD(const reachi::linalg::vecvec<double> &matrix);
+        reachi::linalg::vecvec<double> near_pd(const reachi::linalg::vecvec<double> &matrix);
     }
 }
 

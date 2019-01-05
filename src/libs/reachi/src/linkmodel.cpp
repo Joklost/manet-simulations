@@ -44,7 +44,7 @@ reachi::linkmodel::nearest_SPD(const reachi::linalg::vecvec<double> &matrix) {
 }
 
 
-reachi::linalg::vecvec<double> reachi::linkmodel::near_PD(const reachi::linalg::vecvec<double> &matrix) {
+reachi::linalg::vecvec<double> reachi::linkmodel::near_pd(const reachi::linalg::vecvec<double> &matrix) {
     auto x = matrix;
 
     while (true) {
@@ -91,7 +91,7 @@ std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink>
     auto corr = reachi::math::generate_correlation_matrix(links);
     if (!reachi::cholesky::is_positive_definite(corr)) {
         std::cout << "ensuring spd" << std::endl;
-        corr = reachi::linkmodel::near_PD(corr);
+        corr = reachi::linkmodel::near_pd(corr);
     }
 
     if (!reachi::cholesky::is_positive_definite(corr)) {

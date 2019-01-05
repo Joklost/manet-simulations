@@ -8,7 +8,7 @@ In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the
     \SetKwProg{Fn}{Function}{:}{}
     \Fn{\Cholesky{matrix, N}}{
         result $\leftarrow$ empty matrix of size N $\times$ N \;
-       \For{n $\leftarrow$ 0, n < N}{
+        \For{n $\leftarrow$ 0, n < N}{
             \For{m $\leftarrow$ 0, m < n + 1}{
                 sum $\leftarrow$ 0\;
                 \For{i $\leftarrow$ 0, i < m}{
@@ -32,7 +32,7 @@ In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the
     \label{algo:cholesky}
 \end{algorithm}
 \medbreak
-The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool~\cite{website:nearestspd} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. \smallbreak
+The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool~\cite{website:nearPD} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. \smallbreak
 The Cholesky decomposition has a computational complexity of $O(n^3)$~\citationneeded. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We will present the first solution in this Section, and clustering in \autoref{sec:clustering}.\medbreak
 
 \subsubsection{Distance Threshold}\label{sec:distancethreshold}
@@ -66,17 +66,34 @@ In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} ha
 
 
 
-%\begin{table}[H]
-%    \centering
-%    \begin{tabular}{|l|l|l|l|}
-%    \hline
-%    Nodes & Links & NearestSPD & Cholesky        \\\hline
-%    10    & 45    & 43 ms      & \textless{}1 ms \\\hline
-%    20    & 190   & 9 s        & 2 ms            \\\hline
-%    30    & 435   & 144 s      & 26 ms           \\\hline
-%    \end{tabular}
-%    \caption{Computation time measurement for NearestSPD and Cholesky decomposition.}
-%    \label{table:spdcholeskytime}
-%\end{table}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Nodes & Links & NearPD & Cholesky        \\\hline
+        10    & 45    & 43 ms  & \textless{}1 ms \\\hline
+        20    & 190   & 9 s    & 2 ms            \\\hline
+        30    & 435   & 144 s  & 26 ms           \\\hline
+        40    &       &        &    ms           \\\hline
+        50    &       &        &    ms           \\\hline
+        60    &       &        &    ms           \\\hline
+        70    &       &        &    ms           \\\hline
+        80    &       &        &    ms           \\\hline
+        90    &       &        &    ms           \\\hline
+        100   &       &        &    ms           \\\hline
+        110   &       &        &    ms           \\\hline
+        120   &       &        &    ms           \\\hline
+        130   &       &        &    ms           \\\hline
+        140   &       &        &    ms           \\\hline
+        150   &       &        &    ms           \\\hline
+        160   &       &        &    ms           \\\hline
+        170   &       &        &    ms           \\\hline
+        180   &       &        &    ms           \\\hline
+        190   &       &        &    ms           \\\hline
+        200   &       &        &    ms           \\\hline
+    \end{tabular}
+    \caption{Computation time measurement for NearPD and Cholesky decomposition.}
+    \label{table:spdcholeskytime}
+\end{table}
 
 \todo[inline]{Add table showing computation time for different sized matrices. with/without nearest SPD?}

@@ -36,13 +36,9 @@ std::string format_duration(std::chrono::microseconds us) {
 }
 
 int main(int argc, char *argv[]) {
-    //mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    //auto lower = mpilib::geo::square(upper, 5_km);
-
     mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 300_m);
+    auto lower = mpilib::geo::square(upper, 5_km);
 
-    //auto nodes = generate_nodes(static_cast<unsigned long>(atoi(argv[1])), upper, lower);
     auto step = 10ul;
     auto steps = 20ul;
     for (auto i = 0ul; i < steps; ++i) {
@@ -60,16 +56,16 @@ int main(int argc, char *argv[]) {
         std::cout << "links: " << links.size() << std::endl;
         auto corr = reachi::math::generate_correlation_matrix(links);
 
-        auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
-        auto sigma = std_deviation * corr;
-
-        if (!reachi::cholesky::is_positive_definite(sigma)) {
+        if (!reachi::cholesky::is_positive_definite(corr)) {
             std::cout << "ensuring psd" << std::endl;
             auto spdstart = std::chrono::high_resolution_clock::now();
-            sigma = reachi::linkmodel::near_PD(sigma);
+            corr = reachi::linkmodel::near_pd(corr);
             auto spdduration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - spdstart);
             std::cout << "spdduration: " << format_duration(spdduration) << std::endl;
         }
+
+        auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
+        auto sigma = std_deviation * corr;
 
         auto start = std::chrono::high_resolution_clock::now();
         auto c = reachi::cholesky::cholesky(sigma);

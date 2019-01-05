@@ -290,7 +290,7 @@ TEST_CASE("R libs nearPD implementation verification", "[linalg]") {
                                             {.7630019,  1.0000000, 0.7630019},
                                             {0.1643439, 0.7630019, 1.0000000}};
 
-    auto res = reachi::linkmodel::near_PD(data);
+    auto res = reachi::linkmodel::near_pd(data);
     std::cout << res << std::endl;
 }
 
