@@ -332,9 +332,21 @@ TEST_CASE("QR decomposition", "[qr]") {
                                               {4.47505e-16, 0,    -35}};
 
     auto res = reachi::qr::qr_decomposition(v1);
-    std::cout << res << std::endl;
-    REQUIRE(reachi::linalg::compare_vectors(res.first, expected_q, 0.01));
+        REQUIRE(reachi::linalg::compare_vectors(res.first, expected_q, 0.01));
     REQUIRE(reachi::linalg::compare_vectors(res.second, expected_r, 0.01));
+}
+
+TEST_CASE("QR algorithm for finding eigenvalues and eigenvectors", "[qr]") {
+    reachi::linalg::vecvec<double> data{{1.0, 1.0, 0.0},
+                                        {1.0, 1.0, 1.0},
+                                        {0.0, 1.0, 1.0}};
+
+    auto eigen = reachi::qr::qr_algorithm(data);
+    std::cout << "values" << std::endl;
+    std::cout << eigen.values << std::endl;
+    std::cout << "vectors" << std::endl;
+    std::cout << eigen.vectors << std::endl;
+    std::cout << "iterations: " << eigen.iterations << std::endl;
 }
 
 TEST_CASE("Compute distance dependent path loss", "[linkmodel]") {

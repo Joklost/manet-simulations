@@ -49,7 +49,8 @@ reachi::linalg::vecvec<double> reachi::linkmodel::near_PD(const reachi::linalg::
 
     while (true) {
         auto y = x;
-        auto eigen = reachi::linalg::eig(x, 10);
+        //auto eigen = reachi::linalg::eig(x, 10);
+        auto eigen = reachi::qr::qr_algorithm(x);
         auto q = eigen.vectors;
         auto d = eigen.values;
         /* d = ::std::vector<double>{2.4142136, 1.0000000, -0.4142136};
@@ -133,7 +134,7 @@ std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::v
 }
 
 ::std::vector<double> reachi::linkmodel::compute(const std::vector<reachi::Optics::CLink> &links, double time) {
-    return compute_link_distance(links);// + compute_link_fading(links, time); /* TODO: + temporal*/
+    return compute_link_distance(links) + compute_link_fading(links, time); /* TODO: + temporal*/
 }
 
 

@@ -2,12 +2,15 @@
 #define MANETSIMS_QR_H
 
 #include "math.h"
+#include <reachi/ostr.h>
 
 namespace reachi {
     namespace qr {
 
         template<typename T>
-        reachi::linalg::vecvec<T> partial_update_vecvec(reachi::linalg::vecvec<T> matrix, reachi::linalg::vecvec<T> &householder_matrix, int start_index) {
+        reachi::linalg::vecvec<T>
+        partial_update_vecvec(reachi::linalg::vecvec<T> matrix, reachi::linalg::vecvec<T> &householder_matrix,
+                              int start_index) {
             auto h_shape = reachi::linalg::shape(householder_matrix);
 
             for (auto row_h = 0, row_m = start_index; row_h < h_shape.first; row_m++, row_h++) {
@@ -44,9 +47,10 @@ namespace reachi {
         }
 
         template<typename T>
-        std::pair<reachi::linalg::vecvec<T>, reachi::linalg::vecvec<T>> qr_decomposition(reachi::linalg::vecvec<T> matrix) {
+        std::pair<reachi::linalg::vecvec<T>, reachi::linalg::vecvec<T>>
+        qr_decomposition(reachi::linalg::vecvec<T> matrix) {
             auto size = matrix.size();
-            auto a = std::move(matrix);
+            auto a = matrix;
             auto q = reachi::linalg::identity(size);
 
             for (auto i = 0; i < size - 1; ++i) {
@@ -61,28 +65,42 @@ namespace reachi {
         }
 
         /* http://www.ohiouniversityfaculty.com/youngt/IntNumMeth/lecture17.pdf */
+        /**
+         * Find the eigenvalues of a symmetric matrix
+         * @tparam T
+         * @param matrix
+         * @return Eigen object with vectors and values
+         */
         template<typename T>
-        std::vector<T> qr_algorithm(reachi::linalg::vecvec<T> &matrix) {
+        linalg::Eigen qr_algorithm(reachi::linalg::vecvec<T> &matrix) {
             auto h = matrix;
-            auto e = reachi::linalg::get_diagonal(matrix, matrix.size());
-            int threshold = 1;
-            int iteration = 0;
+            auto eigen_values = reachi::linalg::get_diagonal(matrix, matrix.size());
+            linalg::vecvec<double> eigen_vectors;
+            double threshold = 1;
+            long unsigned int iteration = 0;
 
-            while (threshold > 0) {
+            while (threshold > 0.1) {
                 iteration++;
-                std::cout << iteration << std::endl;
-                auto e_old = e;
+                auto e_old = eigen_values;
 
                 /* apply QR method */
                 auto qr = qr_decomposition(h);
+                if (eigen_vectors.empty()) {
+                    eigen_vectors = qr.first;
+                } else {
+                    eigen_vectors = eigen_vectors * qr.first;
+                    //eigen_vectors = reachi::linalg::dot(eigen_vectors, qr.first);
+                }
                 h = qr.second * qr.first;
-                e = reachi::linalg::get_diagonal(h, h.size());
+                eigen_values = reachi::linalg::get_diagonal(h, h.size());
 
                 /* test for convergence */
-                auto t = e - e_old;
-                threshold = (int) reachi::linalg::frobenius_norm(t);
+                auto t = eigen_values - e_old;
+                threshold = reachi::linalg::frobenius_norm(t);
             }
-            return e;
+
+
+            return linalg::Eigen{eigen_vectors, eigen_values, iteration, 0};
         }
 
     }
