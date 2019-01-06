@@ -1,33 +1,34 @@
 \subsection{Clustering}\label{sec:clustering}
 %Another way of optimising the computation of the link model is to introduce clustering of nodes, used to reduce the amount of links required for the link model computation. 
-The second for of optimising the computation of the link model, is to introduce clustering of nodes. As mentioned in \autoref{sec:pathloss}, links existing in the same physical environment should experience the same shadow fading \gls{pathloss}. This means that we will be able to cluster nodes with a minimum loss of precision, provided that we minimise the angles 
+The second for of optimising the computation of the link model, is to introduce clustering of nodes. As mentioned in \autoref{sec:pathloss}, links existing in the same physical environment should experience the same shadow fading \gls{pathloss}. This means that we will be able to cluster nodes with a minimum loss of precision, provided that we minimise difference of the correlation (the angle) between links, before and after clustering. 
 
-minimise the difference of the angles between links before and after clustering (correlation)
+%minimise the difference of the angles between links before and after clustering (correlation)
 
 %This means that we should be able to compute clusters of nodes, and use the clusters to faster compute the link model of multiple nodes at the same time, as we would, depending on the number of clusters, have a far smaller link matrix. \medbreak
 
 %For our purposes, we have chosen to use a density-based clustering algorithm, more specifically the \gls{optics} algorithm (\autoref{algo:optics}). The idea behind density-based clustering is that for every node in a cluster, the neighbourhood, within a given radius, has to contain at least a minimum number of other nodes~\cite[p.~50]{Ankerst:1999:OOP:304182.304187}. A set of nodes in a network, $\textbf{N} \subseteq \mathcal{X}$, along with a distance parameter $\varepsilon$, denoting the maximum radius of a nodes neighbourhood, and $MinNodes \geq 2$ denoting the minimum number of nodes required to form a cluster, such that a single node will not be considered a cluster. The goal is to find a set of clusters, $C$, such that we are able to form a new network with the centroids of our set of clusters, as well any outlying node not contained in a cluster, $\text{NOISE} \subseteq \textbf{N}$, while minimising the radius of the clusters.
 
-\subsubsection{Metric Space}
+%\subsubsection{Metric Space}
 % Minimise the diameter using parameters
 % Maximum diameter as input, give me the smallest number of k-nodes, such that every other node is within the diameter of at least one node.
 % Output: Some number of nodes, which is the smallest possible diameter
 
 %metric space
-A metric space is a pair $( \mathcal{X}, d )$ where $ \mathcal{X} $ is a set and $\textbf{d}:\mathcal{X} \times \mathcal{X} \rightarrow [0, \infty )$ is a metric, satisfying the following axioms:
+%A metric space is a pair $( \mathcal{X}, d )$ where $ \mathcal{X} $ is a set and $\textbf{d}:\mathcal{X} \times \mathcal{X} \rightarrow [0, \infty )$ is a metric, satisfying the following axioms:
 
-\begin{itemize}
-    \item Reflexivity: $d(x, y) = 0 \Longleftrightarrow x = y$
-    \item Symmetry: $d(x, y) = d(y, x)$
-    \item Triangle inequality: $d(x, z) \leq d(x, y) + d(y, z)$
-\end{itemize}
+%\begin{itemize}
+%    \item Reflexivity: $d(x, y) = 0 \Longleftrightarrow x = y$
+%    \item Symmetry: $d(x, y) = d(y, x)$
+%    \item Triangle inequality: $d(x, z) \leq d(x, y) + d(y, z)$
+%\end{itemize}
 
 \subsubsection{Problem Statement}
 
-A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with parameters $\varepsilon$. The goal is to find a subset of clusters, such that the maximum angle between any node to nodes in the cluster is minimised. 
+%A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with parameters $\varepsilon$. The goal is to find a subset of clusters, such that the maximum angle between any node to nodes in the cluster is minimised. 
+A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter $\varepsilon$. The goal is to find a subset of clusters, such that the difference in correlation between links is minimised, while maximising the number of clusters. 
 
 \begin{itemize}
-    \item Input: a set $\textbf{N} \subseteq \mathcal{X}$, and parameters $\varepsilon$ and $MinNodes$.
+    \item Input: a set $\textbf{N} \subseteq \mathcal{X}$, and a parameter $\varepsilon$.
     \item Output: a set of clusters $C$ where, for each nodes in the cluster, the neighbourhood of a given radius $\varepsilon$ of the nodes has to contain at least a minimum number of nodes $MinNodes$.
     \item Goal: minimise the cost $r^C_\infty(\textbf{N}) = \max\limits_{n \in \textbf{N}} d(n, C)$.
     %\item Goal: minimise the size of the network by creating a new network consisting of the set of nodes $centroids(C) \cup \text{NOISE}$

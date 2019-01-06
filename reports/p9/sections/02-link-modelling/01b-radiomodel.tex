@@ -1,53 +1,114 @@
-\subsection{Packet Error Probability}\label{sec:pep}
-Now that we are able to simulate the \gls{rssi} when transmitting on from one node to another, we need to be able to simulate whether the packet should arrive on the receiving node. With radio communication, there is a chance that a receiving node may not receive the entire packet correctly, which is why we need some way of computing the probability of this happening. For this, we introduce \acrfull{pep}. The computations in this section are derived from \cite{massoud2007digital}, as well as personal communication with the author of \cite{paper:linkmodel}. \medbreak
+\section*{Packet Error Probability}\label{sec:pep}
 
-To begin we calculate the noise power $P_{N,db}$ in \acrshort{db}. The noise power is calculated with the thermal noise and noise figure. For the Reachi devices we assume that the $thermal\_noise = -119.66$ \acrshort{db} and the $noise\_figure = 4.2$ \acrshort{db}.
 
-\begin{eq}\label{eq:noisepower}
-    P_{N,dB} = thermal\_noise + noise\_figure
-\end{eq}
+%Now that we are able to simulate the \gls{rssi} when transmitting on from one node to another, we need to be able to simulate whether the packet should arrive on the receiving node. With radio communication, there is a chance that a receiving node may not receive the entire packet correctly, which is why we need some way of computing the probability of this happening. For this, we introduce \acrfull{pep}. The computations in this section are derived from \cite{massoud2007digital}, as well as personal communication with the author of \cite{paper:linkmodel}. \medbreak
 
-Next we calculate the \gls{snr} $\gamma_{dB}$ in \acrshort{db}. The \gls{snr} is the ratio between signal and noise, that compares the level of the signal to the level of the background noise, and is computed by subtracting the noise power computed in \autoref{eq:noisepower}. We expand upon this further to include the interference of other transmissions happening at the same time. This is done by computing the \gls{rssi} from interfering transmitters, and subtracting this from the \gls{snr}, which gives us the \acrlong{snir}:
+%First we calculate the noise power $P_{N,db} = thermal\_noise + noise\_figure$ in \acrshort{db}. The noise power is calculated with the thermal noise and noise figure. For the Reachi devices we assume that the $thermal\_noise = -119.66$ \acrshort{db} and the $noise\_figure = 4.2$ \acrshort{db}. \medbreak
 
-\todo[inline]{add interference to equation}
+%Next we calculate the \gls{snr} $\gamma_{dB}$ in \acrshort{db}. The \gls{snr} is the ratio between signal and noise, that compares the level of the signal to the level of the background noise, and is computed by subtracting the noise power computed previously. We expand upon this further to include the interference of other transmissions happening at the same time. This is done by computing the \gls{rssi} from interfering transmitters, and subtracting this from the \gls{snr}, which gives us the \acrlong{snir}:
+
+% n receiver, m transmitter
+
+\subsection*{Radio Model}
+
+%where we assume that the $thermal\_noise = -119.66$ \acrshort{db} and the $noise\_figure = 4.2$ \acrshort{db}.
+
 \begin{eq}
-    \gamma_{dB} = RSSI_{dBm} - P_{N,dB} - \text{interference}
+    P_{N,db} = thermal\_noise + noise\_figure
 \end{eq}
 
-We use this to compute the bit error probability:
+Signal to noise ratio with interference, on a link from $n_r$ (receiver) to $n_t$ (transmitter). The set of currently transmitting nodes are denoted by $nodes_t$. The function $RSSI(n, m)$ denotes the RSSI on the link between nodes $n$ and $m$. We subtract the sum of the RSSI between $n_r$ and any currently transmitting nodes, excluding $m_t$.
+
+\begin{eq}
+    \gamma_{dB}(n_r, m_t) = RSSI(n_r, m_t) - P_{N,dB} - \mathlarger{\sum}\limits_{m \in nodes_t} RSSI(n_{r}, m)[m \neq m_{t}]
+\end{eq}
+
+%We use this to compute the bit error probability:
 
 %\begin{eq}
 %    \gamma = 10^{\frac{\gamma_{dB}}{10}}
 %\end{eq}
 
 \begin{eq}
-    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}}{10}}}{2} \right)} \right)
+    P_b(n_r, m_t) = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}(n_r, m_t)}{10}}}{2} \right)} \right)
 \end{eq}
 
-which we finally can use to compute the \acrlong{pep}:
+%%which we finally can use to compute the \acrlong{pep}:
 
 %\begin{eq}
 %    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{\gamma}{2} \right)} \right)
 %\end{eq}
 
 \begin{eq}
-    P_p = 1 - \left( 1 - P_b \right) ^{packet\_size}
+    P_p(n_r, m_t) = 1 - \left( 1 - P_b(n_r, m_t) \right) ^{packetsize}
 \end{eq}
 
 
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics[width=.7\textwidth]{figures/pep/pep.png}
+%    \caption{Limits.}
+%    \label{figure:pepegraph}
+%\end{figure}
 
-If we assume that the \gls{rssi} between a transmitter and a receiver is $-105.3$ \acrshort{dbm}, with no outside interference, the probability that a transmission of 20 bytes would be unsuccessful is:
+%If we assume that the \gls{rssi} between a transmitter and a receiver is $-105.3$ \acrshort{dbm}, with no outside interference, the probability that a transmission of 20 bytes would be unsuccessful is:
+
+\subsection*{Example}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{scope}[xshift=4cm]
+        \node[main node] (1) {$1$};
+        \node[main node] (2) [left = 2cm  of 1]  {$2$};
+        \node[main node] (3) [below = 2cm  of 2] {$3$};
+        \node[main node] (4) [right = 2cm  of 3] {$4$};
+
+        \path[draw,thick]
+        (1) edge node[above] {$l_1$} (2)
+        (1) edge node[above=.8cm, right] {$l_2$} (3)
+        (1) edge node[right] {$l_3$} (4)
+        (2) edge node[left] {$l_4$} (3)
+        (2) edge node[below=.8cm, right] {$l_5$} (4)
+        (3) edge node[below] {$l_6$} (4)
+        ;
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Sample graph \textbf{G} with 4 nodes and 6 links.}
+    \label{figure:lm-sample}
+\end{figure}
+
+
+\begin{eq}\label{eq:rssivector}
+    \vect{RSSI_{\textbf{G}}} = 
+        \begin{bmatrix}
+            -64.610\\
+            -61.734\\
+            -72.170\\
+            -52.163\\
+            -74.042\\
+            -72.413
+        \end{bmatrix}
+\end{eq}
+
+The vector \vect{RSSI_{\textbf{G}}} contains the RSSI for all links in \textbf{G}. It is assumed that $thermal\_noise = -119.66$ \acrshort{db}, the $noise\_figure = 4.2$ \acrshort{db}, and $packetsize = 160$. \medbreak
+
+If we assume that $n_2$ is currently listening, and the currently transmitting nodes are $nodes_t = {n_1, n_3, n_4}$. Now, we want to compute the probability for packet error on the link between nodes $n_2$ and $n_4$.
+%(-119.66 + 4.2)
+\begin{eq}
+    \gamma_{dB}(n_2, n_4) = RSSI(n_2, n_4) - P_{N,dB} - \mathlarger{\sum}\limits_{m \in \{n_1, n_3, n_4\}} RSSI(n_2, m)[m \neq n_4]
+\end{eq}
 
 \begin{eq}
-    \gamma_{dB} = -105.3 - (-119.66 + 4.2) = 10.16
+    \gamma_{dB}(n_2, n_4) = -74.042 - (-119.66 + 4.2) - (-64.610 + (-52.163)) = 158.191
 \end{eq}
 
 \begin{eq}
-    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}}{10}}}{2} \right)} \right) = 6.386 \cdot 10^{-4}
+    P_b(n_2, n_4) = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{158.191}{10}}}{2} \right)} \right) = 1.406 \cdot 10^{-36}
 \end{eq}
 
 \begin{eq}
-    P_p = 1 - \left( 1 - P_b \right) ^{20 \cdot 8} = 0.097
+    P_p(n_2, n_4) = 1 - \left( 1 - P_b(n_2, n_4) \right) ^{160} = 0.0
 \end{eq}
 
-Which equals to a probability of approximately 10 \% packet loss, with no interference, and an \gls{rssi} of $-105.3$ \acrshort{dbm}.
+%Which equals to a probability of approximately 10 \% packet loss, with no interference, and an \gls{rssi} of $-105.3$ \acrshort{dbm}.
