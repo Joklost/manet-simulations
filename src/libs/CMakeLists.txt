@@ -17,7 +17,9 @@ set(CATCH_BUILD_TESTING OFF CACHE BOOL "Don't build Catch2 test")
 
 #add_subdirectory(json)
 #add_subdirectory(cpr)
+
 add_subdirectory(Catch2)
 add_subdirectory(spdlog)
 add_subdirectory(mpilib)
 add_subdirectory(reachi)
+add_subdirectory(eigen)

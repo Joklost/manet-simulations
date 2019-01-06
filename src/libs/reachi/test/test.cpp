@@ -12,6 +12,7 @@
 #include <reachi/ostr.h>
 #include <mpilib/helpers.h>
 #include <mpilib/ostr.h>
+#include <Eigen/Eigenvalues>
 
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
@@ -301,6 +302,33 @@ TEST_CASE("Calculate the infinity norm of a vecvec", "[linalg]") {
     double expected = 3.0;
     auto res = reachi::linalg::infinity_norm(data);
     REQUIRE(res == expected);
+}
+
+TEST_CASE("Eigen lib test", "[eigen]") {
+    reachi::linalg::vecvec<double> data{{1.0, 1.0, 0.0},
+                                        {1.0, 1.0, 1.0},
+                                        {0.0, 1.0, 1.0}};
+
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m (data.size(), data.size());
+
+    for(int i = 0; i < data.size(); i++) {
+        for (int j = 0; j < data.size(); j++) {
+            m(i, j) = data[i][j];
+        }
+    }
+
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> es;
+    es.compute(m);
+    std::cout << "Eigen values" << std::endl;
+    std::cout << es.eigenvalues() << std::endl;
+    std::cout << "Eigen vectors" << std::endl;
+    std::cout << es.eigenvectors() << std::endl;
+
+    auto va = es.eigenvalues();
+    for (auto row = 0; row < data.size(); ++row) {
+        std::cout << va(row) << std::endl;
+    }
+
 }
 
 TEST_CASE("R lib slice vecvec based on index for columns", "[r]") {

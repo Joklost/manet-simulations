@@ -6,6 +6,7 @@
 #include <reachi/svd.h>
 #include <reachi/qr.h>
 #include <reachi/ostr.h>
+#include <Eigen/Eigenvalues>
 
 std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLink> &links) {
     std::vector<double> l_distance{};
@@ -44,19 +45,48 @@ reachi::linkmodel::nearest_SPD(const reachi::linalg::vecvec<double> &matrix) {
 }
 
 
+reachi::linalg::Eigen calc_eigen(const reachi::linalg::vecvec<double> &matrix) {
+    auto s = matrix.size();
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> x(s, s);
+    ::std::vector<double> values(s);
+    reachi::linalg::vecvec<double> vectors;
+    vectors.resize(s, ::std::vector<double>(s));
+
+    for (auto row = 0; row < s; ++row) {
+        for (auto column = 0; column < s; ++column) {
+            x(row, column) = matrix[row][column];
+        }
+    }
+
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> es;
+    es.compute(x);
+
+    auto ve = es.eigenvectors();
+    auto va = es.eigenvalues();
+
+    for (auto row = 0; row < s; ++row) {
+        for (auto column = 0; column < s; ++column) {
+            vectors[row][column] = ve(row, column);
+        }
+    }
+    for (auto row = 0; row < s; ++row) {
+        values[row] = va(row);
+    }
+
+    std::sort(std::begin(values), std::end(values));
+    return reachi::linalg::Eigen{vectors, values, 0, 0};
+}
+
 reachi::linalg::vecvec<double> reachi::linkmodel::near_pd(const reachi::linalg::vecvec<double> &matrix) {
     auto x = matrix;
 
     while (true) {
         auto y = x;
         //auto eigen = reachi::linalg::eig(x, 10);
-        auto eigen = reachi::qr::qr_algorithm(x);
+        //auto eigen = reachi::qr::qr_algorithm(x);
+        auto eigen = calc_eigen(x);
         auto q = eigen.vectors;
         auto d = eigen.values;
-        /* d = ::std::vector<double>{2.4142136, 1.0000000, -0.4142136};
-        q = {{0.5000000, 7.071068e-01,  -0.5000000},
-             {0.7071068, 7.850462e-16,  0.7071068},
-             {0.5000000, -7.071068e-01, -0.5000000}}; */
 
         std::vector<int> p;
         auto eigen_tolerance = 1e-06 * d.front();

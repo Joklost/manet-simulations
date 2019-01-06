@@ -60,7 +60,8 @@ int main(int argc, char *argv[]) {
             std::cout << "ensuring psd" << std::endl;
             auto spdstart = std::chrono::high_resolution_clock::now();
             corr = reachi::linkmodel::near_pd(corr);
-            auto spdduration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - spdstart);
+            auto spdduration = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::high_resolution_clock::now() - spdstart);
             std::cout << "spdduration: " << format_duration(spdduration) << std::endl;
         }
 
@@ -69,8 +70,8 @@ int main(int argc, char *argv[]) {
 
         auto start = std::chrono::high_resolution_clock::now();
         auto c = reachi::cholesky::cholesky(sigma);
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start);
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::high_resolution_clock::now() - start);
         std::cout << "duration: " << format_duration(duration) << "\n" << std::endl;
-
     }
 }

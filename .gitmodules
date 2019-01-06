@@ -11,5 +11,5 @@
 	path = src/libs/spdlog
 	url = git@github.com:gabime/spdlog.git
 [submodule "src/libs/eigen-git-mirror"]
-	path = src/libs/eigen-git-mirror
+	path = src/libs/eigen
 	url = https://github.com/eigenteam/eigen-git-mirror.git
