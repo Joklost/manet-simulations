@@ -12,18 +12,77 @@
 #include <mpilib/helpers.h>
 #include <mpilib/httpclient.h>
 
-int main(int argc, char *argv[]) {
-}
-#if 0
 
 #define MIN_PTS 2
+#define MAX_PTS 10
+#define PTS_STEPS 1
 #define MIN_EPS 0.01
 #define MAX_EPS 0.10
-#define EPS_STEP 0.1
-#define LINK_THRESHOLD 0.150
-#define TX_DBM -20.0
+#define MAX_EPS_STEPS 10
+#define EPS_STEP 0.01
+#define LINK_THRESHOLD 0
+#define TX_DBM 26.0
 #define AREA 1.0
 #define NODES 100
+
+
+template<class...Durations, class DurationIn>
+std::tuple<Durations...> break_down_durations(DurationIn d) {
+    std::tuple<Durations...> retval;
+    using discard=int[];
+    (void) discard{0, (void((
+                                    (std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
+                                            (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval)))
+                            )), 0)...};
+    return retval;
+}
+
+std::string format_duration(std::chrono::microseconds us) {
+    auto dur = break_down_durations<std::chrono::seconds, std::chrono::milliseconds, std::chrono::microseconds>(us);
+    std::ostringstream oss;
+    oss << std::setfill('0')
+        << std::get<0>(dur).count()
+        << "::"
+        << std::setw(3)
+        << std::get<1>(dur).count()
+        << "::"
+        << std::setw(3)
+        << std::get<2>(dur).count();
+    return oss.str();
+}
+
+
+int main(int argc, char *argv[]) {
+    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = mpilib::geo::square(upper, 5_km);
+    auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
+
+    int eps_step_counter = 0;
+    for (auto minpts = MIN_PTS; minpts <= MAX_PTS; minpts += PTS_STEPS) {
+        for (auto eps = MIN_EPS; eps_step_counter < MAX_EPS_STEPS; eps += EPS_STEP, ++eps_step_counter) {
+            std::cout << "eps: " << eps << std::endl;
+            std::cout << "minpts: " << minpts << std::endl;
+
+            reachi::Optics optics{};
+
+            auto start = std::chrono::high_resolution_clock::now();
+
+            auto ordering = optics.compute_ordering(nodes, eps, minpts);
+            auto clusters = optics.cluster(ordering);
+            auto links = reachi::data::create_link_vector(clusters, LINK_THRESHOLD);
+
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::high_resolution_clock::now() - start);
+            std::cout << "clusters: " << clusters.size() << std::endl;
+            std::cout << "links: " << links.size() << std::endl;
+            std::cout << "duration: " << format_duration(duration) << std::endl;
+            std::cout << std::endl;
+        }
+    }
+}
+
+
+#if 0
 
 #define TRY try {
 
@@ -281,4 +340,7 @@ int main(int argc, char *argv[]) {
         future.wait();
     }
 }
+
+
+
 #endif
