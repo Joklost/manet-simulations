@@ -75,3 +75,11 @@ int main(int argc, char *argv[]) {
         std::cout << "duration: " << format_duration(duration) << "\n" << std::endl;
     }
 }
+
+/*
+ * clusters: 100
+    links: 4950
+    ensuring psd
+    spdduration: 3154::408::436
+    duration: 51::547::003
+ */
