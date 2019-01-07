@@ -32,11 +32,42 @@ In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the
     \label{algo:cholesky}
 \end{algorithm}
 \medbreak
-The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool~\cite{website:nearPD} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. \smallbreak
-The Cholesky decomposition has a computational complexity of $O(n^3)$~\citationneeded. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We will present the first solution in this Section, and clustering in \autoref{sec:clustering}.\medbreak
+The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool call NearPD~\cite{website:nearPD} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. The computational time required for the NearPD tool and the Cholesky decomposition can be seen in \autoref{table:spdcholeskytime}.\smallbreak
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Nodes & Links   & NearPD          & Cholesky                 \\\hline
+        10    & 45      & 3 milliseconds  & \textless{}1 millisecond \\\hline
+        20    & 190     & 88 milliseconds & 3 milliseconds           \\\hline
+        30    & 435     & 1 seconds       & 34 milliseconds          \\\hline
+        40    & 780     & 6 seconds       & 200 milliseconds         \\\hline
+        50    & 1225    & 32 seconds      & 720 milliseconds         \\\hline
+        60    & 1770    & 113 seconds     & 3 seconds                \\\hline
+        70    & 2415    & 285 seconds     & 6 seconds                \\\hline
+        80    & 3160    & 584 seconds     & 12 seconds               \\\hline
+        90    & 4005    & 22 minutes      & 26 seconds               \\\hline
+        100   & 4950    & 35 minutes      & 45 seconds               \\\hline
+        110   & 5995    & 75 minutes      & 93 seconds               \\\hline
+        120   & 7140    & 127 minutes     & 155 seconds              \\\hline
+        130   & 8385    & 235 minutes     & 250 seconds              \\\hline
+        140   & 9730    & $\dots$         & $\dots$                  \\\hline
+        150   & $\dots$ & $\dots$         & $\dots$                  \\\hline
+        160   & $\dots$ & $\dots$         & $\dots$                  \\\hline
+        170   & $\dots$ & $\dots$         & $\dots$                  \\\hline
+        180   & $\dots$ & $\dots$         & $\dots$                  \\\hline
+        190   & $\dots$ & $\dots$         & $\dots$                  \\\hline
+        200   & $\dots$ & $\dots$         & $\dots$                  \\\hline
+    \end{tabular}
+    \caption{Computation time measurement for NearPD and Cholesky decomposition.}
+    \label{table:spdcholeskytime}
+\end{table}
+
+The Cholesky decomposition has a computational complexity of $O(n^3)$~\citationneeded. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We present the first solution in this section, and clustering in \autoref{sec:clustering}.\medbreak
 
 \subsubsection{Distance Threshold}\label{sec:distancethreshold}
-In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} has significantly more importance in the total \gls{pathloss} than the stochastic shadow fading part. In \autoref{eq:pathlossdetermG}, we see that the distance \gls{pathloss} is 92 \acrshort{dbm} for links of 100 meters, and 100.2 \acrshort{dbm} for the diagonal links of $141.42$ meters, and in \autoref{eq:pathlossfadingG}, we see (stochastic) values between $-5.79$ and $10.04$ \acrshort{dbm}. This means that, entirely based on the distance part of the link model, according to the \gls{pep} formula in \autoref{sec:pep}, a distance of 1000 meters, and a transmission power of 26 \acrshort{dbm}, we would have a link \gls{pathloss} of $147$ \acrshort{dbm} (disregarding the stochastic shadow fading part of the \gls{pathloss}), which in turn would mean that the \gls{rssi} on the receiving end of the link would be $26 - 147 = -121$, or equivalent to a packet loss probability of 100 \% (assuming the noise figure and thermal noise is the same as in the \gls{pep} Section, and the packet size is 160 bits).
+In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} has significantly more importance in the total \gls{pathloss} than the stochastic shadow fading part. In \autoref{eq:pathlossdetermG}, we see that the distance \gls{pathloss} is 92 \acrshort{dbm} for links of 100 meters, and 100.2 \acrshort{dbm} for the diagonal links of $141.42$ meters, and in \autoref{eq:pathlossfadingG}, we see (stochastic) values between $-5.79$ and $10.04$ \acrshort{dbm}. This means that, entirely based on the distance part of the link model, according to the \gls{pep} formula in \autoref{sec:pep}, a distance of 1000 meters, and a transmission power of 26 \acrshort{dbm}, we would have a link \gls{pathloss} of $147$ \acrshort{dbm} (disregarding the stochastic shadow fading part of the \gls{pathloss}), which in turn would mean that the \gls{rssi} on the receiving end of the link would be $26 - 147 = -121$, or equivalent to a packet loss probability of 100 \% (assuming the noise figure and thermal noise is the same as in \autoref{sec:pep}, and the packet size is 160 bits).
 
 % 55 \log_{10} \left( d(l_1) \right) - 18
 
@@ -65,35 +96,3 @@ In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} ha
 % our intended improvements
 
 
-
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|l|l|l|l|}
-        \hline
-        Nodes & Links & NearPD & Cholesky        \\\hline
-        10    & 45    & 43 ms  & \textless{}1 ms \\\hline
-        20    & 190   & 9 s    & 2 ms            \\\hline
-        30    & 435   & 144 s  & 26 ms           \\\hline
-        40    &       &        &    ms           \\\hline
-        50    &       &        &    ms           \\\hline
-        60    &       &        &    ms           \\\hline
-        70    &       &        &    ms           \\\hline
-        80    &       &        &    ms           \\\hline
-        90    &       &        &    ms           \\\hline
-        100   &       &        &    ms           \\\hline
-        110   &       &        &    ms           \\\hline
-        120   &       &        &    ms           \\\hline
-        130   &       &        &    ms           \\\hline
-        140   &       &        &    ms           \\\hline
-        150   &       &        &    ms           \\\hline
-        160   &       &        &    ms           \\\hline
-        170   &       &        &    ms           \\\hline
-        180   &       &        &    ms           \\\hline
-        190   &       &        &    ms           \\\hline
-        200   &       &        &    ms           \\\hline
-    \end{tabular}
-    \caption{Computation time measurement for NearPD and Cholesky decomposition.}
-    \label{table:spdcholeskytime}
-\end{table}
-
-\todo[inline]{Add table showing computation time for different sized matrices. with/without nearest SPD?}
