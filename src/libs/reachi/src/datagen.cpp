@@ -4,9 +4,11 @@
 #include <mpilib/geomath.h>
 
 #include <reachi/datagen.h>
+
 #if 0
 using json = nlohmann::json;
 #endif
+
 std::vector<reachi::Node>
 reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
     std::vector<reachi::Node> nodes{};
@@ -104,6 +106,38 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
 
     return links;
 }
+
+
+::std::vector<reachi::Node> reachi::data::generate_line_topology(mpilib::geo::Location start, int size) {
+    ::std::vector<reachi::Node> nodes{reachi::Node{0, start}};
+
+    for (uint32_t i = 1; i < size; ++i) {
+        auto loc = start;
+        loc.move(0, 500_m * i, 0.0);
+        nodes.emplace_back(reachi::Node{i, loc});
+    }
+
+    return nodes;
+}
+
+::std::vector<reachi::Node>
+reachi::data::generate_ring_topology(mpilib::geo::Location start, double distance, double size) {
+    ::std::vector<reachi::Node> nodes{};
+    double degree = 0.0;
+    double step = 360.0 / size;
+    uint32_t id = 0;
+
+    while (degree < 360) {
+        start.move(0, distance, degree);
+        nodes.emplace_back(reachi::Node{id, start});
+        id++;
+        degree += step;
+    }
+
+    return nodes;
+}
+
+
 #if 0
 void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes) {
     visualise_nodes(nodes, 10000);

@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <mpilib/geomath.h>
+#include <iostream>
 
 TEST_CASE("Compute distance between two GPS coordinates", "[geomath]") {
     mpilib::geo::Location l1{0, 57.01266813458001, 9.994625734716218};

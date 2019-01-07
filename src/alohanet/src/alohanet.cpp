@@ -38,6 +38,7 @@ std::string format_duration(std::chrono::microseconds us) {
     return oss.str();
 }
 
+
 int main(int argc, char *argv[]) {
     auto debug = false;
     mpilib::geo::Location l{};
@@ -48,7 +49,6 @@ int main(int argc, char *argv[]) {
         mpilib::geo::Location l2 = square(l1, 1.0);
         l = random_location(l1, l2);
     }
-
     if (argc == 3) {
         char *end;
         auto lat = std::strtod(argv[1], &end);
@@ -94,6 +94,7 @@ int main(int argc, char *argv[]) {
                         secret = mpilib::deserialise<Packet>(packets.front());
                     }
                 }
+
             }
         }
     }

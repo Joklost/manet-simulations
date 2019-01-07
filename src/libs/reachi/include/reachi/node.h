@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 #endif
 #include <mpilib/location.h>
+#include <ostream>
 
 #include "constants.h"
 #if 0
@@ -20,6 +21,8 @@ namespace reachi {
         Node(uint32_t id, mpilib::geo::Location location);
 
         uint32_t get_id() const;
+
+        friend std::ostream &operator<<(std::ostream &os, const Node &node);
 
         const mpilib::geo::Location &get_location() const;
 

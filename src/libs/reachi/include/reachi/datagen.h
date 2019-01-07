@@ -26,6 +26,17 @@ namespace reachi {
                          double radius /* kilometer */);
 
         /**
+         * Generate a network with line topology
+         *
+         * @param start The initial location
+         * @param rank The size of the network
+         * @return A vector of nodes
+         */
+        ::std::vector<reachi::Node> generate_line_topology(mpilib::geo::Location start, int size);
+        ::std::vector<reachi::Node> generate_ring_topology(mpilib::geo::Location start, double distance, double size);
+
+
+        /**
          * Create a vector of unique (undirected) links from a set of nodes (a graph).
          *
          * If threshold is less than or equal to 0.01, it is assumed that the graph is fully connected.

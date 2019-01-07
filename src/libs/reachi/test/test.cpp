@@ -309,9 +309,9 @@ TEST_CASE("Eigen lib test", "[eigen]") {
                                         {1.0, 1.0, 1.0},
                                         {0.0, 1.0, 1.0}};
 
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m (data.size(), data.size());
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m(data.size(), data.size());
 
-    for(int i = 0; i < data.size(); i++) {
+    for (int i = 0; i < data.size(); i++) {
         for (int j = 0; j < data.size(); j++) {
             m(i, j) = data[i][j];
         }
@@ -360,7 +360,7 @@ TEST_CASE("QR decomposition", "[qr]") {
                                               {4.47505e-16, 0,    -35}};
 
     auto res = reachi::qr::qr_decomposition(v1);
-        REQUIRE(reachi::linalg::compare_vectors(res.first, expected_q, 0.01));
+    REQUIRE(reachi::linalg::compare_vectors(res.first, expected_q, 0.01));
     REQUIRE(reachi::linalg::compare_vectors(res.second, expected_r, 0.01));
 }
 
@@ -689,4 +689,43 @@ TEST_CASE("SVD verification", "[svd]") {
     std::cout << std::get<1>(res) << std::endl;
     std::cout << "v [2]" << std::endl;
     std::cout << std::get<2>(res) << std::endl;*/
+}
+
+
+TEST_CASE("Generate Aloha line topology", "[aloha]") {
+    mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
+    auto nodes = reachi::data::generate_line_topology(l, 100);
+
+    std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
+    for (const auto &node : nodes) {
+        std::cout << "    -n 1 $1/$1 " << node.get_location().get_latitude() << " "
+                  << node.get_location().get_longitude() << " : \\" << std::endl;
+    }
+    std::cout << "    -n 1 lmc/lmc $2" << std::endl;
+}
+
+TEST_CASE("Generate Aloha ring topology", "[aloha]") {
+    mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
+    auto nodes = reachi::data::generate_ring_topology(l, 500_m, 100);
+
+    /* std::cout << "{" << std::endl;
+    for (const auto &node : nodes) {
+        std::cout << "\""
+                  << node.get_id()
+                  << "\""
+                  << ": {\"lat\": "
+                  << node.get_location().get_latitude()
+                  << ",\"lon\": "
+                  << node.get_location().get_longitude()
+                  << ",\"color\": \"rgb(220, 20, 60)\"},"
+                  << std::endl;
+    }
+    std::cout << "}" << std::endl ;*/
+
+    std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
+    for (const auto &node : nodes) {
+        std::cout << "    -n 1 $1/$1 " << node.get_location().get_latitude() << " "
+                  << node.get_location().get_longitude() << " : \\" << std::endl;
+    }
+    std::cout << "    -n 1 lmc/lmc $2" << std::endl;
 }
