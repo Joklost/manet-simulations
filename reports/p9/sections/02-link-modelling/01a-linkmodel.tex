@@ -121,7 +121,7 @@ For our sample network \textbf{G}, we can compute the distance dependent part as
         \end{bmatrix}
 \end{eq} \medbreak
 
-With the distance dependent part computed, we can move on to the stochastic slow fading part. This part is a bit more complicated, as it is not an independent value like the distance dependent part. Instead, the values depend on the correlation between links, and as such, we need the correlations presented in \autoref{sec:pathloss}. First, we introduce the spatial correlation. $\textbf{C}$ is the correlation matrix determining the correlation coefficient between links. $\textbf{C}$ is a quadratic matrix of size $M \times M$, where $M = len(\vect{l})$.
+With the distance dependent part computed, we can move on to the stochastic slow fading part. This part is a bit more complicated, as it is not an independent value like the distance dependent part. Instead, the values depend on the correlation between links, and as such, we need the correlations presented in \autoref{sec:pathloss}. First, we introduce the spatial correlation. $\textbf{C}$ is the correlation matrix determining the correlation coefficient between links. $\textbf{C}$ is a quadratic symmetric matrix of size $M \times M$, where $M = len(\vect{l})$.
 
 \begin{eq}\label{eq:correlationmatrix}
     \textbf{C} = 
@@ -204,7 +204,7 @@ For our sample graph \textbf{G}, this could be:
 
 Note that as $\vect{x}$ is stochastic, the values in \autoref{eq:pathlossfadingG} are a random realisation of the stochastic shadow fading part. \medbreak
 
-Next, the shadow fading part is expanded to include the temporal correlation.The vector $l_{fading}\left(t\right)$ describes the shadow fading \gls{pathloss} at time $t$. As the distance dependent part is not time dependent, it needs no further modifications.
+Next, the shadow fading part is expanded to include the temporal correlation. The vector $l_{fading}\left(t\right)$ describes the shadow fading \gls{pathloss} at time $t$. As the distance dependent part is not time dependent, it needs no further modifications.
 
 \begin{eq}\label{eq:pathlosstemporal}
     \vect{l_{fading}}(t + \Delta t) = \overbrace{\textbf{Q}(t + \Delta t)\vect{x}}^{spatial correlation} \overbrace{\sqrt{1 - \rho_{\Delta t}} + \vect{l_{fading}}(t)\rho_{\Delta t}}^{temporal correlation}
