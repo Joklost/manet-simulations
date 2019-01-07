@@ -31,15 +31,15 @@
 blah blah \gls{manet}\medbreak
 
 
-
+% Basically description env uden env
 When testing \gls{manet} protocols, or just network protocols in general, scale is important. Testing the protocol on a network of the size of a real world scenario gives the best insight in the behaviour of the protocol. Even better would be to test on a network larger than anticipated, to stress test and observer worst case scenarios.
-Another problem accompanied with the scaling problem, is the physical units that are to be used for the test. Testing with the units that the protocol will be deployed with, is the ideal scenario, but that is not always possible. Fabricating the units is both expensive and time consuming, e.g. the desired network size is 1000 nodes. Then 1000 units would have to be fabricated and set up.
-Another problem is repeatability. To run a test with physical units, test personal is needed. The test personal will have to move around in the world, in predefined patterns to test several different network topologies. When a lot of people is involved it gets complicated to keep everything coordinated, whilst no guarantee that when the test is repeated, the test personal will behave in the exact same way thereby not producing consistent test results.\medbreak
+Another problem accompanied with the scaling problem, is the physical devices that are to be used for the test. Testing with the devices that the protocol will be deployed with, is the ideal scenario, but that is not always possible. Fabricating the devices is both expensive and time consuming, e.g. the desired network size is 1000 nodes. Then 1000 devices would have to be fabricated and set up.
+Another problem is repeatability. To run a test with physical devices, test personal is needed. The test personal will have to move around in the world, in predefined patterns to test several different network topologies. When a lot of people is involved it gets complicated to keep everything coordinated, whilst no guarantee that when the test is repeated, the test personal will behave in the exact same way thereby not producing consistent test results.\medbreak
 
-To solve the above mentioned issues, this paper intends to develop a framework for simulating \gls{manet} protocols. The framework will emulate the physical units that would normally run the \gls{manet} protocol, on Aalborg University's compute cluster. Each emulated unit, is emulated as a process in a \gls{mpi} setting, allowing one to emulate a large amount of network nodes. Though the size of the cluster decides the possible amount of emulated nodes. The hardware will then be simulated, on the emulated units. Since the hardware is entirely software, it allows for simulating any kind of hardware that would be used in physical units running \gls{manet} protocols.\medbreak
+To solve the above mentioned issues, this paper intends to develop a framework for simulating \gls{manet} protocols. The framework will emulate the physical devices that would normally run the \gls{manet} protocol, on Aalborg University's compute cluster. Each emulated unit, is emulated as a process in a \gls{mpi} setting, allowing one to emulate a large amount of network nodes. Though the size of the cluster decides the possible amount of emulated nodes. The hardware will then be simulated, on the emulated devices. Since the hardware is entirely software, it allows for simulating any kind of hardware that would be used in physical devices running \gls{manet} protocols.\medbreak
 
 
-When emulating physical units, it is important to consider the conditions that the unit are to be used in. In the case of units running \gls{manet} protocols, its that the communication between nodes in the network will influenced by the terrain. Bit errors might happen, when transmitting a message over the network, because of obstacles interfering with the signal, hence the framework must also emulate that behaviour. This is done by calculating the \gls{pep} based on a calculated link model, that will continuously be updated throughout the simulations lifetime.
+When emulating physical devices, it is important to consider the conditions that the unit are to be used in. In the case of devices running \gls{manet} protocols, its that the communication between nodes in the network will influenced by the terrain. Bit errors might happen, when transmitting a message over the network, because of obstacles interfering with the signal, hence the framework must also emulate that behaviour. This is done by calculating the \gls{pep} based on a calculated link model, that will continuously be updated throughout the simulations lifetime.
 
 
 
@@ -48,10 +48,10 @@ When emulating physical units, it is important to consider the conditions that t
 %  Don't write so much about Reachi. This project was not about Reachi.
 %  Motivation should be more general, instead of mentioning neocortec. Mention what the goal of the project is.
 %
-%  It takes a long time, its complicated to run it in terrain. Testing on real units is expensive, repeatability is a problem.
+%  It takes a long time, its complicated to run it in terrain. Testing on real devices is expensive, repeatability is a problem.
 %  Scalability is a big challenge, repeatability is another. The possibility to simulate different scenarios, where it would be difficult to instruct volunteers to perform these scenarios.
 %
-%  We emulate the physical units, where the hardware is simulated by software.
+%  We emulate the physical devices, where the hardware is simulated by software.
 %
 %  Be very clear of what we are actually doing!
 %  What is simulated, what is emulated, and how do we deal with these issues?

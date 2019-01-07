@@ -6,7 +6,7 @@ The controller works by continuously awaiting requests from any of the nodes in 
 
 If the request is a transmit request (\autoref{line:action-transmit}), we add the request to the \texttt{transmissions} list, to be processed later, and we send an acknowledgement packet to the transmitting node, containing the new local time for that node. Should the request be a listen request (\autoref{line:action-listen}), we instead add the request to the \texttt{listens} list. We do not acknowledgement the listen request at this state. Finally, is the request a sleep request (\autoref{line:action-sleep}), we immediately send an acknowledgement to the node, containing the updated local time. Note that any call to the \texttt{ReportLocalTime} function is handled at \autoref{line:action-updatelocaltime}, as this function does not require any acknowledgement.\smallbreak
 
-After processing the message, we compute the minimum local time of all the nodes stored in the \texttt{nodes} variable on \autoref{line:mintime}. The \texttt{mintime} is used to check whether we are ready to process any of the listen requests stored in the \texttt{listens} variable. We iterate through these on \autoref{line:iterlistens} and check if the end of the listen interval is greater than the minimum local time computed earlier. If this is the case, or if the listen request has already been processed, we continue iterating through the list. Otherwise, we begin iterating each transmission request stored in the \texttt{transmissions} list on \autoref{line:itertransmissions}, and if the transmission interval is within the current listen interval (\autoref{line:iswithin}), we check if the packet should be received by the listening node by calling the \texttt{ShouldReceive} function, and if yes, we add the packet to the list of packets to be sent to the listening node. We send the packets to the listening node on \autoref{line:sendpackets}, followed by an acknowledgement containing the updated local time of the node.\medbreak
+After processing the message, we compute the minimum local time of all the nodes stored in the \texttt{nodes} variable on \autoref{line:controllertime}. The \texttt{controller\_time} is used to check whether we are ready to process any of the listen requests stored in the \texttt{listens} variable. We iterate through these on \autoref{line:iterlistens} and check if the end of the listen interval is greater than the minimum local time computed earlier. If this is the case, or if the listen request has already been processed, we continue iterating through the list. Otherwise, we begin iterating each transmission request stored in the \texttt{transmissions} list on \autoref{line:itertransmissions}, and if the transmission interval is within the current listen interval (\autoref{line:iswithin}), we check if the packet should be received by the listening node by calling the \texttt{ShouldReceive} function, and if yes, we add the packet to the list of packets to be sent to the listening node. We send the packets to the listening node on \autoref{line:sendpackets}, followed by an acknowledgement containing the updated local time of the node.\medbreak
 
 \todo[inline]{add pseudocode for the ShouldReceive function}
 \begin{algorithm}[H]
@@ -42,10 +42,10 @@ After processing the message, we compute the minimum local time of all the nodes
                 \Send nodes(m.source).localtime \KwTo node.id \tcp{ack}
             }
 
-            mintime $\leftarrow \min_{\forall \text{n} \in \text{nodes}}$(n.localtime)\; \label{line:mintime}
+            controller\_time $\leftarrow \min_{\forall \text{n} \in \text{nodes}}$(n.localtime)\; \label{line:controllertime}
 
             \ForEach{l $\in$ listens}{ \label{line:iterlistens}
-                \If{l.end $>$ mintime \Or l.processed}{
+                \If{l.end $>$ controller\_time \Or l.processed}{
                     \Continue
                 }
 
@@ -220,6 +220,5 @@ After processing the message, we compute the minimum local time of all the nodes
 %     \label{algo:mpicontrollerpart}
 % \end{algorithm}
 
-\todo[inline]{add graphics of infrastructure (communication between lmc, controller and nodes)}
-\todo[inline]{add lmc}
+
 \todo[inline]{add message sequence chart showing an example of this in use}
