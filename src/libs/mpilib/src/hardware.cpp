@@ -155,3 +155,9 @@ void hardware::prepare_localtime(std::chrono::microseconds duration) {
             (now - hardware::clock) + hardware::localtime + duration
     );
 }
+
+std::chrono::microseconds hardware::get_localtime() {
+    hardware::prepare_localtime(0us);
+    hardware::clock = hardware::now();
+    return hardware::localtime;
+}

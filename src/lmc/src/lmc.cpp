@@ -144,7 +144,7 @@ void LinkModelComputer::compute_link_model() {
     auto eps = 0.01;
     auto minpts = 2;
 
-    auto link_threshold = 1_km;
+    auto link_threshold = 1.5_km;
 
     auto time = 0.0, time_delta = 0.0;
     std::vector<reachi::Node> model_nodes{};

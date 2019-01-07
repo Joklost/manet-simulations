@@ -10,6 +10,7 @@ dash-core-components = "*"
 plotly = "*"
 pandas = "*"
 psutil = "*"
+scipy = "*"
 
 [dev-packages]
 

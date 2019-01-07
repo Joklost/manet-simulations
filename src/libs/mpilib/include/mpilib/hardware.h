@@ -49,6 +49,12 @@ namespace hardware {
     unsigned long get_world_size();
 
     /**
+     * Get the current local time.
+     * @return std::chrono::microseconds, localtime.
+     */
+    std::chrono::microseconds get_localtime();
+
+    /**
      * Set the geolocation of this node.
      * @param loc The new geolocation.
      * @return bool, true if successfull.

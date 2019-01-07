@@ -13,6 +13,31 @@ struct Packet {
     }
 };
 
+template<class...Durations, class DurationIn>
+std::tuple<Durations...> break_down_durations(DurationIn d) {
+    std::tuple<Durations...> retval;
+    using discard=int[];
+    (void) discard{0, (void((
+                                    (std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
+                                            (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval)))
+                            )), 0)...};
+    return retval;
+}
+
+std::string format_duration(std::chrono::microseconds us) {
+    auto dur = break_down_durations<std::chrono::seconds, std::chrono::milliseconds, std::chrono::microseconds>(us);
+    std::ostringstream oss;
+    oss << std::setfill('0')
+        << std::get<0>(dur).count()
+        << "::"
+        << std::setw(3)
+        << std::get<1>(dur).count()
+        << "::"
+        << std::setw(3)
+        << std::get<2>(dur).count();
+    return oss.str();
+}
+
 int main(int argc, char *argv[]) {
     auto debug = false;
     mpilib::geo::Location l{};
@@ -25,7 +50,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc == 3) {
-        char* end;
+        char *end;
         auto lat = std::strtod(argv[1], &end);
         auto lon = std::strtod(argv[2], &end);
         l = mpilib::geo::Location{lat, lon};
@@ -53,18 +78,22 @@ int main(int argc, char *argv[]) {
         for (auto current = 0; current < slots; ++current) {
             if (selected == current) {
                 if (secret.rank != 0ul) {
+                    //secret.rank = id;
                     auto duration = hardware::broadcast(mpilib::serialise(secret));
                     hardware::sleep(slot_length - duration);
                 } else {
                     hardware::sleep(slot_length);
                 }
             } else {
-                auto packets = hardware::listen(slot_length);
+                //if (secret.rank != 0ul) {
+                //    hardware::sleep(slot_length);
+                //} else {
+                    auto packets = hardware::listen(slot_length);
 
-                if (!packets.empty()) {
-                    secret = mpilib::deserialise<Packet>(packets.front());
-                }
-
+                    if (!packets.empty()) {
+                        secret = mpilib::deserialise<Packet>(packets.front());
+                    }
+                //}
                 //for (const auto &item : packets) {
                 //    console->info(mpilib::deserialise<Packet>(item));
                 //}
@@ -72,10 +101,12 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    auto localtime = hardware::get_localtime();
+
     if (secret.rank != 0ul) {
-      //  console->info(secret);
+        console->info("{} - {}", format_duration(localtime), secret);
     } else {
-        console->info("Nothing received!");
+        console->info("{} - Nothing received!", format_duration(localtime));
     }
 
     hardware::deinit();

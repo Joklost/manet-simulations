@@ -137,7 +137,7 @@ void Controller::control() {
         }
 
         if (act.type == sleep_t) {
-            this->c->debug("process_sleep(rank={}, localtime={}, duration={})", act.rank, act.localtime, act.duration);
+            //this->c->debug("process_sleep(rank={}, localtime={}, duration={})", act.rank, act.localtime, act.duration);
             this->nodes[act.rank].localtime = act.localtime + act.duration;
         }
 
@@ -205,7 +205,7 @@ void Controller::control() {
                     continue;
                 }
 
-                auto tx_power = -40.0;
+                auto tx_power = 26.0;
                 auto interference = 0.0;
                 auto pathloss = this->link_model[rx.rank][tx.rank];
 
@@ -215,13 +215,13 @@ void Controller::control() {
                 }
 
                 for (auto &tx_inner : this->transmit_actions) {
-                    /* If tx outer and tx inner intersects. */
                     if (tx.rank == tx_inner.rank)  {
                         continue;
                     }
 
+                    /* If tx intervals don't intersect. */
                     if (tx.end > tx_inner.start && tx.start < tx_inner.end) {
-                        interference += this->link_model[rx.rank][tx_inner.rank];
+                        interference += tx_power - this->link_model[rx.rank][tx_inner.rank];
                     }
                 }
 

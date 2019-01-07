@@ -16,7 +16,9 @@ std::ostream &operator<<(std::ostream &os, std::vector<octet> *buffer) {
     return os << *buffer;
 }
 
+
 std::ostream &operator<<(std::ostream &os, std::chrono::microseconds duration) {
     return os << duration.count();
 }
+
 

@@ -16,26 +16,23 @@
 #define MIN_PTS 2
 #define MAX_PTS 10
 #define PTS_STEPS 1
-#define MIN_EPS 0.01
-#define MAX_EPS 0.10
-#define MAX_EPS_STEPS 10
+#define MIN_EPS 0.05
+#define MAX_EPS 1.01
+#define MAX_EPS_STEPS 46
 #define EPS_STEP 0.01
-#define LINK_THRESHOLD 0
 #define TX_DBM 26.0
 #define AREA 1.0
 #define NODES 100
-
 
 template<class...Durations, class DurationIn>
 std::tuple<Durations...> break_down_durations(DurationIn d) {
     std::tuple<Durations...> retval;
     using discard=int[];
-    (void) discard{0, (void((
-                                    (std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
-                                            (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval)))
-                            )), 0)...};
+    (void) discard{0, (void(((std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
+            (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval))))), 0)...};
     return retval;
 }
+
 
 std::string format_duration(std::chrono::microseconds us) {
     auto dur = break_down_durations<std::chrono::seconds, std::chrono::milliseconds, std::chrono::microseconds>(us);
@@ -57,11 +54,19 @@ int main(int argc, char *argv[]) {
     auto lower = mpilib::geo::square(upper, 5_km);
     auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
+    auto links = reachi::data::create_link_vector(nodes);
+    auto correlation_matrix = reachi::math::generate_correlation_matrix(links);
+    auto correlation_norm = reachi::linalg::frobenius_norm(correlation_matrix);
+    std::cout << "nodes: " << nodes.size() << std::endl;
+    std::cout << "links: " << links.size() << std::endl;
+    //std::cout << "norm: " << norm << std::endl;
+    std::cout << std::endl;
+
     int eps_step_counter = 0;
     for (auto minpts = MIN_PTS; minpts <= MAX_PTS; minpts += PTS_STEPS) {
         for (auto eps = MIN_EPS; eps_step_counter < MAX_EPS_STEPS; eps += EPS_STEP, ++eps_step_counter) {
             std::cout << "eps: " << eps << std::endl;
-            std::cout << "minpts: " << minpts << std::endl;
+            //std::cout << "minpts: " << minpts << std::endl;
 
             reachi::Optics optics{};
 
@@ -69,12 +74,36 @@ int main(int argc, char *argv[]) {
 
             auto ordering = optics.compute_ordering(nodes, eps, minpts);
             auto clusters = optics.cluster(ordering);
-            auto links = reachi::data::create_link_vector(clusters, LINK_THRESHOLD);
-
+            //auto cluster_links = reachi::data::create_link_vector(clusters);
+            //auto clusters_correlation_matrix = reachi::math::generate_correlation_matrix(clusters_links);
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
                     std::chrono::high_resolution_clock::now() - start);
+
+            std::vector<reachi::Node> centroids{};
+            centroids.reserve(nodes.size());
+            for (auto &node : nodes) {
+                for (auto &cluster : clusters) {
+                    if (!cluster.contains(node)) {
+                        continue;
+                    }
+
+                    centroids.emplace_back(node.get_id(), cluster.centroid());
+                    break;
+                }
+            }
+
+            auto centroid_links = reachi::data::create_link_vector(centroids);
+            auto centroid_correlations = reachi::math::generate_correlation_matrix(centroid_links);
+            auto corr_diff = correlation_matrix - centroid_correlations;
+            auto norm = reachi::linalg::frobenius_norm(corr_diff);
+            auto centroid_norm = reachi::linalg::frobenius_norm(centroid_correlations);
+
             std::cout << "clusters: " << clusters.size() << std::endl;
-            std::cout << "links: " << links.size() << std::endl;
+            //std::cout << "cluster_links: " << cluster_links.size() << std::endl;
+            std::cout << "centroid_links: " << centroid_links.size() << std::endl;
+            std::cout << "centroid_norm: " << centroid_norm << std::endl;
+            std::cout << "norm_diff: " << centroid_norm - correlation_norm << std::endl;
+            std::cout << "norm: " << norm << std::endl;
             std::cout << "duration: " << format_duration(duration) << std::endl;
             std::cout << std::endl;
         }

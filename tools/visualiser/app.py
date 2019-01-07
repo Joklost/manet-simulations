@@ -3,6 +3,7 @@ import concurrent.futures
 import flask
 import random
 import os
+import json
 
 import plotly
 
@@ -98,6 +99,25 @@ def request_graph():
 
 plotly.io.orca.config.mapbox_access_token = mb_access
 executor = concurrent.futures.ProcessPoolExecutor()
+
+f = 'phillippines.json'
+with open(f, 'r') as json_data:
+    data = json.load(json_data)
+
+    nodes = {}
+
+    for i, locs in data.items():
+        loc = locs[-1]
+
+        nodes[i] = {}
+        nodes[i]['lat'] = loc["latitude"]
+        nodes[i]['lon'] = loc["longitude"]
+        nodes[i]['color'] = 'rgb(220, 20, 60)'
+
+    executor.submit(create_graph.create_graph,
+                    nodes=nodes, graph_id=1, token=mb_access, path=os.path.abspath(graph_path),
+                    title="Phillippines")
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

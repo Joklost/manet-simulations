@@ -20,4 +20,5 @@ std::ostream &operator<<(std::ostream &os, std::pair<T, T> pair) {
     return os;
 }
 
+
 #endif /* MANETSIMS_OSTR_H */

@@ -36,10 +36,10 @@ namespace reachi {
          * @param threshold The threshold radius wherein nodes are assumed reachable
          * @return A vector of unique (undirected) links
          */
-        ::std::vector<Link> create_link_vector(::std::vector<Node> &nodes, double threshold /* kilometers */);
+        ::std::vector<Link> create_link_vector(::std::vector<Node> &nodes, double threshold = 0.0/* kilometers */);
 
         ::std::vector<Optics::CLink>
-        create_link_vector(::std::vector<Optics::Cluster> &clusters, double threshold /* km */);
+        create_link_vector(::std::vector<Optics::Cluster> &clusters, double threshold = 0.0 /* km */);
 
         /**
          * Send nodes to the vizualising tool in chunks of 10000.
