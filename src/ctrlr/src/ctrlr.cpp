@@ -191,8 +191,6 @@ void Controller::control() {
                 ), this->listen_actions.end()
         );
 
-        this->c->info(this->transmit_actions.size());
-
         for (auto &rx : this->listen_actions) {
             /* We check if we have received an action/time update from all other nodes. */
             if (rx.end > ctrlr_time || rx.is_processed) {

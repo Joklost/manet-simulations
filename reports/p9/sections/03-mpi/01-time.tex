@@ -1,7 +1,6 @@
 \section{Time}\label{sec:mpi:time}
 \todo[inline]{write me}
 
+To ensure that all nodes in the network are synchronised, tracking the time of every node is necessary. The controller described in \autoref{sec:mpicontroller} handles the synchronisation of time. 
 
-
-
-% Depending on the intended usage for the \gls{manet} protocol, the protocol might be designed to be energy efficient. This is done by setting the devices in a sleeping state to preserve energy. This poses a problem when testing the protocol, since the devices will be sleeping most of the time thereby wasting time. This gives reason to utilise virtual time instead of real time. With virtual time it is possible to speed up time, such that when all devices are in a sleeping state, that unused time where nothing will happen can be forwarded to the next point in time where a device is supposed to wake up. 
+Time is real in the framework, because the protocols that will be simulated may rely on real time. This poses a problem. Some networks sleep most the time to save energy. This creates time spans with unused resources in a simulation. To avoid this, the framework introduces virtual time. When the controller finds a time span where no node in the network is transmitting or listening, it means all nodes are either sleeping or doing some computations locally. This means that time can be forwarded to the next point in time where something will happen. This both ensures that resources will not go unused and has the potential to drastically speed up the simulations.
