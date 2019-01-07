@@ -1,6 +1,0 @@
-\section{Time}\label{sec:mpi:time}
-\todo[inline]{write me}
-
-To ensure that all nodes in the network are synchronised, tracking the time of every node is necessary. The controller described in \autoref{sec:mpicontroller} handles the synchronisation of time. 
-
-Time is real in the framework, because the protocols that will be simulated may rely on real time. This poses a problem. Some networks sleep most the time to save energy. This creates time spans with unused resources in a simulation. To avoid this, the framework introduces virtual time. When the controller finds a time span where no node in the network is transmitting or listening, it means all nodes are either sleeping or doing some computations locally. This means that time can be forwarded to the next point in time where something will happen. This both ensures that resources will not go unused and has the potential to drastically speed up the simulations.

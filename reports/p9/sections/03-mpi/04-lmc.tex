@@ -1,7 +1,0 @@
-\section{Link Model Computer (LMC)}\label{sec:mpi:lmc}
-% intro
-To continuously compute the link model, we introduce a \gls{lmc}. The \gls{lmc} will be responsible for computing the link model, such that the centralised controller can fetch the result.
-
-The reason for introducing a separate compute node, dedicated to the link model, is to offload the controller. Both handling packets transmission, synchronising time and computing the link model is too much responsibility for a single node. Offloading also allows for simplifying the logic in the controller.
-
-When the network is initialized, the controller will transmit the current image of the network to the \gls{lmc}. The \gls{lmc} will then compute the link model based on the received information. During the simulation, the controller can update the stored network image. This allows for removing and adding nodes to the network, while also allowing the controller to update a nodes location data, thereby keeping an updated image of the network. The \gls{lmc} will first re-compute the link model, when an update has happened. When the simulation is to be stopped, the controller will notify the \gls{lmc}, and the compute node will terminate.

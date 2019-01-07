@@ -1,14 +1,15 @@
 \section{Centralised Controller}\label{sec:mpicontroller}
 
-To facilitate communication between nodes using the hardware interface, we introduce a centralised controller. The centralised controller works by gathering requests (broadcasting, listening, or sleeping) from all nodes, and processing these.\medbreak
+To facilitate communication between nodes using the hardware interface, we introduce a centralised controller. The centralised controller works by gathering requests (broadcasting, listening, or sleeping) from all nodes and processing these.\medbreak
 
-The controller works by continuously awaiting requests from any of the nodes in the network on \autoref{line:action-await}. A call of any of the hardware functions described in \autoref{sec:mpiprotocol} will result in a message arriving at the controller. Whenever a message has been received, the controller will update the local time of the sending node in the \texttt{nodes} variable on \autoref{line:action-updatelocaltime}. We keep track of the currently known local times for all nodes in order to know when we are ready to process listen requests. \smallbreak
+The controller works by continuously awaiting requests from any of the nodes in the network on \autoref{line:action-await}. A call of any of the hardware functions described in \autoref{sec:mpiprotocol} will result in a message arriving at the controller. Whenever a message has been received, the controller will update the local time of the sending node in the nodes variable on \autoref{line:action-updatelocaltime}. We keep track of the currently known local times for all nodes in order to know when we are ready to process listen requests. \smallbreak
 
-If the request is a transmit request (\autoref{line:action-transmit}), we add the request to the \texttt{transmissions} list, to be processed later, and we send an acknowledgement packet to the transmitting node, containing the new local time for that node. Should the request be a listen request (\autoref{line:action-listen}), we instead add the request to the \texttt{listens} list. We do not acknowledgement the listen request at this state. Finally, is the request a sleep request (\autoref{line:action-sleep}), we immediately send an acknowledgement to the node, containing the updated local time. Note that any call to the \texttt{ReportLocalTime} function is handled at \autoref{line:action-updatelocaltime}, as this function does not require any acknowledgement.\smallbreak
+If the request is a transmit request (\autoref{line:action-transmit}), we add the request to the transmissions list, to be processed later. Should the request be a listen request (\autoref{line:action-listen}), we instead add a request to the listens list. Note that any call to the \texttt{Sleep} or \texttt{ReportLocalTime} functions are handled at \autoref{line:action-updatelocaltime}.\smallbreak
 
-After processing the message, we compute the minimum local time of all the nodes stored in the \texttt{nodes} variable on \autoref{line:controllertime}. The \texttt{controller\_time} is used to check whether we are ready to process any of the listen requests stored in the \texttt{listens} variable. We iterate through these on \autoref{line:iterlistens} and check if the end of the listen interval is greater than the minimum local time computed earlier. If this is the case, or if the listen request has already been processed, we continue iterating through the list. Otherwise, we begin iterating each transmission request stored in the \texttt{transmissions} list on \autoref{line:itertransmissions}, and if the transmission interval is within the current listen interval (\autoref{line:iswithin}), we check if the packet should be received by the listening node by calling the \texttt{ShouldReceive} function, and if yes, we add the packet to the list of packets to be sent to the listening node. We send the packets to the listening node on \autoref{line:sendpackets}, followed by an acknowledgement containing the updated local time of the node.\medbreak
+After processing the message, we compute the minimum local time of all the nodes stored in the nodes variable on \autoref{line:controllertime}. The controllertime is used to check whether we are ready to process any of the listen requests stored in the listens variable. We iterate through these on \autoref{line:iterlistens} and check if the end of the listen interval is greater than the minimum local time computed earlier. If this is the case, or if the listen request has already been processed, we continue iterating through the list. Otherwise, we begin iterating each transmission request stored in the transmissions list on \autoref{line:itertransmissions}, and if the transmission interval is within the current listen interval (\autoref{line:iswithin}), we check if the packet should be received by the listening node by calling the \texttt{ShouldReceive} function, and if yes, we add the packet to the list of packets to be sent to the listening node. We send the packets to the listening node on \autoref{line:sendpackets}.\medbreak
 
-\todo[inline]{add pseudocode for the ShouldReceive function}
+The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) contains a pseudo code description of the packet error probability from \autoref{sec:pep}. \medbreak
+
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FController}{Controller}
@@ -16,7 +17,7 @@ After processing the message, we compute the minimum local time of all the nodes
     
     \textbf{Structure} Message \{ action, source, localtime, duration, data \}\;
     \textbf{Structure} Transmission \{ source, start, end, data \}\;
-    \textbf{Structure} Listen \{ source, start, end, processed \}\;
+    \textbf{Structure} Listen \{ source, start, end \}\;
     \textbf{Structure} Node \{ localtime \}\; % location
     \;
     
@@ -35,17 +36,14 @@ After processing the message, we compute the minimum local time of all the nodes
                 \Send nodes(m.source).localtime \KwTo node.id \tcp{ack}
             }
             \ElseIf{m.action = listen}{ \label{line:action-listen}
-                l $\leftarrow$ \{ m.source, m.localtime, m.localtime $+$ m.duration, false \}\;
+                l $\leftarrow$ \{ m.source, m.localtime, m.localtime $+$ m.duration \}\;
                 \Append l \KwTo listens\;
             }
-            \ElseIf{m.action = sleep}{ \label{line:action-sleep}
-                \Send nodes(m.source).localtime \KwTo node.id \tcp{ack}
-            }
 
-            controller\_time $\leftarrow \min_{\forall \text{n} \in \text{nodes}}$(n.localtime)\; \label{line:controllertime}
+            controllertime $\leftarrow \min_{\forall \text{n} \in \text{nodes}}$(n.localtime)\; \label{line:controllertime}
 
             \ForEach{l $\in$ listens}{ \label{line:iterlistens}
-                \If{l.end $>$ controller\_time \Or l.processed}{
+                \If{l.end $>$ controllertime}{% \Or l.processed}{
                     \Continue
                 }
 
@@ -57,7 +55,7 @@ After processing the message, we compute the minimum local time of all the nodes
                     }
 
                     \If{t.start $\geq$ l.start \And t.end $\leq$ l.end}{ \label{line:iswithin}
-                        \If{ShouldReceive(t.id, l.id, transmissions)}{ \label{line:shouldreceive}
+                        \If{\texttt{ShouldReceive}(l.id, t.id, transmissions, |t.data|)}{ \label{line:shouldreceive}
                             \Append t.data \To packets\;
                         }
                     }
@@ -70,9 +68,20 @@ After processing the message, we compute the minimum local time of all the nodes
                 }
 
                 \Send nodes(l.id).localtime \KwTo l.id \tcp{ack}
-                l.processed $\leftarrow$ true\;
+                %l.processed $\leftarrow$ true\;
             }
 
+            \ForEach{l $\in$ listens}{
+                \If{controllertime $>$ l.end}{
+                    \Remove l \From listens\;
+                }
+            }
+
+            \ForEach{t $\in$ transmissions}{
+                \If{controllertime $>$ t.end}{
+                    \Remove t \From transmissions\;
+                }
+            }
 
         }
     }
@@ -80,8 +89,42 @@ After processing the message, we compute the minimum local time of all the nodes
     \label{algo:mpicontroller}
 \end{algorithm}
 
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{True if the transmission should be received.}
+    \SetKwFunction{FShouldReceive}{ShouldReceive}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FShouldReceive{n$_r$, m$_t$, nodes$_t$, packetsize}}{
+        \tcp{Compute the packet error probability.}
+        $P_{I}$ $\leftarrow$ 0\;
 
+        \ForEach{m $\in$ nodes$_t$}{
+            \If{m = m$_t$}{
+                \Continue\;
+            }
+            P$_{I}$ $\leftarrow$ P$_{I,dB}$ + $10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}}$ \;
+        }
+        \tcp{$P_{N,dB}$ is the noise power from \autoref{sec:pep}.}
+        $P_{N}$ $\leftarrow$ $10^{\frac{P_{N,dB}}{10}}$\;
+        $P_{NI,db}$ $\leftarrow$ $10 \log_{10}(P_N + P_I)$\;
+        $\gamma_{dB}$ $\leftarrow$ $RSSI_{dBm}(n_{r}, m_{t}) - P_{NI,db}$\;
+        $\gamma$ $\leftarrow$ $10^{\frac{\gamma_{dB}}{10}}$\;
+        $P_b$ $\leftarrow$ $\frac{1}{2} \cdot \text{erfc}(\sqrt{\frac{\gamma}{2}})$\;
+        $P_p$ $\leftarrow$ $1 - (1 - P_b)^{\text{packetsize}}$\;
 
+        %$P_{NI,db} = 10 \log_{10}\left( 10^{\frac{P_{N,dB}}{10}} + \mathlarger{\sum}\limits_{m \in nodes_t}  10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}} [m \neq m_{t}] \right) $\;
+        \If{$P_p$ = 0.0}{
+            \KwRet true\;
+        }
+
+        should-receive $\leftarrow$ randomly choose based on the packet error probability $P_p$\;
+        \KwRet should-receive\;
+    }
+
+    \caption{The \texttt{ShouldReceive} Function.}
+    \label{algo:controllershouldreceive}
+\end{algorithm}
 
 
 

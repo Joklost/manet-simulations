@@ -1,7 +1,7 @@
 \section{Hardware Interface (hardware.h)}\label{sec:hardwareinterface}
-In this section we will describe the design of the hardware (\gls{lowerlayer}) interface, used by an \gls{upperlayer} protocol to simulate radio communication between nodes in a \gls{manet}. The section will serve as the documentation, as well as a programmers guide, for the \mintinline{cpp}{hardware.h} interface.\medbreak
+In this section we will describe the design of the hardware (\gls{lowerlayer}) interface, used by an \gls{upperlayer} protocol to simulate radio communication between nodes in a \gls{manet}. The section will serve as the documentation, as well as a programmers guide, for the \mintinline{cpp}{hardware.h} interface.
 
-The hardware interface is implemented in modern C++, using templates, which will allow a protocol implementation to transmit instances of arbitrary structures or classes between nodes, provided that the structure or class is a trivially copyable type~\cite{website:cpptriviallycopyable}.
+%The hardware interface is implemented in modern C++, using templates, which will allow a protocol implementation to transmit instances of arbitrary structures or classes between nodes, provided that the structure or class is a trivially copyable type~\cite{website:cpptriviallycopyable}.
 
 \begin{description}[style=nextline,leftmargin=0cm]
     \item[\mintinline{cpp}{void hardware::init(const Location &loc)}]
@@ -10,11 +10,11 @@ The hardware interface is implemented in modern C++, using templates, which will
     \item[\mintinline{cpp}{void hardware::deinit()}]
         De-initialises the hardware functionality by un-registering the node from the \gls{mpi} controller, as well as de-initialising the \gls{mpi} functionality. This function has to be called exactly once, before terminating the protocol.
         
-    \item[\mintinline{cpp}{template <typename T>}\\\mintinline{cpp}{std::chrono::microseconds hardware::broadcast(T &packet)}]
-        Transmit a data packet of type \mintinline{cpp}{T}. \autoref{algo:hwfuncstransmit} contains a pseudo code description of this function. Returns the duration the transmission took, in microseconds.
+    \item[\mintinline{cpp}{std::chrono::microseconds}\\\mintinline{cpp}{hardware::broadcast(std::vector<unsigned char> &packet)}]
+        Transmit a vector of bytes. \autoref{algo:hwfuncstransmit} contains a pseudo code description of this function. Returns the duration of the transmission, in microseconds.
 
-    \item[\mintinline{cpp}{template <typename T>}\\\mintinline{cpp}{std::vector<T> hardware::listen(std::chrono::microseconds duration)}]
-        Listen for data packets of type \mintinline{cpp}{T} for a given duration of microseconds. \autoref{algo:hwfuncslisten} contains a pseudo code description of this function.
+    \item[\mintinline{cpp}{std::vector<unsigned char>}\\\mintinline{cpp}{hardware::listen(std::chrono::microseconds duration)}]
+        Listen for data packets for a given duration of microseconds. \autoref{algo:hwfuncslisten} contains a pseudo code description of this function.
     
     \item[\mintinline{cpp}{void hardware::sleep(std::chrono::microseconds duration)}]
         Sleep for a given duration of microseconds. \autoref{algo:hwfuncssleep} contains a pseudo code description of this function.
