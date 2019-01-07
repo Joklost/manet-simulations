@@ -32,7 +32,7 @@ namespace reachi {
          * @param rank The size of the network
          * @return A vector of nodes
          */
-        ::std::vector<reachi::Node> generate_line_topology(mpilib::geo::Location start, int size);
+        ::std::vector<reachi::Node> generate_line_topology(mpilib::geo::Location start, double distance, int size);
         ::std::vector<reachi::Node> generate_ring_topology(mpilib::geo::Location start, double distance, double size);
 
 

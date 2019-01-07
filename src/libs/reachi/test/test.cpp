@@ -694,21 +694,16 @@ TEST_CASE("SVD verification", "[svd]") {
 
 TEST_CASE("Generate Aloha line topology", "[aloha]") {
     mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
-    auto nodes = reachi::data::generate_line_topology(l, 100);
+    auto nodes = reachi::data::generate_line_topology(l, 100_m, 100);
 
-    std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
+    /*std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
     for (const auto &node : nodes) {
         std::cout << "    -n 1 $1/$1 " << node.get_location().get_latitude() << " "
                   << node.get_location().get_longitude() << " : \\" << std::endl;
     }
-    std::cout << "    -n 1 lmc/lmc $2" << std::endl;
-}
+    std::cout << "    -n 1 lmc/lmc $2" << std::endl;*/
 
-TEST_CASE("Generate Aloha ring topology", "[aloha]") {
-    mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
-    auto nodes = reachi::data::generate_ring_topology(l, 250_m, 100);
-
-    /* std::cout << "{" << std::endl;
+    std::cout << "{" << std::endl;
     for (const auto &node : nodes) {
         std::cout << "\""
                   << node.get_id()
@@ -720,9 +715,28 @@ TEST_CASE("Generate Aloha ring topology", "[aloha]") {
                   << ",\"color\": \"rgb(220, 20, 60)\"},"
                   << std::endl;
     }
-    std::cout << "}" << std::endl ;*/
+    std::cout << "}" << std::endl;
+}
 
-    std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
+TEST_CASE("Generate Aloha ring topology", "[aloha]") {
+    mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
+    auto nodes = reachi::data::generate_ring_topology(l, 250_m, 100);
+
+    std::cout << "{" << std::endl;
+    for (const auto &node : nodes) {
+        std::cout << "\""
+                  << node.get_id()
+                  << "\""
+                  << ": {\"lat\": "
+                  << node.get_location().get_latitude()
+                  << ",\"lon\": "
+                  << node.get_location().get_longitude()
+                  << ",\"color\": \"rgb(220, 20, 60)\"},"
+                  << std::endl;
+    }
+    std::cout << "}" << std::endl;
+
+    /*std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
     for (const auto &node : nodes) {
         std::cout << "    -n 1 $1/$1 "
                   << node.get_location().get_latitude()
@@ -730,5 +744,5 @@ TEST_CASE("Generate Aloha ring topology", "[aloha]") {
                   << node.get_location().get_longitude()
                   << " : \\" << std::endl;
     }
-    std::cout << "    -n 1 lmc/lmc $2" << std::endl;
+    std::cout << "    -n 1 lmc/lmc $2" << std::endl;*/
 }

@@ -108,12 +108,12 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
 }
 
 
-::std::vector<reachi::Node> reachi::data::generate_line_topology(mpilib::geo::Location start, int size) {
+::std::vector<reachi::Node> reachi::data::generate_line_topology(mpilib::geo::Location start, double distance, int size) {
     ::std::vector<reachi::Node> nodes{reachi::Node{0, start}};
 
     for (uint32_t i = 1; i < size; ++i) {
         auto loc = start;
-        loc.move(0, 500_m * i, 0.0);
+        loc.move(0, distance * i, 90.0);
         nodes.emplace_back(reachi::Node{i, loc});
     }
 
