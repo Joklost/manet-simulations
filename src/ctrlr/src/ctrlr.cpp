@@ -191,6 +191,8 @@ void Controller::control() {
                 ), this->listen_actions.end()
         );
 
+        this->c->info(this->transmit_actions.size());
+
         for (auto &rx : this->listen_actions) {
             /* We check if we have received an action/time update from all other nodes. */
             if (rx.end > ctrlr_time || rx.is_processed) {
@@ -206,7 +208,7 @@ void Controller::control() {
                 }
 
                 auto tx_power = 26.0;
-                auto interference = 0.0;
+                std::vector<double> interference{};
                 auto pathloss = this->link_model[rx.rank][tx.rank];
 
                 if (mpilib::is_equal(pathloss, 0.0)) {
@@ -221,7 +223,7 @@ void Controller::control() {
 
                     /* If tx intervals don't intersect. */
                     if (tx.end > tx_inner.start && tx.start < tx_inner.end) {
-                        interference += tx_power - this->link_model[rx.rank][tx_inner.rank];
+                        interference.push_back(tx_power - this->link_model[rx.rank][tx_inner.rank]);
                     }
                 }
 
@@ -232,7 +234,7 @@ void Controller::control() {
                 auto should_receive = d(gen);
 
                 this->c->debug("should_receive(first={}, second={}, status={}, pep={}, rssi={}, interference={})",
-                               tx.rank, rx.rank, should_receive, pep, rssi, interference);
+                               tx.rank, rx.rank, should_receive, pep, rssi, interference.size());
 
                 if (should_receive) {
                     packets.emplace_back(tx.data);
@@ -247,6 +249,18 @@ void Controller::control() {
 
             rx.is_processed = true;
         }
+
+        /* Remove processed transmission actions. */
+        /*
+        this->transmit_actions.erase(
+                std::remove_if(
+                        this->transmit_actions.begin(), this->transmit_actions.end(),
+                        [&ctrlr_time](const Transmission &t) -> bool {
+                            return t.end < ctrlr_time;
+                        }
+                ), this->transmit_actions.end()
+        );
+         */
     }
 }
 

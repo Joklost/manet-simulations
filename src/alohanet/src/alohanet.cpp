@@ -85,18 +85,15 @@ int main(int argc, char *argv[]) {
                     hardware::sleep(slot_length);
                 }
             } else {
-                //if (secret.rank != 0ul) {
-                //    hardware::sleep(slot_length);
-                //} else {
+                if (secret.rank != 0ul) {
+                    hardware::sleep(slot_length);
+                } else {
                     auto packets = hardware::listen(slot_length);
 
                     if (!packets.empty()) {
                         secret = mpilib::deserialise<Packet>(packets.front());
                     }
-                //}
-                //for (const auto &item : packets) {
-                //    console->info(mpilib::deserialise<Packet>(item));
-                //}
+                }
             }
         }
     }
