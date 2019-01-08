@@ -97,7 +97,7 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
             }
 
             Optics::CLink l{id_count, clusters[i], clusters[j]};
-            if (l.get_distance() < threshold or threshold <= 0.01) {
+            if (l.get_distance() < threshold or threshold <= 0.000001) {
                 links.emplace_back(l);
                 id_count++;
             }

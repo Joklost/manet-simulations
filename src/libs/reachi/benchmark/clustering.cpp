@@ -48,12 +48,53 @@ std::string format_duration(std::chrono::microseconds us) {
     return oss.str();
 }
 
+/* This block is for clustering experiments on distance threshold */
 int main(int argc, char *argv[]) {
     mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
     auto lower = mpilib::geo::square(upper, 10_km);
     auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
-    std::vector<int> cluster_sizes{1000, 900, 800, 700, 600, 500, 450, 400, 350, 300};
+    std::vector<double> thresholds{100_m, 125_m, 150_m, 175_m, 200_m, 225_m, 250_m, 275_m, 300_m, 325_m, 350_m, 375_m,
+                                   400_m, 425_m, 450_m, 475_m, 500_m, 525_m, 550_m, 575_m, 600_m, 625_m, 650_m, 675_m,
+                                   700_m, 725_m, 750_m, 775_m, 800_m, 825_m, 850_m, 875_m, 900_m, 925_m, 950_m, 975_m,
+                                   1000_m};
+
+    for (const auto &threshold : thresholds) {
+        reachi::Optics optics{};
+
+        auto ordering = optics.compute_ordering(nodes, 0.0000001, MIN_PTS);
+        auto clusters = optics.cluster(ordering);
+        auto links = reachi::data::create_link_vector(clusters, threshold);
+
+        std::cout << "Distance threshold: " << threshold << std::endl;
+        std::cout << "Links: " << links.size() << std::endl;
+
+        if (links.size() <= 25000) {
+            auto corr = reachi::math::generate_correlation_matrix(links);
+            auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
+            auto sigma = std_deviation * corr;
+
+            auto chol_start = std::chrono::high_resolution_clock::now();
+            auto autocorrelation_matrix = reachi::cholesky::cholesky_v2(sigma);
+            auto chol_time = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::high_resolution_clock::now() - chol_start);
+
+            std::cout << "Cholesky time: " << format_duration(chol_time) << std::endl;
+            std::cout << "\n" << std::endl;
+        } else {
+            std::cout << "Cholesky time: NaN\n\n" << std::endl;
+
+        }
+    }
+}
+
+#if 0 /* This block is for clustering experiments on eps */
+int main(int argc, char *argv[]) {
+    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = mpilib::geo::square(upper, 10_km);
+    auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
+
+    std::vector<int> cluster_sizes{1000, 900, 800, 700, 600, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50};
     for (const auto &k : cluster_sizes) {
         auto conv = true;
         auto eps = MIN_EPS;
@@ -86,24 +127,25 @@ int main(int argc, char *argv[]) {
 
         auto links = reachi::data::create_link_vector(clusters);
         std::cout << "Links: " << links.size() << std::endl;
-        if (links.size() <= 10000) {
+        if (links.size() <= 25000) {
+            auto corr = reachi::math::generate_correlation_matrix(links);
+            auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
+            auto sigma = std_deviation * corr;
 
-        auto corr = reachi::math::generate_correlation_matrix(links);
-        auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
-        auto sigma = std_deviation * corr;
+            auto chol_start = std::chrono::high_resolution_clock::now();
+            auto autocorrelation_matrix = reachi::cholesky::cholesky_v2(sigma);
+            auto chol_time = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::high_resolution_clock::now() - chol_start);
 
-        auto chol_start = std::chrono::high_resolution_clock::now();
-        auto autocorrelation_matrix = reachi::cholesky::cholesky_v2(sigma);
-        auto chol_time = std::chrono::duration_cast<std::chrono::microseconds>(
-                std::chrono::high_resolution_clock::now() - chol_start);
-        std::cout << "Cholesky time: " << format_duration(chol_time) << std::endl;
+            std::cout << "Cholesky time: " << format_duration(chol_time) << std::endl;
+            std::cout << "\n" << std::endl;
         } else {
-            std::cout << "Cholesky time: NaN" << std::endl;
+            std::cout << "Cholesky time: NaN\n\n" << std::endl;
         }
 
     }
 }
-
+#endif
 
 #if 0
 int main(int argc, char *argv[]) {
