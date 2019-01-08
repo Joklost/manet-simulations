@@ -86,10 +86,4 @@ bool reachi::Node::is_processed() const {
 void reachi::Node::set_processed(bool processed) {
     reachi::Node::processed = processed;
 }
-
-std::ostream &reachi::operator<<(std::ostream &os, const reachi::Node &node) {
-    os << "id: " << node.id << " current_location: " << node.current_location;
-    return os;
-}
-
 reachi::Node::Node() = default;

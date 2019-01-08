@@ -22,8 +22,6 @@ namespace reachi {
 
         uint32_t get_id() const;
 
-        friend std::ostream &operator<<(std::ostream &os, const Node &node);
-
         const mpilib::geo::Location &get_location() const;
 
         void update_location(mpilib::geo::Location &location, int time);

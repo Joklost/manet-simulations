@@ -19,7 +19,7 @@
 #define MIN_EPS 0.05
 #define MAX_EPS 1.01
 #define MAX_EPS_STEPS 46
-#define EPS_STEP 0.01
+#define EPS_STEP 10_m
 #define TX_DBM 26.0
 #define AREA 1.0
 #define NODES 1000
@@ -48,7 +48,58 @@ std::string format_duration(std::chrono::microseconds us) {
     return oss.str();
 }
 
+int main(int argc, char *argv[]) {
+    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = mpilib::geo::square(upper, 10_km);
+    auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
+    std::vector<int> cluster_sizes{1000, 900, 800, 700, 600, 500, 450, 400, 350, 300};
+    for (const auto &k : cluster_sizes) {
+        auto conv = true;
+        auto eps = MIN_EPS;
+
+        reachi::Optics optics{};
+        std::vector<reachi::Optics::Cluster> clusters;
+
+        std::cout << "Nodes: " << NODES << std::endl;
+        while (conv) {
+            optics = reachi::Optics{};
+
+            auto cluster_start = std::chrono::high_resolution_clock::now();
+            auto ordering = optics.compute_ordering(nodes, eps, MIN_PTS);
+            clusters = optics.cluster(ordering);
+            auto cluster_time = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::high_resolution_clock::now() - cluster_start);
+
+            if (clusters.size() <= k) {
+                std::cout << "Clustering time: " << format_duration(cluster_time) << std::endl;
+                std::cout << "Cluster goal: " << k << std::endl;
+                std::cout << "Actual cluster count: " << clusters.size() << std::endl;
+                std::cout << "eps: " << eps << std::endl;
+
+                conv = false;
+                eps = MIN_EPS;
+            } else {
+                eps += EPS_STEP;
+            }
+        }
+
+        auto links = reachi::data::create_link_vector(clusters);
+        std::cout << "Links: " << links.size() << std::endl;
+        auto corr = reachi::math::generate_correlation_matrix(links);
+        auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
+        auto sigma = std_deviation * corr;
+
+        auto chol_start = std::chrono::high_resolution_clock::now();
+        auto autocorrelation_matrix = reachi::cholesky::cholesky_v2(sigma);
+        auto chol_time = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::high_resolution_clock::now() - chol_start);
+        std::cout << "Cholesky time: " << format_duration(chol_time) << std::endl;
+    }
+}
+
+
+#if 0
 int main(int argc, char *argv[]) {
     mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
     auto lower = mpilib::geo::square(upper, 10_km);
@@ -109,7 +160,7 @@ int main(int argc, char *argv[]) {
         }
     }
 }
-
+#endif
 
 #if 0
 

@@ -160,6 +160,9 @@ namespace reachi {
                         for (auto j = 0; j < c; j++) {
                             sum += ret[r][j] * ret[r][j];
                         }
+                        if (sum > a[c][c])
+                            sum = (T) 0;
+
                         auto val = a[c][c] - sum;
                         ret[c][c] = ::std::sqrt(val);
                     } else {

@@ -119,14 +119,14 @@ reachi::linalg::vecvec<double> reachi::linkmodel::near_pd(const reachi::linalg::
 
 std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink> &links, double time = 0.0) {
     auto corr = reachi::math::generate_correlation_matrix(links);
-    if (!reachi::cholesky::is_positive_definite(corr)) {
+    /*if (!reachi::cholesky::is_positive_definite(corr)) {
         std::cout << "ensuring spd" << std::endl;
         corr = reachi::linkmodel::near_pd(corr);
     }
 
     if (!reachi::cholesky::is_positive_definite(corr)) {
         std::cout << "near PD failed" << std::endl;
-    }
+    }*/
 
     auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
     auto sigma = std_deviation * corr;
