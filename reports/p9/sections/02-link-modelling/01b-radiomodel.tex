@@ -58,7 +58,7 @@ which we finally can use to compute the packet error probability $P_p$. The pack
 %\end{figure}
 
 \subsection{Example}
-In \autoref{sec:linkmodel}, we computed the link model for a sample network topology \textbf{G}. \autoref{eq:rssivector} shows a vector containing the \gls{rssi}, in \acrshort{dbm}, for each of the six links in the network, assuming a transmission power of 26 \acrshort{dbm}. For the following, it is assumed that $thermal\_noise = -119.66$ \acrshort{db}, the $noise\_figure = 4.2$ \acrshort{db}, and $packetsize = 160$.
+In \autoref{sec:linkmodel}, we computed the link model for a sample network topology \textbf{G}. \autoref{eq:rssivector} shows a vector containing the \gls{rssi}, in \acrshort{dbm}, for each of the six links in the network, assuming a transmission power of 26 \acrshort{dbm}. For the following, it is assumed that $thermal\_noise = -119.66$ \acrshort{db}, the $noise\_figure = 4.2$ \acrshort{db}, and $packetsize = 160$ bits (which is the size of a header packet for the Reachi devices).
 
 \begin{eq}\label{eq:rssivector}
     \vect{RSSI_{dBm, \textbf{G}}} = 

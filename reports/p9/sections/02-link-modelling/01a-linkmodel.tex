@@ -2,7 +2,7 @@
 In this section, we present the method for simulating link \gls{pathloss} (the link model) from \cite{paper:linkmodel}. We want to simulate the performance of nodes in a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues} present the method, as well as an example of simulating the \gls{pathloss} on a network topology.% Note that the actual values used in this Section, is specific to the Reachi devices, and are based on on-site measurements. 
 
 \subsection{Units}
-In the following sections, we will be using different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrshort{db}~\cite{website:isadbdbm}, and the transmission power, as well as the \gls{rssi} as \acrshort{dbm}~\cite{website:isadbdbm}, where a higher value is better.
+In the following sections, we use different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrshort{db}~\cite{website:isadbdbm}, and the transmission power, as well as the \gls{rssi} as \acrshort{dbm}~\cite{website:isadbdbm}, where a value close to 0 is better.
 
 \subsection{Path Loss}\label{sec:pathloss}
 The \gls{pathloss} of a link is dependent on the distance between transmitter and receiver, as well as a stochastic shadow fading term. The \gls{pathloss} vector \vect{l_{pl}} is the sum of two parts:
@@ -26,7 +26,7 @@ The deterministic distance dependent \gls{pathloss} is an independent value, whi
 The \gls{pathloss} can be used, along with the transmission power in \acrshort{dbm} to simulate the \gls{rssi} on a link.
 
 \subsection{Simulating Link Path Loss}\label{sec:simulatingvalues}
-In this section, we will summarise how \gls{pathloss} and \gls{rssi} values are simulated for a \gls{manet} according to \cite{paper:linkmodel}, and we will present how we expect to use this in our own simulations. Again, note that the values used throughout this section are based on on-site measurements made with the Reachi devices in the Philippines and are heavily dependent on the environment, as described in \cite{paper:linkmodel}. \medbreak
+In this section, we summarise how \gls{pathloss} and \gls{rssi} values are simulated for a \gls{manet} according to \cite{paper:linkmodel}, and we present how we expect to use this in our own simulations. Again, note that the values used throughout this section are based on on-site measurements made with the Reachi devices in the Philippines and are heavily dependent on the environment, as described in \cite{paper:linkmodel}. \medbreak
 
 %With a \gls{manet} consisting of $N$ nodes, we have the link matrix $\textbf{L}$.
 
@@ -74,7 +74,7 @@ In this section, we will summarise how \gls{pathloss} and \gls{rssi} values are 
     \label{figure:lm-sample}
 \end{figure}
 
-\autoref{figure:lm-sample} is a sample network topology \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, $nodes(l)$ is a function that return the set of nodes of a link $l$, and the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links that share a common node ($ k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset $). \smallbreak
+\autoref{figure:lm-sample} is a sample network topology \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, $nodes(l)$ is a function that return the set of nodes of a link $l$, $N$ is the set of nodes in the network topology, and finally, the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links that share a common node ($ k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset $). \smallbreak
 The graph \textbf{G} would be equivalent to the following link vector:
 
 \begin{eq}\label{eq:uniquelinkvecG}
@@ -87,7 +87,7 @@ The graph \textbf{G} would be equivalent to the following link vector:
 The length of the unique link vector of a fully connected network is denoted by the function $len(\vect{l})$.
 
 \begin{eq}\label{eq:lengthoflinks}
-    len(\vect{l}) = \sum\limits_{i=1}^{k=N-1} i = \frac{N(N+1)}{2} - N
+    len(\vect{l}) = \sum\limits_{i=1}^{|N|-1} i = \frac{N(N+1)}{2} - N
 \end{eq}
 
 First, we compute the distance dependent part of the path loss. The deterministic distance dependent part \vect{l_d} is obtained for each unique link in the network by:
@@ -253,7 +253,7 @@ All that remains is to subtract the \gls{pathloss} for a particular link $l$, fr
 %    RSSI_{dBm}(l_1, t = 0) = 26 \ \text{dBm} - l_{pl,\textbf{G},l_1}(t) = {-60.21} \ \text{dBm}
 \end{eq}
 
-For example, if node $1$ in our sample graph \textbf{G} transmits with a transmission power of $26$ \acrshort{dbm} to node $2$, the \gls{rssi} on the receiving node would be $RSSI_{dBm}(n_1, n_2) = 26 \ \text{dBm} - l_{pl,\textbf{G},l_{n_1,n_2}}(t) = {-64.610}$ \acrshort{dbm}. In the following section, we show that a \acrshort{dbm} of $-64.610$ on a link will have a probability for packet loss of $0.0\ \%$, given that no other nodes transfer at the same time.
+For example, if node $1$ in our sample graph \textbf{G} transmits with a transmission power of $26$ \acrshort{dbm} to node $2$, the \gls{rssi} on the receiving node would be $RSSI_{dBm}(n_1, n_2) = 26 \ \text{dBm} - l_{pl,\textbf{G},l_{n_1,n_2}}(t) = {-64.610}$ \acrshort{dbm}. In the following section, we show that a \acrshort{dbm} of $-64.610$ on a link will have a probability for packet loss of approximately $0.001\ \%$, given that no other nodes transfer at the same time.
 
 
 %$P_{tx}(l)$ is a function returning the transmission power of the transmitting node in a given link.
