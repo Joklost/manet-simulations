@@ -86,6 +86,8 @@ int main(int argc, char *argv[]) {
 
         auto links = reachi::data::create_link_vector(clusters);
         std::cout << "Links: " << links.size() << std::endl;
+        if (links.size() <= 10000) {
+
         auto corr = reachi::math::generate_correlation_matrix(links);
         auto std_deviation = std::pow(STANDARD_DEVIATION, 2);
         auto sigma = std_deviation * corr;
@@ -95,6 +97,10 @@ int main(int argc, char *argv[]) {
         auto chol_time = std::chrono::duration_cast<std::chrono::microseconds>(
                 std::chrono::high_resolution_clock::now() - chol_start);
         std::cout << "Cholesky time: " << format_duration(chol_time) << std::endl;
+        } else {
+            std::cout << "Cholesky time: NaN" << std::endl;
+        }
+
     }
 }
 
