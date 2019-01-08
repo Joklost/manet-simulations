@@ -22,7 +22,7 @@
 #define EPS_STEP 0.01
 #define TX_DBM 26.0
 #define AREA 1.0
-#define NODES 100
+#define NODES 1000
 
 template<class...Durations, class DurationIn>
 std::tuple<Durations...> break_down_durations(DurationIn d) {
@@ -51,7 +51,7 @@ std::string format_duration(std::chrono::microseconds us) {
 
 int main(int argc, char *argv[]) {
     mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 5_km);
+    auto lower = mpilib::geo::square(upper, 10_km);
     auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
     auto links = reachi::data::create_link_vector(nodes);
