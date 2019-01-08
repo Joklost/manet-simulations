@@ -202,45 +202,59 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
 % \todo[inline]{Add table demonstrating parameterised runs, amount of clusters vs resulting nodes in the network, as well as the radius of the clusters}
 % \todo[inline]{Maybe use a smaller area and with fewer/smaller actual clusters for the demonstration.  }
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|l|l|l|l|}
-        \hline
-        $\varepsilon$ & Clusters & Correlation difference & Duration \\\hline
-        0.05 km       & 99       & 2.330                  & 2 ms     \\\hline
-        0.06 km       & 99       & 2.330                  & 2 ms     \\\hline
-        0.07 km       & 99       & 2.330                  & 2 ms     \\\hline
-        0.08 km       & 99       & 2.330                  & 2 ms     \\\hline
-        0.09 km       & 97       & 4.909                  & 2 ms     \\\hline
-    \end{tabular}
-    \caption{Computation time measurement for NearPD and Cholesky decomposition.}
-    \label{table:clusteringtime}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{tabular}{|l|l|l|l|}
+%         \hline
+%         $\varepsilon$ & Clusters & Correlation difference & Duration \\\hline
+%         0.05 km       & 99       & 2.330                  & 2 ms     \\\hline
+%         0.06 km       & 99       & 2.330                  & 2 ms     \\\hline
+%         0.07 km       & 99       & 2.330                  & 2 ms     \\\hline
+%         0.08 km       & 99       & 2.330                  & 2 ms     \\\hline
+%         0.09 km       & 97       & 4.909                  & 2 ms     \\\hline
+%     \end{tabular}
+%     \caption{Computation time measurement for NearPD and Cholesky decomposition.}
+%     \label{table:clusteringtime}
+% \end{table}
 
+
+\subsubsection{Experiments}\label{sec:clustering:experiments}
 \begin{table}[H]
     \begin{tabular}{|c|c|c|c|c|}
         \hline
-        Clusters & Links & Clustering & Norm & Cholesky \\\hline
-        1000     &       &            &      &          \\\hline
-        900      &       &            &      &          \\\hline
-        800      &       &            &      &          \\\hline
-        700      &       &            &      &          \\\hline
-        600      &       &            &      &          \\\hline
-        500      &       &            &      &          \\\hline
-        450      &       &            &      &          \\\hline
-        400      &       &            &      &          \\\hline
-        350      &       &            &      &          \\\hline
-        300      &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
-                 &       &            &      &          \\\hline
+        Cluster goal & Resulting clusters & Links  & Clustering time  & Cholesky        \\\hline
+        1000         & 1000               & 499500 & 244 milliseconds & \dots           \\\hline
+        900          & 895                & 400065 & 245 milliseconds & \dots           \\\hline
+        800          & 782                & 305371 & 246 milliseconds & \dots           \\\hline
+        700          & 697                & 242556 & 247 milliseconds & \dots           \\\hline
+        600          & 587                & 171991 & 248 milliseconds & \dots           \\\hline
+        500          & 492                & 120786 & 249 milliseconds & \dots           \\\hline
+        450          & 421                & 88410  & 249 milliseconds & \dots           \\\hline
+        400          & 386                & 74305  & 249 milliseconds & \dots           \\\hline
+        350          & 317                & 50086  & 249 milliseconds & \dots           \\\hline
+        300          & 293                & 42778  & 249 milliseconds & \dots           \\\hline
+        250          & 229                & 26106  & 249 milliseconds & \dots           \\\hline
+        200          & 183                & 16653  & 250 milliseconds & 32 minutes      \\\hline
+        150          & 136                & 9180   & 250 milliseconds & 325 seconds     \\\hline
+        100          & 98                 & 4753   & 250 milliseconds & 45 seconds      \\\hline
+        50           & 37                 & 666    & 253 milliseconds & 67 milliseconds \\\hline
     \end{tabular}
+    \caption{Experiment results from benchmarking clustering time.}
+    \label{table:clustering-benchmark}
 \end{table}
+
+To verify that the clustering actually improves the cholesky computations, experiments have been run. The results can be soon in \autoref{table:clustering-benchmark}.\medbreak
+
+The experiment consisted of running our clustering on 1000 randomly generated nodes, create a fully connected network of the clusters and measure the used on clustering and computing the path loss with the cholesky. The columns in \autoref{table:clustering-benchmark} are as followed:
+
+\begin{description}
+    \item[Cluster goal:] The minimum allowed amount of clusters. In the \gls{optics} algorithm, one does not specify an amount of desired clusters, hence a minimum needs to be specified to stop clustering once this minimum has been reached.
+    \item[Resulting clusters:] The resulting amount of clusters.
+    \item[Links:] The total amount of links.
+    \item[Clustering time:] How long the clustering took.
+    \item[Cholesky:] How long the cholesky computation took. Some fields in the cholesky column are marked as \dots. The reason for this, is that the correlation matrix became to large to compute, or took too long to compute.
+\end{description}
+
 
 %\autoref{figure:clustering:nodes} demonstrates a sample run of the algorithm on a network of 2000 nodes, with 1000 nodes uniformly distributed across the entire 15.5 km by 7.8 km area, two clusters containing 200 nodes each, and two clusters containing 300 nodes each. The low $\varepsilon = 0.08$ km value means that only very densely packed nodes will be added to the clusters. Ideally, a lot of the outliers in the figure should be able to be clustered with $MinNodes=2$, but increasing the $\varepsilon$ could also mean that the radius of the clusters could become too large.
 
