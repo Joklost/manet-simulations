@@ -56,17 +56,17 @@ For a metric space $(\mathcal{X}, d)$,
 \begin{itemize}
     \item Input: A set $\textbf{N} \subseteq \mathcal{X}$ and a parameter $k$, $k \leq |\textbf{N}|$.
     \item Output: A set of clusters $C \subseteq 2^{\textbf{N}}$, such that
-    \begin{enumerate}
-        \item $\bigcup\limits_{x \ \in \ C}x = \textbf{N}$,
-        \item $\forall x, y \in C, \ \text{if} \ x \neq y \ \text{then} \ x \cap y = \emptyset$, and
-        \item $|C| \leq k$
-    \end{enumerate} 
-    \item Goal: Minimise the $\Delta\theta(C)$ function:\smallbreak $\Delta\theta(C) = \mathlarger{\sum}\limits_{n_1, n_2, n_3 \ \in \ \textbf{N}} \left( r(l_{n_1,n_2}, l_{n_1,n_3}) - r(l_{C(n_1),C(n_2)}, l_{C(n_1),C(n_3)}) \right)^2$ 
+          \begin{enumerate}
+              \item $\bigcup\limits_{x \ \in \ C}x = \textbf{N}$,
+              \item $\forall x, y \in C, \ \text{if} \ x \neq y \ \text{then} \ x \cap y = \emptyset$, and
+              \item $|C| \leq k$
+          \end{enumerate}
+    \item Goal: Minimise the $\Delta\theta(C)$ function:\smallbreak $\Delta\theta(C) = \mathlarger{\sum}\limits_{n_1, n_2, n_3 \ \in \ \textbf{N}} \left( r(l_{n_1,n_2}, l_{n_1,n_3}) - r(l_{C(n_1),C(n_2)}, l_{C(n_1),C(n_3)}) \right)^2$
 
-    % \item Input: a set $\textbf{N} \subseteq \mathcal{X}$, and a parameter $\varepsilon$.
-    %       %    \item Output: a set of clusters $C$ where, for each nodes in the cluster, the neighbourhood of a given radius $\varepsilon$ of the nodes has to contain at least a minimum number of nodes $MinNodes$.
-    % \item Output: a set of clusters $C$. % færre elementer end det set vi startede med
-    % \item Goal: minimise the difference in correlation, $\Delta\theta$, between links $l_{n,c}$, $l_{n,u}$, with relation to $l_{n, m}$, for any $c \in C$, $u \in c$, $n \not\in c$, and $m \not\in c$, where $n \neq m$.
+          % \item Input: a set $\textbf{N} \subseteq \mathcal{X}$, and a parameter $\varepsilon$.
+          %       %    \item Output: a set of clusters $C$ where, for each nodes in the cluster, the neighbourhood of a given radius $\varepsilon$ of the nodes has to contain at least a minimum number of nodes $MinNodes$.
+          % \item Output: a set of clusters $C$. % færre elementer end det set vi startede med
+          % \item Goal: minimise the difference in correlation, $\Delta\theta$, between links $l_{n,c}$, $l_{n,u}$, with relation to $l_{n, m}$, for any $c \in C$, $u \in c$, $n \not\in c$, and $m \not\in c$, where $n \neq m$.
 
           %$\forall c \in C, \forall u \in c, \forall m \not\in c, \forall n \not\in c, $
 
@@ -104,7 +104,7 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
             $C \leftarrow \text{OPTICS}(\textbf{N}, \varepsilon, 2)$\;
         }
 
-        \KwRet $C$\;    
+        \KwRet $C$\;
     }
 
     \caption{Greedy approach using the \gls{optics} algorithm.}
@@ -220,19 +220,18 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
 
 \subsubsection{Experiments}\label{sec:clustering:experiments}
 \begin{table}[H]
-    \begin{tabular}{|c|c|c|c|c|}
-        \hline
-        Cluster goal & Resulting clusters & Links  & Clustering time  & Cholesky        \\\hline
+    \begin{tabular}{|c|c|c|c|c|}\hline
+        Min clusters & Resulting clusters & Links  & Clustering       & Cholesky        \\\hline
         1000         & 1000               & 499500 & 244 milliseconds & \dots           \\\hline
-        900          & 895                & 400065 & 245 milliseconds & \dots           \\\hline
-        800          & 782                & 305371 & 246 milliseconds & \dots           \\\hline
-        700          & 697                & 242556 & 247 milliseconds & \dots           \\\hline
-        600          & 587                & 171991 & 248 milliseconds & \dots           \\\hline
-        500          & 492                & 120786 & 249 milliseconds & \dots           \\\hline
-        450          & 421                & 88410  & 249 milliseconds & \dots           \\\hline
-        400          & 386                & 74305  & 249 milliseconds & \dots           \\\hline
-        350          & 317                & 50086  & 249 milliseconds & \dots           \\\hline
-        300          & 293                & 42778  & 249 milliseconds & \dots           \\\hline
+        900          & 884                & 390286 & 1 second         & \dots           \\\hline
+        800          & 771                & 296835 & 2 seconds        & \dots           \\\hline
+        700          & 692                & 239086 & 2 seconds        & \dots           \\\hline
+        600          & 592                & 174936 & 3 seconds        & \dots           \\\hline
+        500          & 463                & 106953 & 4 seconds        & \dots           \\\hline
+        450          & 424                & 89676  & 4 seconds        & \dots           \\\hline
+        400          & 389                & 75466  & 4 seconds        & \dots           \\\hline
+        350          & 322                & 51681  & 5 seconds        & \dots           \\\hline
+        300          & 299                & 44551  & 5 seconds        & \dots           \\\hline
         250          & 229                & 26106  & 249 milliseconds & \dots           \\\hline
         200          & 183                & 16653  & 250 milliseconds & 32 minutes      \\\hline
         150          & 136                & 9180   & 250 milliseconds & 325 seconds     \\\hline
@@ -245,16 +244,18 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
 
 To verify that the clustering actually improves the cholesky computations, experiments have been run. The results can be soon in \autoref{table:clustering-benchmark}.\medbreak
 
-The experiment consisted of running our clustering on 1000 randomly generated nodes, create a fully connected network of the clusters and measure the used on clustering and computing the path loss with the cholesky. The columns in \autoref{table:clustering-benchmark} are as followed:
+The experiment consisted of iteratively running our clustering on 1000 randomly generated nodes until the amount of clusters desired is achieved, create a fully connected network of the clusters and measure the used on clustering and computing the path loss with the cholesky. The columns in \autoref{table:clustering-benchmark} are as followed:
 
 \begin{description}
-    \item[Cluster goal:] The minimum allowed amount of clusters. In the \gls{optics} algorithm, one does not specify an amount of desired clusters, hence a minimum needs to be specified to stop clustering once this minimum has been reached.
+    \item[Min clusters:] The minimum allowed amount of clusters. In the \gls{optics} algorithm, one does not specify an amount of desired clusters, hence a minimum needs to be specified to stop clustering once this minimum has been reached.
     \item[Resulting clusters:] The resulting amount of clusters.
     \item[Links:] The total amount of links.
     \item[Clustering time:] How long the clustering took.
-    \item[Cholesky:] How long the cholesky computation took. Some fields in the cholesky column are marked as \dots. The reason for this, is that the correlation matrix became to large to compute, or took too long to compute.
+    \item[Cholesky:] How long the cholesky computation took. Some fields in the cholesky column are marked as \dots. This is because the computation took too long to let it finish as the correlation matrix simply became too big.
 \end{description}
 
+
+% write about the results 
 
 %\autoref{figure:clustering:nodes} demonstrates a sample run of the algorithm on a network of 2000 nodes, with 1000 nodes uniformly distributed across the entire 15.5 km by 7.8 km area, two clusters containing 200 nodes each, and two clusters containing 300 nodes each. The low $\varepsilon = 0.08$ km value means that only very densely packed nodes will be added to the clusters. Ideally, a lot of the outliers in the figure should be able to be clustered with $MinNodes=2$, but increasing the $\varepsilon$ could also mean that the radius of the clusters could become too large.
 
