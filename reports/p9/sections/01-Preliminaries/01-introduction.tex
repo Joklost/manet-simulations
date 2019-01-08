@@ -1,4 +1,3 @@
-\chapter{Introduction}
 
 %Reachi is a coordinated effort to enable vital communication during emergencies such as natural disasters, where earthquakes, tsunamis, forest fires, and more, destroy the pre-existing communication infrastructure, rendering it near impossible to organise the relief effort to effectively aid the affected, assess the damage, as well as organising repairs to the damaged infrastructure. The goal of the Reachi project is to optimise the disaster response by creating an overview of the situation within the first eight hours after the disaster. Today, this process can take up 1-2 weeks, due to the destruction of pre-existing communication infrastructure~\cite{website:reachiproject}. Without this overview, it is impossible to know where the needs for disaster relief is greatest, or what the level of disaster relief is even available. The project has been developed by the danish company LinkAiders ApS, and utilise a technology to enable mobile ad-hoc mesh networking through radio communication, created by NeoCortec.
 
@@ -25,14 +24,25 @@
 
 % https://markedsmodningsfonden.dk/reachi-vital-informationsdeling-i-katastrofesituationer
 
-The goal of this project is to simulate wireless network protocols for communication in a mobile setting. Ideally the capabilities of a wireless network protocol is tested in a real-life scenario, using physical devices for radio communication. This poses interesting challenges such as scalability, and repeatability. Scaling a real-life test requires a significant amount of effort and investment of both money and time, and repeating the same test over and over is near impossible, depending on the scale of the test. 
+The goal of this project is to simulate wireless network protocols for communication in a mobile setting. Ideally the capabilities of a wireless network protocol is tested in a real-life scenario, using physical devices for radio communication. This poses interesting challenges such as scalability, and repeatability. Scaling a real-life test requires a significant amount of effort and investment of both money and time, and repeating the same test over and over becomes near impossible, the larger the scale. Our goal is to be able to perform simulations with 1000 devices.
+\smallbreak
+
+Our project proposes a C++ library for writing, and running, simulations of the network protocol behind the mesh communication in a \gls{manet}, using state-of-the-art modelling of link \gls{pathloss} behind the wireless communication, to simulate packet loss and collisions caused by interfering transmitters, where the physical devices, and the communication between these, are emulated entirely using software. With our library, it is be possible to write a C++ implementation of communication protocols, such as \gls{lmac}~\cite{paper:lmac_protocol} or Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920}, using a simple interface header file resembling a traditional hardware interface, and perform simulations with these, where each physical device is emulated in real-time by different CPUs on the MCC compute cluster at AAU~\cite{website:mccaau}. \smallbreak
+
+% Outline contributions
+The primary contribution of this project is the centralised controller that facilitate wireless communication between the emulated physical devices. The centralised controller allow us to simulate wireless communication in virtual time, where the controller is able to skip periods of inactivity, reducing the time required to run real-time simulations. In addition to the centralised controller, we suggest two methods for optimising the computational time required for computing the link \gls{pathloss}, as this poses a significant scalability challenge.
+
+%In addition to the centralised controller, we suggest two methods for  
+
+%, essentially skipping long durations of inactivity
+
+
 %Another challenge when testing in a real-life scenario is collecting data from the test, e.g., packet loss, colliding transmissions, 
 %~\cite{website:reachiproject}
 %Testing the capabilities of a wireless network protocol can prove to be a challenge when testing with physical units in a real-life scenario, as problems like scalability and repeatability quickly arise.
 
 %Simulation as an alternative to testing with physical units: Scalability, repeatability, simulating different scenarios.
 
-\smallbreak
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Basically description env uden env
 %When testing \gls{manet} protocols, or just network protocols in general, scale is important. 
@@ -86,7 +96,6 @@ The goal of this project is to simulate wireless network protocols for communica
 %  Try to avoid things like we will present, or we would like to be able to.
 %
 
-Our project proposes a C++ library for writing, and running, simulations of the network protocol behind the mesh communication in a \gls{manet}, using state-of-the-art modelling of link \gls{pathloss} behind the wireless communication, to simulate packet loss and collisions caused by interfering transmitters, where the physical devices, and the communication between these, are emulated entirely using software. With our library, it is be possible to write a C++ implementation of communication protocols, such as \gls{lmac}~\cite{paper:lmac_protocol} or Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920}, using a simple interface header file resembling a traditional hardware interface. \smallbreak
 
 
 

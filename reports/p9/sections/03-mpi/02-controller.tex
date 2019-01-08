@@ -33,7 +33,6 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
             \If{m.action = transmit}{ \label{line:action-transmit}
                 t $\leftarrow$ \{ m.source, m.localtime, m.localtime $+$ m.duration, m.data \}\;
                 \Append t \KwTo transmissions\;
-                \Send nodes(m.source).localtime \KwTo node.id \tcp{ack}
             }
             \ElseIf{m.action = listen}{ \label{line:action-listen}
                 l $\leftarrow$ \{ m.source, m.localtime, m.localtime $+$ m.duration \}\;
@@ -67,7 +66,6 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
                     \Send p \To l.id\;
                 }
 
-                \Send nodes(l.id).localtime \KwTo l.id \tcp{ack}
                 %l.processed $\leftarrow$ true\;
             }
 
@@ -88,7 +86,7 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
     \caption{The Controller procedure.}
     \label{algo:mpicontroller}
 \end{algorithm}
-
+\todo[inline]{fix according to feedback}
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \KwResult{True if the transmission should be received.}

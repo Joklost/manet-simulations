@@ -107,7 +107,7 @@ with open(f, 'r') as json_data:
     nodes = {}
 
     for i, locs in data.items():
-        loc = locs[-1]
+        loc = locs[len(locs) // 2]
 
         nodes[i] = {}
         nodes[i]['lat'] = loc["latitude"]
@@ -115,8 +115,8 @@ with open(f, 'r') as json_data:
         nodes[i]['color'] = 'rgb(220, 20, 60)'
 
     executor.submit(create_graph.create_graph,
-                    nodes=nodes, graph_id=1, token=mb_access, path=os.path.abspath(graph_path),
-                    title="Phillippines")
+                    nodes=nodes, graph_id=21, token=mb_access, path=os.path.abspath(graph_path),
+                    title=f"Phillippines test data, {len(nodes)} nodes")
 
 
 if __name__ == '__main__':

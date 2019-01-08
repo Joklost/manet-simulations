@@ -14,7 +14,7 @@ The second option for optimising the computation of the link model, is to introd
 % Output: Some number of nodes, which is the smallest possible diameter
 
 %metric space
-\subsection{Metric Space}
+\subsubsection{Metric Space}
 A metric space is a pair $( \mathcal{X}, d )$ where $ \mathcal{X} $ is a set and $\textbf{d}:\mathcal{X} \times \mathcal{X} \rightarrow [0, \infty )$ is a metric, satisfying the following axioms:
 
 \begin{itemize}
@@ -84,13 +84,14 @@ For a metric space $(\mathcal{X}, d)$,
     \caption{Minimising the difference of the correlation ($\Delta\theta$) between links to nodes in a cluster to the centroid of the cluster.}
     \label{figure:clusteringgoal}
 \end{figure}
+\todo[inline]{explain the figure, in relation to the goal}
 
 \subsubsection{Approximation using OPTICS}
 We have chosen a greedy approach using the \gls{optics} algorithm~\cite{Ankerst:1999:OOP:304182.304187} to approximate solutions for our clustering problem. \gls{optics} is an algorithm for finding density-based clusters, and the run-time of the algorithm is O($n \ \cdot $ run-time of a neighbourhood query)~\cite[p.~53]{Ankerst:1999:OOP:304182.304187}. \smallbreak
 
 The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilon$, describing the maximum distance between two nodes to consider for clustering, and $MinPts$, describing the minimum number of nodes required to form a new cluster. For our case, the parameter $MinPts = 2$. With this, the \gls{optics} algorithm will return the set of clusters $C \subseteq 2^{\textbf{N}}$, where any nodes not satisfying the $MinPts$ parameter will be a singleton cluster. \autoref{algo:clustering} presents the pseudo code description of our greedy approach, that repeatedly computes the a set of clusters $C$, until $|C| \leq k$, each time incrementing the $\varepsilon$ variable by 10 meters.
 
-\begin{algorithm}[ht]
+\begin{algorithm}[H]
     \DontPrintSemicolon
     \KwResult{A set of clusters $C \subseteq 2^{\textbf{N}}$, where $|C| \leq k$}
     \SetKwFunction{FCluster}{Cluster}
@@ -219,40 +220,44 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
 
 
 \subsubsection{Experiments}\label{sec:clustering:experiments}
+To measure the performance of our clustering approach, we ran an experiment. The experiment consisted of running the clustering algorithm on 1000 randomly generated nodes, create a fully connected network of the clusters and measure the computational time used on clustering. \autoref{table:clustering-benchmark} contain the results of this experiment.
+
 \begin{table}[H]
-    \begin{tabular}{|c|c|c|c|c|}\hline
-        Min clusters & Resulting clusters & Links  & Clustering       & Cholesky        \\\hline
-        1000         & 1000               & 499500 & 244 milliseconds & \dots           \\\hline
-        900          & 884                & 390286 & 1 second         & \dots           \\\hline
-        800          & 771                & 296835 & 2 seconds        & \dots           \\\hline
-        700          & 692                & 239086 & 2 seconds        & \dots           \\\hline
-        600          & 592                & 174936 & 3 seconds        & \dots           \\\hline
-        500          & 463                & 106953 & 4 seconds        & \dots           \\\hline
-        450          & 424                & 89676  & 4 seconds        & \dots           \\\hline
-        400          & 389                & 75466  & 4 seconds        & \dots           \\\hline
-        350          & 322                & 51681  & 5 seconds        & \dots           \\\hline
-        300          & 299                & 44551  & 5 seconds        & \dots           \\\hline
-        250          & 229                & 26106  & 249 milliseconds & \dots           \\\hline
-        200          & 183                & 16653  & 250 milliseconds & 32 minutes      \\\hline
-        150          & 136                & 9180   & 250 milliseconds & 325 seconds     \\\hline
-        100          & 98                 & 4753   & 250 milliseconds & 45 seconds      \\\hline
-        50           & 37                 & 666    & 253 milliseconds & 67 milliseconds \\\hline
+    \begin{tabular}{|c|c|c|c|}\hline
+        Min clusters ($k$) & Resulting clusters & Links  & Clustering       \\\hline%& Cholesky \\\hline
+        1000               & 1000               & 499500 & 244 milliseconds \\\hline%& \dots    \\\hline
+        900                & 884                & 390286 & 1 second         \\\hline%& \dots    \\\hline
+        800                & 771                & 296835 & 2 seconds        \\\hline%& \dots    \\\hline
+        700                & 692                & 239086 & 2 seconds        \\\hline%& \dots    \\\hline
+        600                & 592                & 174936 & 3 seconds        \\\hline%& \dots    \\\hline
+        500                & 463                & 106953 & 4 seconds        \\\hline%& \dots    \\\hline
+        450                & 424                & 89676  & 4 seconds        \\\hline%& \dots    \\\hline
+        400                & 389                & 75466  & 4 seconds        \\\hline%& \dots    \\\hline
+        350                & 322                & 51681  & 5 seconds        \\\hline%& \dots    \\\hline
+        300                & 299                & 44551  & 5 seconds        \\\hline%& \dots    \\\hline
+        %  250          & 229                & 26106  & 249 milliseconds & \dots           \\\hline
+        %  200          & 183                & 16653  & 250 milliseconds & 32 minutes      \\\hline
+        %  150          & 136                & 9180   & 250 milliseconds & 325 seconds     \\\hline
+        %  100          & 98                 & 4753   & 250 milliseconds & 45 seconds      \\\hline
+        %  50           & 37                 & 666    & 253 milliseconds & 67 milliseconds \\\hline
     \end{tabular}
     \caption{Experiment results from benchmarking clustering time.}
     \label{table:clustering-benchmark}
 \end{table}
 
-To verify that the clustering actually improves the cholesky computations, experiments have been run. The results can be soon in \autoref{table:clustering-benchmark}.\medbreak
+\todo[inline]{add table showing the results of the $\Delta\theta(C)$ function (the correlation difference)}
 
-The experiment consisted of iteratively running our clustering on 1000 randomly generated nodes until the amount of clusters desired is achieved, create a fully connected network of the clusters and measure the used on clustering and computing the path loss with the cholesky. The columns in \autoref{table:clustering-benchmark} are as followed:
+%To verify that the clustering actually improves the cholesky computations, experiments have been run. The results can be soon in \autoref{table:clustering-benchmark}.\medbreak
 
-\begin{description}
-    \item[Min clusters:] The minimum allowed amount of clusters. In the \gls{optics} algorithm, one does not specify an amount of desired clusters, hence a minimum needs to be specified to stop clustering once this minimum has been reached.
-    \item[Resulting clusters:] The resulting amount of clusters.
-    \item[Links:] The total amount of links.
-    \item[Clustering time:] How long the clustering took.
-    \item[Cholesky:] How long the cholesky computation took. Some fields in the cholesky column are marked as \dots. This is because the computation took too long to let it finish as the correlation matrix simply became too big.
-\end{description}
+%The experiment consisted of iteratively running our clustering on 1000 randomly generated nodes until the amount of clusters desired is achieved, create a fully connected network of the clusters and measure the used on clustering and computing the path loss with the cholesky. The columns in \autoref{table:clustering-benchmark} are as followed:
+
+%\begin{description}
+%    \item[Min clusters:] The minimum allowed amount of clusters. In the \gls{optics} algorithm, one does not specify an amount of desired clusters, hence a minimum needs to be specified to stop clustering once this minimum has been reached.
+%    \item[Resulting clusters:] The resulting amount of clusters.
+%    \item[Links:] The total amount of links.
+%    \item[Clustering time:] How long the clustering took.
+%    \item[Cholesky:] How long the cholesky computation took. Some fields in the cholesky column are marked as \dots. This is because the computation took too long to let it finish as the correlation matrix simply became too big.
+%\end{description}
 
 
 % write about the results 
