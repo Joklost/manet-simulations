@@ -179,6 +179,31 @@ The \gls{optics} (\autoref{algo:optics}) algorithm processes each node only once
     \label{table:clusteringtime}
 \end{table}
 
+\begin{table}[H]
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        Clusters & Links & Clustering & Norm & Cholesky \\\hline
+        1000     &       &            &      &          \\\hline
+        900      &       &            &      &          \\\hline
+        800      &       &            &      &          \\\hline
+        700      &       &            &      &          \\\hline
+        600      &       &            &      &          \\\hline
+        500      &       &            &      &          \\\hline
+        450      &       &            &      &          \\\hline
+        400      &       &            &      &          \\\hline
+        350      &       &            &      &          \\\hline
+        300      &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+                 &       &            &      &          \\\hline
+    \end{tabular}
+\end{table}
+
 %\autoref{figure:clustering:nodes} demonstrates a sample run of the algorithm on a network of 2000 nodes, with 1000 nodes uniformly distributed across the entire 15.5 km by 7.8 km area, two clusters containing 200 nodes each, and two clusters containing 300 nodes each. The low $\varepsilon = 0.08$ km value means that only very densely packed nodes will be added to the clusters. Ideally, a lot of the outliers in the figure should be able to be clustered with $MinNodes=2$, but increasing the $\varepsilon$ could also mean that the radius of the clusters could become too large.
 
 %based on features called \textit{core-distance} and\textit{reachability-distance}~\cite{Ankerst:1999:OOP:304182.304187}, 
