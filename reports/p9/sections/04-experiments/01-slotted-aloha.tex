@@ -32,3 +32,60 @@ Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, 
 \end{algorithm}
 
 \todo[inline]{At some point, we should be able to create a graph to measure received packets and collisions for the Slotted ALOHA protocol.}
+
+
+
+%\begin{table}[H]
+%    \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+%        \hline
+%        \diagbox{Sleep}{Slots} & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & %14 & 15 & 16 \\ \hline
+%                               &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
+%        30 seconds             &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
+%        1 minute               &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
+%        2 minutes              &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
+%        5 minutes              &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
+%        %&   &   &   &   &   &    &    &    &    &    &    &    \\ \hline
+%    \end{tabular}
+%    \caption{Results from running the ALOHA protocol with different %parameters.}
+%    \label{table:experiments:aloha-results}
+%\end{table}
+
+
+\begin{table}[H]
+    \begin{tabular}{|c|l||l||l||l||l|}
+        \hline
+        \diagbox{Slots}{Sleep} & \multicolumn{1}{c||}{10 seconds} & \multicolumn{1}{c||}{30 seconds} & \multicolumn{1}{c||}{1 minute} & \multicolumn{1}{c||}{2 minutes} & \multicolumn{1}{c|}{5 minutes} \\ \hline
+        \multirow{2}{*}{5}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+        \multirow{2}{*}{6}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+        \multirow{2}{*}{7}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+        \multirow{2}{*}{8}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+        \multirow{2}{*}{9}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+
+        \multirow{2}{*}{10}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+
+        \multirow{2}{*}{11}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+
+        \multirow{2}{*}{12}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+        \multirow{2}{*}{13}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+
+        \multirow{2}{*}{14}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+
+        \multirow{2}{*}{15}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline\hline
+
+        \multirow{2}{*}{16}     & R: 10 s                          & R: 10 s                          & R: 10 s                        & R: 10 s                         & R: 10 s                        \\ \cline{2-6}
+                               & C: 10                            & C: 10                            & C: 10                          & C: 10                           & C: 10                          \\ \hline
+    \end{tabular}
+    \caption{Results from running the ALOHA protocol with different parameters.}
+    \label{table:experiments:aloha-results}
+\end{table}

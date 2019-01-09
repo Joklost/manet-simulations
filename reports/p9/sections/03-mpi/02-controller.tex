@@ -93,23 +93,30 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
     \SetKwFunction{FShouldReceive}{ShouldReceive}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FShouldReceive{n$_r$, m$_t$, nodes$_t$, packetsize}}{
+    \Fn{\FShouldReceive{n$_r$, m$_t$, transmissions, packetsize}}{
         \tcp{Compute the packet error probability.}
         $P_{I}$ $\leftarrow$ 0\;
 
-        \ForEach{m $\in$ nodes$_t$}{
-            \If{m = m$_t$}{
+        \ForEach{t $\in$ transmissions}{
+            \If{t.source = m$_t$}{
                 \Continue\;
             }
-            P$_{I}$ $\leftarrow$ P$_{I,dB}$ + $10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}}$ \;
+
+            
+            
+            % P$_{I}$ $\leftarrow$ P$_{I,dB}$ + $10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}}$ \;
         }
-        \tcp{$P_{N,dB}$ is the noise power from \autoref{sec:pep}.}
-        $P_{N}$ $\leftarrow$ $10^{\frac{P_{N,dB}}{10}}$\;
-        $P_{NI,db}$ $\leftarrow$ $10 \log_{10}(P_N + P_I)$\;
-        $\gamma_{dB}$ $\leftarrow$ $RSSI_{dBm}(n_{r}, m_{t}) - P_{NI,db}$\;
-        $\gamma$ $\leftarrow$ $10^{\frac{\gamma_{dB}}{10}}$\;
-        $P_b$ $\leftarrow$ $\frac{1}{2} \cdot \text{erfc}(\sqrt{\frac{\gamma}{2}})$\;
-        $P_p$ $\leftarrow$ $1 - (1 - P_b)^{\text{packetsize}}$\;
+
+        %\leftarrow link\_model()
+
+        $P_p(\text{n}_r, \text{m}_t, ) $
+        % \tcp{$P_{N,dB}$ is the noise power from \autoref{sec:pep}.}
+        % $P_{N}$ $\leftarrow$ $10^{\frac{P_{N,dB}}{10}}$\;
+        % $P_{NI,db}$ $\leftarrow$ $10 \log_{10}(P_N + P_I)$\;
+        % $\gamma_{dB}$ $\leftarrow$ $RSSI_{dBm}(n_{r}, m_{t}) - P_{NI,db}$\;
+        % $\gamma$ $\leftarrow$ $10^{\frac{\gamma_{dB}}{10}}$\;
+        % $P_b$ $\leftarrow$ $\frac{1}{2} \cdot \text{erfc}(\sqrt{\frac{\gamma}{2}})$\;
+        % $P_p$ $\leftarrow$ $1 - (1 - P_b)^{\text{packetsize}}$\;
 
         %$P_{NI,db} = 10 \log_{10}\left( 10^{\frac{P_{N,dB}}{10}} + \mathlarger{\sum}\limits_{m \in nodes_t}  10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}} [m \neq m_{t}] \right) $\;
         \If{$P_p$ = 0.0}{

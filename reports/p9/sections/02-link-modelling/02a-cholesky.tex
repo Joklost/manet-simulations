@@ -32,7 +32,7 @@ In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the
     \label{algo:cholesky}
 \end{algorithm}
 \medbreak
-The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool call NearPD~\cite{website:nearPD} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. The computational time required for the NearPD tool and the Cholesky decomposition can be seen in \autoref{table:cholesky:spdtime}.\smallbreak
+The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool called NearPD~\cite{website:nearPD} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. The computational time required for the NearPD tool and the Cholesky decomposition can be seen in \autoref{table:cholesky:spdtime}.\smallbreak
 
 \begin{table}[H]
     \centering
@@ -64,69 +64,73 @@ The first issue we have found with the Cholesky decomposition, or more specifica
     \label{table:cholesky:spdtime}
 \end{table}
 
-
-
 \todo[inline]{citation needed}
 The Cholesky decomposition has a computational complexity of $O(n^3)$~\citationneeded. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We present the first solution in this section, and clustering in \autoref{sec:clustering}.\medbreak
 
+
+\autoref{table:cholesky:spdtime} shows time measurements from running the cholesky decomposition computation with different network sizes, with the NearPD tool. The measurements shows that the NearPD tool is not fast enough, as at only 130 nodes with 8385 links it takes 235 minutes. This is not fast enough and a better solution will have to be found. The cholesky decomposition computation speed is also problematic, as the goal is 1000 nodes and already at 200 it takes 52 minutes.
+
+
 \subsubsection{Distance Threshold}\label{sec:distancethreshold}
-In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} has significantly more importance in the total \gls{pathloss} than the stochastic shadow fading part. In \autoref{eq:pathlossdetermG}, we see that the distance \gls{pathloss} is 92 \acrshort{dbm} for links of 100 meters, and 100.2 \acrshort{dbm} for the diagonal links of $141.42$ meters, and in \autoref{eq:pathlossfadingG}, we see (stochastic) values between $-13.8$ and $6.4$ \acrshort{dbm}. This means that, entirely based on the distance part of the link model, according to the \gls{pep} formula in \autoref{sec:pep}, a distance of 1000 meters, and a transmission power of 26 \acrshort{dbm}, we would have a link \gls{pathloss} of $147$ \acrshort{dbm} (disregarding the stochastic shadow fading part of the \gls{pathloss}), which in turn would mean that the \gls{rssi} on the receiving end of the link would be $26 - 147 = -121$, or equivalent to a packet loss probability of 100 \% (assuming the noise figure and thermal noise is the same as in \autoref{sec:pep}, and the packet size is 160 bits). Hence removing links that are far away can potentially reduce the correlation matrix size significantly.
+In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} has significantly more importance in the total \gls{pathloss} than the stochastic shadow fading part. In \autoref{eq:pathlossdetermG}, we see that the distance \gls{pathloss} is 92 \acrshort{dbm} for links of 100 meters, and 100.2 \acrshort{dbm} for the diagonal links of $141.42$ meters, and in \autoref{eq:pathlossfadingG}, we see (stochastic) values between $-13.8$ and $6.4$ \acrshort{dbm}. This means that, entirely based on the distance part of the link model, according to the \gls{pep} formula in \autoref{sec:pep}, a distance of 1000 meters, and a transmission power of 26 \acrshort{dbm}, we would have a link \gls{pathloss} of $147$ \acrshort{dbm} (disregarding the stochastic shadow fading part of the \gls{pathloss}), which in turn would mean that the \gls{rssi} on the receiving end of the link would be $26 - 147 = -121$, or equivalent to a packet loss probability of 100~\% (assuming the noise figure and thermal noise is the same as in \autoref{sec:pep}, and the packet size is 160 bits). Hence removing links that are far away can potentially reduce the correlation matrix size significantly.
 
 \begin{table}[H]
-    \begin{tabular}{|c|c|c|}\hline
-        Distance threshold & Links & Cholesky         \\\hline
-        100 meters         & 182   & 3 milliseconds   \\\hline
-        125 meters         & 256   & 7 milliseconds   \\\hline
-        150 meters         & 360   & 20 milliseconds  \\\hline
-        175 meters         & 483   & 46 milliseconds  \\\hline
-        200 meters         & 624   & 97 milliseconds  \\\hline
-        225 meters         & 773   & 185 milliseconds \\\hline
-        250 meters         & 939   & 333 milliseconds \\\hline
-        275 meters         & 1157  & 646 milliseconds \\\hline
-        300 meters         & 1361  & 1 second         \\\hline
-        325 meters         & 1589  & 1 second         \\\hline
-        350 meters         & 1822  & 2 seconds        \\\hline
-        375 meters         & 2076  & 4 seconds        \\\hline
-        400 meters         & 2361  & 6 seconds        \\\hline
-        425 meters         & 2642  & 8 seconds        \\\hline
-        450 meters         & 2955  & 11 seconds       \\\hline
-        475 meters         & 3290  & 15 seconds       \\\hline
-        500 meters         & 3652  & 21 seconds       \\\hline
-        525 meters         & 4035  & 28 seconds       \\\hline
-        550 meters         & 4389  & 37 seconds       \\\hline
-        575 meters         & 4830  & 49 seconds       \\\hline
-        600 meters         & 5260  & 62 seconds       \\\hline
-        625 meters         & 5723  & 82 seconds       \\\hline
-        650 meters         & 6163  & 142 seconds      \\\hline
-        675 meters         & 6656  & 184 seconds      \\\hline
-        700 meters         & 7105  & 273 seconds      \\\hline
-        725 meters         & 7608  & 375 seconds      \\\hline
-        750 meters         & 8127  & 454 seconds      \\\hline
-        % 775m               & 8696  & 454 seconds      \\\hline
-        % 800m               & 9240  & 580 seconds      \\\hline
-        % 825m               & 9837  & 708 seconds      \\\hline
-        % 850m               & 10421 & 544 seconds      \\\hline
-        % 875m               & 11015 & 571 seconds      \\\hline
-        % 900m               & 11611 & 665 seconds      \\\hline
-        % 925m               & 12251 & 783 seconds      \\\hline
-        % 950m               & 12934 & 916 seconds      \\\hline
-        % 975m               & 13568 & 1058 seconds     \\\hline
-        % 1000m              & 14232 & 1214 seconds     \\\hline
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Distance threshold & Links & Probability \\\hline % & Cholesky         \\\hline
+        % 100 meters         & 182   & \\\hline % & 3 milliseconds   \\\hline
+        % 125 meters         & 256   & \\\hline % & 7 milliseconds   \\\hline
+        % 150 meters         & 360   & \\\hline % & 20 milliseconds  \\\hline
+        % 175 meters         & 483   & \\\hline % & 46 milliseconds  \\\hline
+        200 meters         & 92    & 0.001~\%    \\\hline % & 97 milliseconds  \\\hline
+        % 225 meters         & 773   & \\\hline % & 185 milliseconds \\\hline
+        250 meters         & 139   & 0.001~\%    \\\hline % & 333 milliseconds \\\hline
+        % 275 meters         & 1157  & \\\hline % & 646 milliseconds \\\hline
+        300 meters         & 208   & 0.001~\%    \\\hline % & 1 second         \\\hline
+        % 325 meters         & 1589  & \\\hline % & 1 second         \\\hline
+        350 meters         & 296   & 0.001~\%    \\\hline % & 2 seconds        \\\hline
+        % 375 meters         & 2076  & \\\hline % & 4 seconds        \\\hline
+        400 meters         & 394   & 0.001~\%    \\\hline % & 6 seconds        \\\hline
+        % 425 meters         & 2642  & \\\hline % & 8 seconds        \\\hline
+        450 meters         & 490   & 0.001~\%    \\\hline % & 11 seconds       \\\hline
+        % 475 meters         & 3290  & \\\hline % & 15 seconds       \\\hline
+        500 meters         & 592   & 6~\%        \\\hline % & 21 seconds       \\\hline
+        % 525 meters         & 4035  & \\\hline % & 28 seconds       \\\hline
+        550 meters         & 723   & 82.33~\%    \\\hline % & 37 seconds       \\\hline
+        % 575 meters         & 4830  & \\\hline % & 49 seconds       \\\hline
+        600 meters         & 846   & 99.999~\%   \\\hline % & 62 seconds       \\\hline
+        % 625 meters         & 5723  & \\\hline % & 82 seconds       \\\hline
+        650 meters         & 994   & 99.999~\%   \\\hline % & 142 seconds      \\\hline
+        %675 meters         & 6656  & \\\hline % & 184 seconds      \\\hline
+        700 meters         & 1164  & 99.999~\%   \\\hline % & 273 seconds      \\\hline
+        % 725 meters         & 7608  & \\\hline % & 375 seconds      \\\hline
+        750 meters         & 1349  & 99.999~\%   \\\hline % & 454 seconds      \\\hline
+        % 775 meters               & 8696 \\\hline %  & 454 seconds      \\\hline
+        800 meters         & 1507  & 99.999~\%   \\\hline %  & 580 seconds      \\\hline
+        % 825 meters               & 9837 & \\\hline %  & 708 seconds      \\\hline
+        850 meters         & 1714  & 99.999~\%   \\\hline % & 544 seconds      \\\hline
+        % 875 meters               & 1101 & \\\hline %5 & 571 seconds      \\\hline
+        900 meters         & 1910  & 99.999~\%   \\\hline % & 665 seconds      \\\hline
+        % 925 meters               & 1225 & \\\hline %1 & 783 seconds      \\\hline
+        950 meters         & 2102  & 99.999~\%   \\\hline % & 916 seconds      \\\hline
+        % 975 meters               & 1356 & \\\hline %8 & 1058 seconds     \\\hline
+        1000 meters        & 2346  & 99.999~\%   \\\hline % & 1214 seconds     \\\hline
     \end{tabular}
     \caption{Results from the distance threshold experiments.}
     \label{table:cholesky:distance-threshold}
 \end{table}
 
-The experiment consisted of generating 1000 random nodes, create links from those nodes based on their location, iteratively scale the maximum allowed distance of the links (distance threshold) and measure the time used to do the cholesky computation. The results can be read in \autoref{table:cholesky:distance-threshold}. The content of each column are as followed:
+The experiment consisted of generating 1000 random nodes in a 25 kilometre square area, create links from those nodes based on their location, iteratively scale the maximum allowed distance of the links (distance threshold) and calculate the link path loss. The results can be read in \autoref{table:cholesky:distance-threshold}. The content of each column are as followed:
 
 \begin{description}
     \item[Distance threshold:] The maximum distance of the link.
     \item[Links:] The total amount of links.
-    \item[Cholesky:] The time used for the cholesky computation.
+    \item[Probability:] The packet error probability, at the given distance threshold,without the shadow fading part.
 \end{description}
 
 
-The results shows that limiting the maximum distance can drastically reduce the total amount of links, even if the threshold is set relative high. When comparing the link counts with \autoref{table:cholesky:spdtime}, the improvements are clear. When the distance threshold is set to 750 meters, it results in 8127 links from 1000 nodes. Without the distance threshold optimisations, 130 nodes would result in 8385 links which is very close. This optimisation allows for larger networks, by drastically reducing the total links.
+The results shows that limiting the maximum distance can drastically reduce the total amount of links, even if the threshold is set relative high. When comparing the link counts with \autoref{table:cholesky:spdtime}, the improvements are clear. When the distance threshold is set to 750 meters, it results in 1164 links from 1000 nodes in a 25 kilometre square area. Without the distance threshold optimisations, 130 nodes would result in 8385 links which is significantly higher. This optimisation allows for larger networks, by drastically reducing the total links.
 
 
 % as the last row in \autoref{table:cholesky:distance-threshold} of 750m gives good results. More aggressive thresholds drastically reduces the total amount of links more, but has the potential of removing links that should have been there.
