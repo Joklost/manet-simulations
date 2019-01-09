@@ -18,6 +18,7 @@ The second option for optimising the computation of the link model, is to introd
 A metric space is a pair $( \mathcal{X}, d )$ where $ \mathcal{X} $ is a set and $\textbf{d}:\mathcal{X} \times \mathcal{X} \rightarrow [0, \infty )$ is a metric, satisfying the following axioms:
 
 \begin{itemize}
+    \item Positivity: $d(x, y) \geq 0$
     \item Reflexivity: $d(x, y) = 0 \Longleftrightarrow x = y$
     \item Symmetry: $d(x, y) = d(y, x)$
     \item Triangle inequality: $d(x, z) \leq d(x, y) + d(y, z)$
@@ -30,7 +31,9 @@ Our chosen metric space is $\mathbb{R}^2$ using Euclidean distance.
 \subsubsection{Problem Statement}
 
 %A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with parameters $\varepsilon$. The goal is to find a subset of clusters, such that the maximum angle between any node to nodes in the cluster is minimised. 
-A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter $k$, $k \leq |\textbf{N}|$. Initially, the set $\textbf{N}$ is a set of clusters, each containing a single node. The goal is to find a set of clusters, such that we can reduce the computational time required for computing the link model, while minimising the loss of precision in the stochastic shadow fading part. We minimise the loss of precision by minimising the difference of the correlation ($\Delta\theta$) between links to any node in a cluster, to the centroid of the cluster. The problem is defined as follows: \smallbreak
+A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter $k$, $k \leq |\textbf{N}|$. Initially, the set $\textbf{N}$ is a set of clusters, each containing a single node. The goal is to find a set of clusters, such that we can reduce the computational time required for computing the link model, while minimising the loss of precision in the stochastic shadow fading part. We minimise the loss of precision by minimising the difference of the correlation ($\Delta\theta$) between links to any node in a cluster, to the centroid of the cluster. The centroid of a cluster $x$ is defined as $cent(x) = \sum\limits_{n \in x} n \div |x|$. \smallbreak
+%
+The problem is defined as follows:\bigbreak
 
 %This correlation difference is computed using the autocorrelation function from \autoref{eq:pathlossautocorrelation}.
 
@@ -51,17 +54,17 @@ A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter 
 
 %Minimise the difference between the original correlation matrix, and the new correlation matrix created using the centroid of the clusters.
 
-
 For a metric space $(\mathcal{X}, d)$,
 \begin{itemize}
     \item Input: A set $\textbf{N} \subseteq \mathcal{X}$ and a parameter $k$, $k \leq |\textbf{N}|$.
     \item Output: A set of clusters $C \subseteq 2^{\textbf{N}}$, such that
           \begin{enumerate}
-              \item $\bigcup\limits_{x \ \in \ C}x = \textbf{N}$,
-              \item $\forall x, y \in C, \ \text{if} \ x \neq y \ \text{then} \ x \cap y = \emptyset$, and
-              \item $|C| \leq k$
+              \item $\bigcup\limits_{x \in C}x = \textbf{N}$,
+              \item $\forall x, y \in C, \ \text{if} \ x \neq y \ \text{then} \ x \cap y = \emptyset$,
+              \item $|C| \leq k$, and
+              \item $C(n)$ is the cluster in $C$ that contains $n$, where $n \in C(n)$
           \end{enumerate}
-    \item Goal: Minimise the $\Delta\theta(C)$ function:\smallbreak $\Delta\theta(C) = \mathlarger{\sum}\limits_{n_1, n_2, n_3 \ \in \ \textbf{N}} \left( r(l_{n_1,n_2}, l_{n_1,n_3}) - r(l_{C(n_1),C(n_2)}, l_{C(n_1),C(n_3)}) \right)^2$
+    \item Goal: Minimise the $\Delta\theta(C)$ function:\smallbreak $\Delta\theta(C) = \mathlarger{\sum}\limits_{n_1, n_2, n_3 \ \in \ \textbf{N}} \left( r(l_{n_1,n_2}, l_{n_1,n_3}) - r(l_{cent(C(n_1),cent(C(n_2)}, l_{cent(C(n_1),cent(C(n_3)}) \right)^2$
 
           % \item Input: a set $\textbf{N} \subseteq \mathcal{X}$, and a parameter $\varepsilon$.
           %       %    \item Output: a set of clusters $C$ where, for each nodes in the cluster, the neighbourhood of a given radius $\varepsilon$ of the nodes has to contain at least a minimum number of nodes $MinNodes$.
@@ -78,13 +81,14 @@ For a metric space $(\mathcal{X}, d)$,
 
 %\todo[inline]{How to describe the goal? Is it the goal of the particular clustering algorithm, or our goal for using the clustering algorithm? In the second case, the goal is to reduce the number of overall nodes in the network, by creating clusters of nodes very close to each other, and using the centroid of the clusters for the link model.}
 
+\autoref{figure:clusteringgoal} illustrates the goal, where we want to minimise the correlation difference $\Delta\theta$ between the nodes $n$, $m$, and $u$ (as well of the rest of the nodes), to the centroids of their respective clusters $C(n)$, $C(m)$, and $C(u)$.
+
 \begin{figure}[ht]
     \centering
     \includegraphics[width=.5\textwidth]{figures/clustering/clustering.png}
     \caption{Minimising the difference of the correlation ($\Delta\theta$) between links to nodes in a cluster to the centroid of the cluster.}
     \label{figure:clusteringgoal}
 \end{figure}
-\todo[inline]{explain the figure, in relation to the goal}
 
 \subsubsection{Approximation using OPTICS}
 We have chosen a greedy approach using the \gls{optics} algorithm~\cite{Ankerst:1999:OOP:304182.304187} to approximate solutions for our clustering problem. \gls{optics} is an algorithm for finding density-based clusters, and the run-time of the algorithm is O($n \ \cdot $ run-time of a neighbourhood query)~\cite[p.~53]{Ankerst:1999:OOP:304182.304187}. \smallbreak

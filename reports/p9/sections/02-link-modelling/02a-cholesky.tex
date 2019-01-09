@@ -64,9 +64,7 @@ The first issue we have found with the Cholesky decomposition, or more specifica
     \label{table:cholesky:spdtime}
 \end{table}
 
-\todo[inline]{citation needed}
-The Cholesky decomposition has a computational complexity of $O(n^3)$~\citationneeded. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We present the first solution in this section, and clustering in \autoref{sec:clustering}.\medbreak
-
+The Cholesky decomposition has a computational complexity of $O(n^3)$~\cite{Press:2007:NRE:1403886}. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We present the first solution in this section, and clustering in \autoref{sec:clustering}.\medbreak
 
 \autoref{table:cholesky:spdtime} shows time measurements from running the cholesky decomposition computation with different network sizes, with the NearPD tool. The measurements shows that the NearPD tool is not fast enough, as at only 130 nodes with 8385 links it takes 235 minutes. This is not fast enough and a better solution will have to be found. The cholesky decomposition computation speed is also problematic, as the goal is 1000 nodes and already at 200 it takes 52 minutes.
 

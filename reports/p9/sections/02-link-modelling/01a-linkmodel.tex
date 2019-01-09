@@ -74,7 +74,7 @@ In this section, we summarise how \gls{pathloss} and \gls{rssi} values are simul
     \label{figure:lm-sample}
 \end{figure}
 
-\autoref{figure:lm-sample} is a sample network topology \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, $nodes(l)$ is a function that return the set of nodes of a link $l$, $N$ is the set of nodes in the network topology, and finally, the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links that share a common node ($ k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset $). \smallbreak
+\autoref{figure:lm-sample} is a sample network topology \textbf{G} consisting of 4 nodes, with 6 unique links. In the sample, the links $l_1$ and $l_4$ are both 100 meters long, and the angle between them is 90\textdegree. Links are undirected and show equal loss in both directions. The length of a $l$ link will be denoted by the function $d(l)$, $nodes(l)$ is a function that return the set of nodes of a link $l$, $\textbf{N}$ is the set of nodes in the network topology, and finally, the angle between two unique links, $k$ and $l$, will be denoted by the function $\theta(k,l)$, where $k$ and $l$ are unique links that share a common node ($ k \neq l \ \text{and} \  nodes(k) \cap nodes(l) \neq \emptyset $). \smallbreak
 The graph \textbf{G} would be equivalent to the following link vector:
 
 \begin{eq}\label{eq:uniquelinkvecG}
@@ -87,7 +87,7 @@ The graph \textbf{G} would be equivalent to the following link vector:
 The length of the unique link vector of a fully connected network is denoted by the function $len(\vect{l})$.
 
 \begin{eq}\label{eq:lengthoflinks}
-    len(\vect{l}) = \sum\limits_{i=1}^{|N|-1} i = \frac{N(N+1)}{2} - N
+    len(\vect{l}) = \sum\limits_{i=1}^{|\textbf{N}|-1} i = \frac{|\textbf{N}||\textbf{N}|+1)}{2} - |\textbf{N}|
 \end{eq}
 
 First, we compute the distance dependent part of the path loss. The deterministic distance dependent part \vect{l_d} is obtained for each unique link in the network by:
@@ -184,7 +184,7 @@ For our sample graph \textbf{G}, this could be:
         \textbf{Q}_{\textbf{G}} 
     \cdot
         \begin{bmatrix}
-            -0.122\\
+            0.122\\
             -1.087\\
             0.684\\
             -1.075\\
@@ -193,7 +193,7 @@ For our sample graph \textbf{G}, this could be:
         \end{bmatrix}
     =
         \begin{bmatrix}
-            -1.390\\
+            1.390\\
             -12.466\\
             6.170\\
             -13.837\\
@@ -230,7 +230,7 @@ With this, the vectors \vect{l_d} and \vect{l_{fading}} can be combined as in \a
 \begin{eq}\label{eq:pathlosslink}
     \vect{l_{pl,\textbf{G}}}(t = 0) = \vect{l_{d,\textbf{G}}} + \vect{l_{fading,\textbf{G}}}(t) =
     \begin{bmatrix}
-        90.61\\
+        93.39\\
         87.734\\
         98.17\\
         78.163\\
