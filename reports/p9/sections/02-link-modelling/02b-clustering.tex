@@ -31,7 +31,7 @@ Our chosen metric space is $\mathbb{R}^2$ using Euclidean distance.
 \subsubsection{Problem Statement}
 
 %A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with parameters $\varepsilon$. The goal is to find a subset of clusters, such that the maximum angle between any node to nodes in the cluster is minimised. 
-A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter $k$, $k \leq |\textbf{N}|$. Initially, the set $\textbf{N}$ is a set of clusters, each containing a single node. The goal is to find a set of clusters, such that we can reduce the computational time required for computing the link model, while minimising the loss of precision in the stochastic shadow fading part. We minimise the loss of precision by minimising the difference of the correlation ($\Delta\theta$) between links to any node in a cluster, to the centroid of the cluster. The centroid of a cluster $x$ is defined as $cent(x) = \sum\limits_{n \in x} n \div |x|$. \smallbreak
+A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter $k$, $k \leq |\textbf{N}|$. Initially, the set $\textbf{N}$ is a set of clusters, each containing a single node. The goal is to find a set of clusters, such that the computation time required for computing the link model can be reduced, while minimising the loss of precision in the stochastic shadow fading part. We minimise the loss of precision by minimising the difference of the correlation ($\Delta\theta$) between links to any node in a cluster, to the centroid of the cluster. The centroid of a cluster $x$ is defined as $cent(x) = \sum\limits_{n \in x} n \div |x|$. \smallbreak
 %
 The problem is defined as follows:\bigbreak
 
@@ -89,6 +89,18 @@ For a metric space $(\mathcal{X}, d)$,
     \caption{Minimising the difference of the correlation ($\Delta\theta$) between links to nodes in a cluster to the centroid of the cluster.}
     \label{figure:clusteringgoal}
 \end{figure}
+
+
+\subsubsection{Clustering algorithm choice}\label{sec:clustering:choice}
+In the paper~\cite{proceeding:clustering-Survey} the authors conduct a survey on density based clustering algorithms, giving an overview on existing algorithms. As mentioned above, we want the clustering to minimise $\Delta\theta$ between nodes. This is done be clustering nodes that are relative close to each other, to ensure that the clusters radius will not become to large. The algorithm needs to handle variable shaped clusters, variable densities and handle noise (outliers) which is nodes that was not added to a cluster.
+
+The \gls{dbscan} is a widely used algorithm, but does not give results with variable densities. The \gls{vdbscan} is a variation of the \gls{dbscan} that fixes the problem with variable densities, and even automatically finds the parameters normally needed when running the algorithm. This however does not make it possible, to more aggressively specify the density threshold. The \gls{vdbscan}'s found optimal parameters, might not create the desired small clusters that is needed according to our clustering problem statement.\smallbreak
+
+% The paper mainly presents \gls{dbscan} and specialised variations, as it is a widely used algorithm for clustering based on density. \gls{dbscan} has the flaw that it does not handle variable dense densities, which is a requirement for our case. Most of the specialised variations has that same flaw, as speed is often the main focus of the specialisation.
+
+\gls{optics} however can handle variable densities although slower than \gls{dbscan}. The complexity of \gls{optics} is O$(n^2)$, but if implemented with a spatial index has the complexity of O$(n\log n)$. As such we choose to use the \gls{optics} algorithm.
+
+
 
 \subsubsection{Approximation using OPTICS}
 We have chosen a greedy approach using the \gls{optics} algorithm~\cite{Ankerst:1999:OOP:304182.304187} to approximate solutions for our clustering problem. \gls{optics} is an algorithm for finding density-based clusters, and the run-time of the algorithm is O($n \ \cdot $ run-time of a neighbourhood query)~\cite[p.~53]{Ankerst:1999:OOP:304182.304187}. \smallbreak
@@ -221,6 +233,7 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
 %     \caption{Computation time measurement for NearPD and Cholesky decomposition.}
 %     \label{table:clusteringtime}
 % \end{table}
+
 
 
 \subsubsection{Experiments}\label{sec:clustering:experiments}
