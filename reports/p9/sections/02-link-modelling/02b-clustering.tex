@@ -96,7 +96,6 @@ In the paper~\cite{proceeding:clustering-Survey} the authors conduct a survey on
 
 The \gls{dbscan} is a widely used algorithm, but does not give results with variable densities. The \gls{vdbscan} is a variation of the \gls{dbscan} that fixes the problem with variable densities, and even automatically finds the parameters normally needed when running the algorithm. This however does not make it possible, to more aggressively specify the density threshold. The \gls{vdbscan}'s found optimal parameters, might not create the desired small clusters that is needed according to our clustering problem statement.\smallbreak
 
-% The paper mainly presents \gls{dbscan} and specialised variations, as it is a widely used algorithm for clustering based on density. \gls{dbscan} has the flaw that it does not handle variable dense densities, which is a requirement for our case. Most of the specialised variations has that same flaw, as speed is often the main focus of the specialisation.
 
 \gls{optics} however can handle variable densities although slower than \gls{dbscan}. The complexity of \gls{optics} is O$(n^2)$, but if implemented with a spatial index has the complexity of O$(n\log n)$. As such we choose to use the \gls{optics} algorithm.
 

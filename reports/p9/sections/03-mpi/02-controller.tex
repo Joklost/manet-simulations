@@ -10,18 +10,44 @@ After processing the message, we compute the minimum local time of all the nodes
 
 The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) contains a pseudo code description of the packet error probability from \autoref{sec:pep}. \medbreak
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/controller_sequence.png}
+    \caption{A sequence diagram showing an example communication flow between three nodes and the controller.}
+    \label{figure:mpi:controller:sequence-example}
+\end{figure}
+
+\autoref{figure:mpi:controller:sequence-example} shows a UML sequence diagram of a simple communication example between three nodes and the controller. The example scenario is as follows:
+
+% The participants are the entities in the sequence, which in this case is Node1, Node2, Node3 and Controller. An participant is \doublequote{active} when there is a block on their lifeline (the dotted line going downwards). If the participant is not active, it means the participant is not participating anymore, but is not blocked in participating again at a later point in time. An arrow signifies a message. A dotted arrow signifies a response. In this diagram all messages are asynchronous, which can be seen by the fact that the arrow heads are not solid. If the heads where solid, the message would be synchronous.
+
+
+\begin{enumerate}
+    \item[1] All participants initialise.
+    \item[2] Node1 will \texttt{Sleep} for 5 seconds.
+    \item[3] Node2 and Node3 \texttt{Listen} for 10 seconds.
+    \item[4] Node1 will \texttt{Broadcast} a packet \textit{p}, and de-initialises.
+    \item[5] Node2 and Node3 receives the packet \textit{p} and de-initialises.
+    \item[6] The Controller de-initialises.
+\end{enumerate}
+
+
+
+
+
+
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FController}{Controller}
     \SetKwProg{Fn}{procedure}{}{}
-    
+
     \textbf{Structure} Message \{ action, source, localtime, duration, data \}\;
     \textbf{Structure} Transmission \{ source, start, end, data \}\;
     \textbf{Structure} Listen \{ source, start, end \}\;
     \textbf{Structure} Node \{ localtime \}\; % location
     \;
-    
-    \Fn{\FController{}}{   
+
+    \Fn{\FController{}}{
         transmissions $\leftarrow$ empty Transmission list\;
         listens $\leftarrow$ empty Listen list\;
         nodes $\leftarrow$ map containing all nodes with id as key\;
@@ -60,8 +86,8 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
                     }
                 }
 
-                \Send $|$packets$|$ \To l.id\; \label{line:sendcount}                   
-                
+                \Send $|$packets$|$ \To l.id\; \label{line:sendcount}
+
                 \ForEach{p $\in$ packets}{ \label{line:sendpackets}
                     \Send p \To l.id\;
                 }
@@ -92,7 +118,7 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
     \KwResult{True if the transmission should be received.}
     \SetKwFunction{FShouldReceive}{ShouldReceive}
     \SetKwProg{Fn}{Function}{}{}
-    
+
     \Fn{\FShouldReceive{n$_r$, m$_t$, transmissions, packetsize}}{
         \tcp{Compute the packet error probability.}
         $P_{I}$ $\leftarrow$ 0\;
@@ -102,8 +128,8 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
                 \Continue\;
             }
 
-            
-            
+
+
             % P$_{I}$ $\leftarrow$ P$_{I,dB}$ + $10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}}$ \;
         }
 
@@ -152,20 +178,20 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
 % \begin{algorithm}[ht]
 %     \DontPrintSemicolon
 %     \SetAlgorithmName{Data Structure}{Data Structure}
-    
+
 %     \textbf{Structure} Message \{ action, source, localtime, duration, data \}\;
 %     \textbf{Structure} Transmission \{ source, start, end, data \}\;
 %     \textbf{Structure} Listen \{ source, start, end, processed \}\;
 %     \textbf{Structure} Node \{ localtime \}\; % location
 %     \;
-    
+
 %     queue $\leftarrow$ empty Message queue\;
 %     transmissions $\leftarrow$ empty Transmission list\;
 %     listens $\leftarrow$ empty Listen list\;
 
 %     nodes $\leftarrow$ map containing all nodes with id as key\;
 %     %transmissions $\leftarrow$ empty map\;
- 
+
 %     \caption{The shared state variables and structures used by the controller.}
 %     \label{algo:mpisharedstate}
 % \end{algorithm}
@@ -200,9 +226,9 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
 %                nodes(m.source).time $\leftarrow$ nodes(m.source).time + m.time\;
 %                nodes(m.source).state $\leftarrow$ sleeping\;
 %            }
-            %\ElseIf{m.action = location}{
-            %    nodes(m.source).location $\leftarrow$ m.data as location\;
-            %}
+%\ElseIf{m.action = location}{
+%    nodes(m.source).location $\leftarrow$ m.data as location\;
+%}
 %        }
 %    }
 %    \caption{The MessageHandler procedure.}
@@ -223,25 +249,25 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
 %     \DontPrintSemicolon
 %     \SetKwFunction{FProcessor}{Controller}
 %     \SetKwProg{Fn}{procedure}{}{}
-    
+
 %     \Fn{\FProcessor{}}{
 %         \Repeat{\textit{protocol terminates}}{
 %             \Await every node $\in$ nodes, where node.time $>$ currenttime\;\label{line:awaitprocess}
-            
+
 %             currenttime $\leftarrow$ currenttime + 1\;
-        
+
 %             \ForEach{node $\in$ nodes}{
 %                 \If{node.state = transmitting}{
 %                     %m $\leftarrow$ Message\;
 %                     %m.action $\leftarrow$ transmit\;
 %                     data $\leftarrow$ transmissions(node.id)\;
-                    
+
 %                     \ForEach{neighbour $\in$ neighbours(node)}{
 %                         \If{neighbour.state = listening \And shouldreceive(neighbour)}{
 %                             \Append data \KwTo neighbour.packets\;
 %                         }
 %                     }
-                    
+
 %                     \Remove transmissions(node.id)\;
 %                     \Send ack \KwTo node.id\;
 %                 }
@@ -249,24 +275,24 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
 %                     \Send wakeup \KwTo node.id\;
 %                 }
 %             }
-            
+
 %             \ForEach{node $\in$ nodes}{
 %                 \If{node.state = listening \And node.time = currenttime}{
 %                     \Send $|$node.packets$|$ \KwTo node.id\;                
 %                     \ForEach{packet $\in$ node.packets}{
 %                         \Send packet \KwTo node.id\;
 %                     }
-                    
+
 %                     \Clear node.packets\;
 %                 }
 %             }
-        
+
 %         }
 %     }
-    
+
 %     \caption{The Controller procedure.}
 %     \label{algo:mpicontrollerpart}
 % \end{algorithm}
 
-
 \todo[inline]{add message sequence chart showing an example of this in use}
+
