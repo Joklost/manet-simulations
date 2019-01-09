@@ -8,7 +8,7 @@ If the request is a transmit request (\autoref{line:action-transmit}), we add th
 
 After processing the message, we compute the minimum local time of all the nodes stored in the nodes variable on \autoref{line:controllertime}. The controllertime is used to check whether we are ready to process any of the listen requests stored in the listens variable. We iterate through these on \autoref{line:iterlistens} and check if the end of the listen interval is greater than the minimum local time computed earlier. If this is the case, or if the listen request has already been processed, we continue iterating through the list. Otherwise, we begin iterating each transmission request stored in the transmissions list on \autoref{line:itertransmissions}, and if the transmission interval is within the current listen interval (\autoref{line:iswithin}), we check if the packet should be received by the listening node by calling the \texttt{ShouldReceive} function, and if yes, we add the packet to the list of packets to be sent to the listening node. We send the packets to the listening node on \autoref{line:sendpackets}.\medbreak
 
-The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) contains a pseudo code description of the packet error probability from \autoref{sec:pep}. \medbreak
+The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) contains a pseudo code description of how to use the the packet error probability function from \autoref{sec:pep}, and define the set of transmissions happening at the same moment ($nodes_t$). \medbreak
 
 \begin{figure}[H]
     \centering
@@ -71,7 +71,7 @@ After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and s
                     }
 
                     \If{t.start $\geq$ l.start \And t.end $\leq$ l.end}{ \label{line:iswithin}
-                        \If{\texttt{ShouldReceive}(l.id, t.id, transmissions, |t.data|)}{ \label{line:shouldreceive}
+                        \If{\texttt{ShouldReceive}(l, t, transmissions, |t.data|)}{ \label{line:shouldreceive}
                             \Append t.data \To packets\;
                         }
                     }
@@ -103,44 +103,26 @@ After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and s
     \caption{The Controller procedure.}
     \label{algo:mpicontroller}
 \end{algorithm}
-\todo[inline]{fix according to feedback}
+
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \KwResult{True if the transmission should be received.}
     \SetKwFunction{FShouldReceive}{ShouldReceive}
     \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FShouldReceive{l, t, transmissions, packetsize}}{
+        $n_r \leftarrow$ l.id\;
+        $n_t \leftarrow$ t.id\;
+        $nodes_t \leftarrow$ empty Transmission list\;
 
-    \Fn{\FShouldReceive{n$_r$, m$_t$, transmissions, packetsize}}{
-        \tcp{Compute the packet error probability.}
-        $P_{I}$ $\leftarrow$ 0\;
-
-        \ForEach{t $\in$ transmissions}{
-            \If{t.source = m$_t$}{
-                \Continue\;
+        \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
+            \If{t.end $>$ t$^\prime$.start \And t.start $<$ t$^\prime$.end}{
+                \Append t$^\prime$ \To nodes$_t$\;
             }
-
-
-
-            % P$_{I}$ $\leftarrow$ P$_{I,dB}$ + $10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}}$ \;
         }
 
-        %\leftarrow link\_model()
-
-        $P_p(\text{n}_r, \text{m}_t, ) $
-        % \tcp{$P_{N,dB}$ is the noise power from \autoref{sec:pep}.}
-        % $P_{N}$ $\leftarrow$ $10^{\frac{P_{N,dB}}{10}}$\;
-        % $P_{NI,db}$ $\leftarrow$ $10 \log_{10}(P_N + P_I)$\;
-        % $\gamma_{dB}$ $\leftarrow$ $RSSI_{dBm}(n_{r}, m_{t}) - P_{NI,db}$\;
-        % $\gamma$ $\leftarrow$ $10^{\frac{\gamma_{dB}}{10}}$\;
-        % $P_b$ $\leftarrow$ $\frac{1}{2} \cdot \text{erfc}(\sqrt{\frac{\gamma}{2}})$\;
-        % $P_p$ $\leftarrow$ $1 - (1 - P_b)^{\text{packetsize}}$\;
-
-        %$P_{NI,db} = 10 \log_{10}\left( 10^{\frac{P_{N,dB}}{10}} + \mathlarger{\sum}\limits_{m \in nodes_t}  10^{\frac{RSSI_{dBm}(n_{r}, m)}{10}} [m \neq m_{t}] \right) $\;
-        \If{$P_p$ = 0.0}{
-            \KwRet true\;
-        }
-
-        should-receive $\leftarrow$ randomly choose based on the packet error probability $P_p$\;
+        probability $\leftarrow$ $P_p(\text{n}_r, \text{m}_t, \text{nodes}_t, \text{packetsize})$
+        should-receive $\leftarrow$ randomly choose based on probability\;
         \KwRet should-receive\;
     }
 

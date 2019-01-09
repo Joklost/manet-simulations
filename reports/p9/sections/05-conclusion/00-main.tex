@@ -1,7 +1,33 @@
 \chapter{Conclusion}\label{ch:conclusion}
+% Set the scene
+%A \gls{manet} is a decentralised wireless network that require no pre-existing infrastructure, such as routers or access points~\cite{inproceedings:routingsurvery}. Instead, each node in the ad-hoc network are battery powered, and communicates directly with each-other using radio. Due to this, \gls{manet}s rely on wireless networking protocols to provide energy efficient communication in the network. Because of the ad-hoc nature of \gls{manet}s, common applications consist of enabling communication in emergency situations such as natural disasters, or for military conflicts.\smallbreak
+
+% Outline the goal
+%The goal of this project is to simulate wireless network protocols for communication in a mobile setting. Ideally the capabilities of a wireless network protocol are tested in a real-life scenario, using physical devices for radio communication. This poses interesting challenges such as scalability, and repeatability. Scaling a real-life test requires a significant amount of effort and investment of both money and time, and repeating the same test over and over becomes near impossible, the larger the scale. Our goal is to be able to perform repeatable experiments in a control topology environment with up to 1000 devices, faster than a real-life scenario.\smallbreak
+
+%Our project proposes a C++ library for writing, and running, simulations of the network protocol behind the mesh communication in a \gls{manet}, using state-of-the-art modelling of link \gls{pathloss} behind the wireless communication, to simulate packet loss and collisions caused by interfering transmitters, where the physical devices, and the communication between these, are emulated entirely using software. With our library, it is be possible to write a C++ implementation of communication protocols, such as \gls{lmac}~\cite{paper:lmac_protocol} or Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920}, using a simple interface header file resembling a traditional hardware interface, and perform simulations with these, where each physical device is emulated in real-time by different CPUs on the MCC compute cluster at AAU~\cite{website:mccaau}. \smallbreak
+
+% Outline contributions
+%The primary contribution of this project is the centralised controller that facilitate wireless communication between the emulated physical devices. The centralised controller allow us to simulate wireless communication in virtual time, where the controller is able to skip periods of inactivity, reducing the time required to run real-time simulations. In addition to the centralised controller, we suggest two methods for optimising the computational time required for computing the link \gls{pathloss}, as this poses a significant scalability challenge.
+In this report, we lay the groundwork for a C++ library for writing, and running, simulations of the network protocols behind the mesh communication in a \gls{manet}. We simulate radio communication between emulated devices, where we simulate packet errors and collisions, by using a state-of-the-art modelling of link \gls{pathloss}~\cite{paper:linkmodel}, accounting for both link distance and correlation between links. \smallbreak
+
+The library consist of three parts: A hardware interface header file, used for writing wireless network protocols, emulating the physical part of the devices in a \gls{manet}, a centralised controller facilitating communication between the emulated devices, as well as speeding up the time required to run the simulations by introducing virtual time, and finally, the link model, enabling us to simulate wireless radio communication, packet errors and collisions caused by interfering transmissions.\smallbreak
+
+Our primary contribution is the centralised controller and the 
+
+We show in \autoref{ch:experiments} how the library can be used to simulate the Slotted ALOHA protocol, running hours worth of simulations in just XXXX, with the ability of repeatedly running the simulation with different parameters.\smallbreak
+
+% Cholesky optimisations
+
+\section{Future Work}\label{sec:futurework}
+Computing the link model still poses a significant scalability challenge, and in general, scaling the library to reach our goal of running repeatable simulations with up to 1000 devices, will prove to be an interesting task in the future.\smallbreak
+
+We want to implement, and experiment with, more advanced networking protocols such as the \gls{lmac} protocol~\cite{paper:lmac_protocol}. The Slotted ALOHA protocol is incredibly simple, and the random selection of broadcasting time slot is a good way for us to test the link model, as the protocol has a high probability of multiple nodes broadcasting at the same time, producing collisions.\smallbreak
+
+We need to prove the correctness of the centralised controller. We introduce virtual time but to ensure that the controller works correctly, such that we do not miss any transmissions or receive transmissions that happened in the past, we need to formally prove this.\smallbreak
+
+Additionally, we also need to quantify how well the clustering approximation from \autoref{sec:clustering} works. We claim that we should be able to minimise the loss of precision when minimising the difference in correlation between links before and after clustering, but we need to quantify exactly how much precision we lose, when clustering the topology before computing the link model.
 
 % Recapitulates the problem and the contribution.
 % Assess the significance of the contribution.
 % Suggests and outlines future work, open problems, etc.
-
-\input{sections/05-conclusion/01-futurework.tex}

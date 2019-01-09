@@ -13,7 +13,7 @@ Recall that in \autoref{sec:linkmodel}, we use the location of the nodes to comp
 %This creates time spans with unused resources in a simulation. To avoid this, the framework introduces virtual time. When the controller finds a time span where no node in the network is transmitting or listening, it means all nodes are either sleeping or doing some computations locally. This means that time can be forwarded to the next point in time where something will happen. This both ensures that resources will not go unused and has the potential to drastically speed up the simulations.
 
 \subsection{Hardware Functions}\label{sec:hwfuncspseudo}
-The hardware functions listed in this section depend on the following shared state: \smallbreak
+The hardware functions listed in this section depend on the following local state. The local state is unique for each node.\smallbreak
 
 clock $\leftarrow$ \Now
 
@@ -42,7 +42,7 @@ id $\leftarrow$ unique identifier
 %    \label{algo:protocolsharedstate}
 %\end{algorithm}
 
-The shared state for the hardware functions consist of three variables: clock, localtime, and id. The clock variable is used to measure the real-time spent by the node between calls to the hardware function. The localtime variable is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:mpi:time}). Finally, the id variable is a unique identifier assigned to each particular node. A common element for all of the hardware functions is that we initially update the localtime variable with the elapsed time since the clock variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The clock variable is reset at the end of all of the functions.\medbreak
+The local state for the hardware functions consist of three variables: clock, localtime, and id. The clock variable is used to measure the real-time spent by the node between calls to the hardware function. The localtime variable is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:mpi:time}). Finally, the id variable is a unique identifier assigned to each particular node. A common element for all of the hardware functions is that we initially update the localtime variable with the elapsed time since the clock variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The clock variable is reset at the end of all of the functions.\medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
