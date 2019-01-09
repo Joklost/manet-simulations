@@ -17,22 +17,13 @@ The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) con
     \label{figure:mpi:controller:sequence-example}
 \end{figure}
 
-\autoref{figure:mpi:controller:sequence-example} shows a UML sequence diagram of a simple communication example between three nodes and the controller. The example scenario is as follows:
+\autoref{figure:mpi:controller:sequence-example} shows a \gls{uml} sequence diagram of a simple communication example between three nodes and the controller. The example is meant to show how the nodes local time \textit{L} is continuously updated. The example scenario is as follows:
 
 % The participants are the entities in the sequence, which in this case is Node1, Node2, Node3 and Controller. An participant is \doublequote{active} when there is a block on their lifeline (the dotted line going downwards). If the participant is not active, it means the participant is not participating anymore, but is not blocked in participating again at a later point in time. An arrow signifies a message. A dotted arrow signifies a response. In this diagram all messages are asynchronous, which can be seen by the fact that the arrow heads are not solid. If the heads where solid, the message would be synchronous.
 
+All the nodes will initialise with their local time $L = 0$. All \texttt{Broadcast()} calls take two seconds.\smallbreak
 
-\begin{enumerate}
-    \item[1] All participants initialise.
-    \item[2] Node1 will \texttt{Sleep} for 5 seconds.
-    \item[3] Node2 and Node3 \texttt{Listen} for 10 seconds.
-    \item[4] Node1 will \texttt{Broadcast} a packet \textit{p}, and de-initialises.
-    \item[5] Node2 and Node3 receives the packet \textit{p} and de-initialises.
-    \item[6] The Controller de-initialises.
-\end{enumerate}
-
-
-
+After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and set its $L = 5$. Node2 and Node3 will listen for 10 seconds. When Node1 has finished sleeping, it calls \texttt{Broadcast(Packet p1)} to broadcast a packet and update its $L = 7$. Node1 then sleeps for three seconds and update $L = 10$. Since the virtual time is now at 10, Node2 and Node3 will receive packet \textit{p}, that was broadcast earlier. Both Node2 and Node3 will set their $L = 10$. Node2 then calls \texttt{Sleep(5s)} to sleep for five seconds and sets $L = 15$. Node3 Broadcasts a packet \textit{p2}, and sets $L = 12$. Node3 then proceeds to sleep for three seconds with its $L = 15$. Since the time is now at 15, Node1 receives the packet \textit{p2} and update $L = 15$.
 
 
 
