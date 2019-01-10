@@ -13,7 +13,9 @@ In this report, we lay the groundwork for a C++ library for writing, and running
 
 The library consist of three parts: A hardware interface header file, used for writing wireless network protocols, emulating the physical part of the devices in a \gls{manet}, a centralised controller facilitating communication between the emulated devices, as well as speeding up the time required to run the simulations by introducing virtual time, and finally, the link model, enabling us to simulate wireless radio communication, packet errors and collisions caused by interfering transmissions.\smallbreak
 
-Our primary contribution is the centralised controller and the 
+Computing the link model is expensive, and as such methods to decrease the computation time has been implemented. The first method is using density based clustering, to decrease the amount of nodes thereby reducing the total amounts of computations needed to compute the link model. The second method is to introduce a distance threshold, that limits the maximum length of link, between two nodes. Thereby remove links, where the probability of receiving a packet successfully was not worth computing.\smallbreak
+
+Our primary contribution is the centralised controller and the improvements to the link model computation.
 
 We show in \autoref{ch:experiments} how the library can be used to simulate the Slotted ALOHA protocol, running hours worth of simulations in just XXXX, with the ability of repeatedly running the simulation with different parameters.\smallbreak
 
