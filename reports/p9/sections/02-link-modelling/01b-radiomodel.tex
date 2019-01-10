@@ -43,11 +43,6 @@ We use this to compute the bit error probability $P_b$:
 \end{eq}
 
 which we finally can use to compute the packet error probability $P_p$. The packet error probability is the probability that we experience a bit error for any of the bits in our packet, during transmission.
-
-%\begin{eq}
-%    P_b = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{\gamma}{2} \right)} \right)
-%\end{eq}
-
 \begin{eq}
     P_p(n_r, m_t, nodes_t, packetsize) = 1 - \left( 1 - P_b(n_r, m_t, nodes_t) \right) ^{packetsize}
 \end{eq}
@@ -69,30 +64,22 @@ In \autoref{sec:linkmodel}, we computed the link model for a sample network topo
 \end{eq}
 
 If we assume that $n_2$ is currently listening, and the currently transmitting nodes $nodes_t = \{n_1, n_4\}$. What is the probability for packet error on the link between nodes $n_2$ and $n_1$ with interference from node $n_4$? First, we compute the noise power $P_{NI,db}$, according to \autoref{eq:noisepower}:
-
-%\begin{eq}
-%    P_{NI,db}(n_2, n_4) = 10 \log_{10}\left( 10^{\frac{(-119.66 + 4.2)}{10}} + \mathlarger{\sum}\limits_{m \in {n_1, n_3, n_4}}  10^{\frac{RSSI_{dBm}(n_{2}, m)}{10}} [m \neq n_{4}] \right) 
-%\end{eq}
-
 \begin{eq}
     P_{NI,db}(n_2, n_1, nodes_t) = 10 \log_{10}\left( 10^{\frac{(-119.66 + 4.2)}{10}} + 10^{\frac{-74.042}{10}} \right) = -74.041
     %\mathlarger{\sum}\limits_{m \in {n_1, n_3}}  10^{\frac{RSSI_{dBm}(n_{2}, m)}{10}} [m \neq n_{4}] \right) 
 \end{eq}
 
 We subtract the noise power $P_{NI,db}$ from the \gls{rssi} to get the signal to noise (and interference) ratio $\gamma_{dB}$:
-
 \begin{eq}
     \gamma_{dB}(n_2, n_1, nodes_t) = -67.390 - (-74.041) = 6.651
 \end{eq}
 
 With which we can compute the bit error probability:
-
 \begin{eq}
     P_b(n_2, n_1, nodes_t) = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{6.651}{10}}}{2} \right)} \right) = 0.000536
 \end{eq}
 
 Finally we can compute the packet error probability using the bit error probability:
-
 \begin{eq}
     P_p(n_2, n_1, nodes_t, packetsize) = 1 - \left( 1 - 0.000536 \right) ^{160} = 0.082
 \end{eq}

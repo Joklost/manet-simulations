@@ -1,7 +1,9 @@
 \section{Link Model Computer}\label{sec:mpi:lmc}
 % intro
-To continuously compute the link model, we introduce the \gls{lmc}. The \gls{lmc} will be responsible for computing the link model and making it readily available for the centralised controller. We introduce a separate compute node, whose only task is to compute the link model, in order to offload work from the controller.
-\todo[inline]{WIP, finish}
+
+
+
+
 %In \autoref{sec:mpinodelocation} we mentioned that the location of all nodes should be known by the controller, 
 
 %The reason for introducing a separate compute node, dedicated to the link model, is to offload the controller. Both handling packets transmission, synchronising time and computing the link model is too much responsibility for a single node. Offloading also allows for simplifying the logic in the controller.

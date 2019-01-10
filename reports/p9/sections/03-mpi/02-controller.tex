@@ -1,6 +1,7 @@
+\newpage
 \section{Centralised Controller}\label{sec:mpicontroller}
 
-To facilitate communication between nodes using the hardware interface, we introduce a centralised controller. The centralised controller works by gathering requests (broadcasting, listening, or sleeping) from all nodes and processing these.\medbreak
+To facilitate communication between nodes using the hardware interface, we introduce a centralised controller. The centralised controller works by gathering requests (broadcasting, listening, or sleeping) from all nodes and processing these. The pseudo code description of the controller can be seen in \autoref{algo:mpicontroller}.\medbreak
 
 The controller works by continuously awaiting requests from any of the nodes in the network on \autoref{line:action-await}. A call of any of the hardware functions described in \autoref{sec:mpiprotocol} will result in a message arriving at the controller. Whenever a message has been received, the controller will update the local time of the sending node in the nodes variable on \autoref{line:action-updatelocaltime}. We keep track of the currently known local times for all nodes in order to know when we are ready to process listen requests. \smallbreak
 
@@ -8,23 +9,34 @@ If the request is a transmit request (\autoref{line:action-transmit}), we add th
 
 After processing the message, we compute the minimum local time of all the nodes stored in the nodes variable on \autoref{line:controllertime}. The controllertime is used to check whether we are ready to process any of the listen requests stored in the listens variable. We iterate through these on \autoref{line:iterlistens} and check if the end of the listen interval is greater than the minimum local time computed earlier. If this is the case, or if the listen request has already been processed, we continue iterating through the list. Otherwise, we begin iterating each transmission request stored in the transmissions list on \autoref{line:itertransmissions}, and if the transmission interval is within the current listen interval (\autoref{line:iswithin}), we check if the packet should be received by the listening node by calling the \texttt{ShouldReceive} function, and if yes, we add the packet to the list of packets to be sent to the listening node. We send the packets to the listening node on \autoref{line:sendpackets}.\medbreak
 
-The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) contains a pseudo code description of how to use the the packet error probability function from \autoref{sec:pep}, and define the set of transmissions happening at the same moment ($nodes_t$). \medbreak
+The \texttt{ShouldReceive} function (\autoref{algo:controllershouldreceive}) contains a pseudo code description of how we can use the packet error probability function from \autoref{sec:pep}, and defines the set of transmissions happening at the same moment ($nodes_t$). \medbreak
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.6\textwidth]{figures/controller_sequence.png}
-    \caption{A sequence diagram showing an example communication flow between three nodes and the controller.}
-    \label{figure:mpi:controller:sequence-example}
-\end{figure}
 
-\autoref{figure:mpi:controller:sequence-example} shows a \gls{uml} sequence diagram of a simple communication example between three nodes and the controller. The example is meant to show how the nodes local time \textit{L} is continuously updated. The example scenario is as follows:
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{True if the transmission should be received.}
+    \SetKwFunction{FShouldReceive}{ShouldReceive}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FShouldReceive{l, t, transmissions, packetsize}}{
+        $n_r \leftarrow$ l.id\;
+        $n_t \leftarrow$ t.id\;
+        $nodes_t \leftarrow$ empty Transmission list\;
 
-% The participants are the entities in the sequence, which in this case is Node1, Node2, Node3 and Controller. An participant is \doublequote{active} when there is a block on their lifeline (the dotted line going downwards). If the participant is not active, it means the participant is not participating anymore, but is not blocked in participating again at a later point in time. An arrow signifies a message. A dotted arrow signifies a response. In this diagram all messages are asynchronous, which can be seen by the fact that the arrow heads are not solid. If the heads where solid, the message would be synchronous.
+        \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
+            \If{t.end $>$ t$^\prime$.start \And t.start $<$ t$^\prime$.end}{
+                \Append t$^\prime$ \To nodes$_t$\;
+            }
+        }
 
-All the nodes will initialise with their local time $L = 0$. All \texttt{Broadcast()} calls take two seconds.\smallbreak
+        probability $\leftarrow$ $P_p(\text{n}_r, \text{m}_t, \text{nodes}_t, \text{packetsize})$\;
+        should-receive $\leftarrow$ randomly choose based on probability\;
+        \KwRet should-receive\;
+    }
 
-After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and set its $L = 5$. Node2 and Node3 will listen for 10 seconds. When Node1 has finished sleeping, it calls \texttt{Broadcast(Packet p1)} to broadcast a packet and update its $L = 7$. Node1 then sleeps for three seconds and update $L = 10$. Since the virtual time is now at 10, Node2 and Node3 will receive packet \textit{p}, that was broadcast earlier. Both Node2 and Node3 will set their $L = 10$. Node2 then calls \texttt{Sleep(5s)} to sleep for five seconds and sets $L = 15$. Node3 Broadcasts a packet \textit{p2}, and sets $L = 12$. Node3 then proceeds to sleep for three seconds with its $L = 15$. Since the time is now at 15, Node1 receives the packet \textit{p2} and update $L = 15$.
-
+    \caption{The \texttt{ShouldReceive} Function.}
+    \label{algo:controllershouldreceive}
+\end{algorithm}
 
 
 \begin{algorithm}[H]
@@ -48,11 +60,11 @@ After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and s
             nodes(m.source).localtime $\leftarrow$ m.localtime + m.duration\; \label{line:action-updatelocaltime}
 
             \If{m.action = transmit}{ \label{line:action-transmit}
-                t $\leftarrow$ \{ m.source, m.localtime, m.localtime $+$ m.duration, m.data \}\;
+                t $\leftarrow$ Transmission \{ m.source, m.localtime, m.localtime $+$ m.duration, m.data \}\;
                 \Append t \KwTo transmissions\;
             }
             \ElseIf{m.action = listen}{ \label{line:action-listen}
-                l $\leftarrow$ \{ m.source, m.localtime, m.localtime $+$ m.duration \}\;
+                l $\leftarrow$ Listen \{ m.source, m.localtime, m.localtime $+$ m.duration \}\;
                 \Append l \KwTo listens\;
             }
 
@@ -100,43 +112,18 @@ After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and s
 
         }
     }
-    \caption{The Controller procedure.}
+    \caption{The \texttt{Controller} procedure.}
     \label{algo:mpicontroller}
 \end{algorithm}
 
-\begin{algorithm}[ht]
-    \DontPrintSemicolon
-    \KwResult{True if the transmission should be received.}
-    \SetKwFunction{FShouldReceive}{ShouldReceive}
-    \SetKwProg{Fn}{Function}{}{}
-    
-    \Fn{\FShouldReceive{l, t, transmissions, packetsize}}{
-        $n_r \leftarrow$ l.id\;
-        $n_t \leftarrow$ t.id\;
-        $nodes_t \leftarrow$ empty Transmission list\;
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/controller_sequence.png}
+    \caption{A sequence diagram showing an example communication flow between three nodes and the controller.}
+    \label{figure:mpi:controller:sequence-example}
+\end{figure}
 
-        \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
-            \If{t.end $>$ t$^\prime$.start \And t.start $<$ t$^\prime$.end}{
-                \Append t$^\prime$ \To nodes$_t$\;
-            }
-        }
-
-        probability $\leftarrow$ $P_p(\text{n}_r, \text{m}_t, \text{nodes}_t, \text{packetsize})$
-        should-receive $\leftarrow$ randomly choose based on probability\;
-        \KwRet should-receive\;
-    }
-
-    \caption{The \texttt{ShouldReceive} Function.}
-    \label{algo:controllershouldreceive}
-\end{algorithm}
-
-
-
-
-
-
-
-
+In \autoref{figure:mpi:controller:sequence-example}, we show a sample communication flow between three nodes and the centralised controller. The example is meant to show how the local time (L) of the nodes is continuously updated through the use of virtual time. For this example, we assume that a broadcast has a duration of two seconds, and the local time is initially $\text{L} = 0$. The figure demonstrates that whenever a node sleeps or broadcasts, the local time of the node is updated instantaneously, but when the node listens, its local time is updated only after receiving any packets transmitted within the listen interval. 
 
 
 
@@ -266,6 +253,3 @@ After Node1 calls \texttt{Sleep(5s)}, the node will sleep for five seconds and s
 %     \caption{The Controller procedure.}
 %     \label{algo:mpicontrollerpart}
 % \end{algorithm}
-
-\todo[inline]{add message sequence chart showing an example of this in use}
-

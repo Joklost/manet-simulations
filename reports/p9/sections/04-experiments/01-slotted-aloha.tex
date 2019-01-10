@@ -1,27 +1,36 @@
 
 \section{Slotted ALOHA}\label{sec:saloha}
-\todo[inline]{Make sure code is up to date!}
-%In this section we will present an implementation of the Slotted ALOHA protocol~\cite{Roberts:1975:APS:1024916.1024920}, using the hardware interface from \autoref{sec:hardwareinterface}. 
-Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, that enable communication between nodes in a wireless network, by randomly selecting a time slot to transmit, while listening in every other time slot. Pseudo code describing the Slotted ALOHA protocol can be seen in \autoref{algo:slottedaloha}. This method of selecting time slots for transmitting will have a high probability of collisions happening, where multiple nodes transmit at the same time, which make this protocol an ideal candidate for simulating collisions and packet loss.\medbreak
+Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, that enable communication between nodes in a wireless network, by randomly selecting a time slot to transmit, while listening in every other time slot. This method of selecting time slots for transmitting will have a high probability of collisions happening, where multiple nodes transmit at the same time, which make this protocol an ideal candidate for simulating collisions and packet loss. 
 
 %An important part of any \gls{tdma} protocol is that only a single node should transmit at a given timeslot, otherwise collisions will occur. Thus, the Slotted ALOHA protocol is a good choice for 
 % TODO: Add number of arguments as parameter
 \begin{algorithm}[ht]
     \DontPrintSemicolon
-    \SetKwFunction{FSlottedALOHA}{Slotted ALOHA}
+    \SetKwFunction{FSlottedALOHA}{SlottedALOHA}
     \SetKwProg{Fn}{procedure}{}{}
 
     \Fn{\FSlottedALOHA{S}}{
-        \Repeat{\textit{protocol terminates}}{
+        secret $\leftarrow$ a single node picks a secret message\;
+
+        \Repeat{\textit{for 1 hour}}{
+
             selected $\leftarrow$ randomly select a slot $\in$ {1, 2, \dots, S}\;
 
             \ForEach{current $\in$ {1, 2, \dots, S}}{
                 \If{select = current}{
-                    duration $\leftarrow$ Broadcast(select)\;
-                    Sleep(200us - duration)\;
+                    \If{node knows secret}{
+                        duration $\leftarrow$ \texttt{Broadcast}(select)\;
+                        \texttt{Sleep}(10s - duration)\;
+                    }\Else{
+                        \texttt{Sleep}(10s)\;
+                    }
                 }
                 \Else{
-                    packets $\leftarrow$ Listen(200us)\;
+                    \If{node knows secret}{
+                        \texttt{Sleep}(10s)\;
+                    }\Else{
+                        secret $\leftarrow$ \texttt{Listen}(10s)\;
+                    }                   
                 }
             }
         }
@@ -31,62 +40,25 @@ Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, 
     \label{algo:slottedaloha}
 \end{algorithm}
 
-\todo[inline]{At some point, we should be able to create a graph to measure received packets and collisions for the Slotted ALOHA protocol.}
+The Slotted ALOHA protocol shown in \autoref{algo:slottedaloha} is a modified version of the protocol, where the goal is to share a secret message between every node a the network. Initially, a single random node picks a secret message, and the protocol begins. The protocol is designed to conserve energy by sleeping as much as possible. If the node knows the secret message, it will broadcast the message when its selected time slot comes up, and sleep in any other time slot. If the node does not know the secret message, it will sleep in its selected time slot, and listen for the message in any other time slot.
 
-
-
-%\begin{table}[H]
-%    \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
-%        \hline
-%        \diagbox{Sleep}{Slots} & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & %14 & 15 & 16 \\ \hline
-%                               &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
-%        30 seconds             &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
-%        1 minute               &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
-%        2 minutes              &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
-%        5 minutes              &   &   &   &   &   &    &    &    &    &   % &    &    \\ \hline
-%        %&   &   &   &   &   &    &    &    &    &    &    &    \\ \hline
-%    \end{tabular}
-%    \caption{Results from running the ALOHA protocol with different %parameters.}
-%    \label{table:experiments:aloha-results}
-%\end{table}
-
-
-%\begin{table}[H]
-%    \begin{tabular}{|c|l|l|l|l|l|}
-%        \hline
-%        \diagbox{Slots}{Sleep} & \multicolumn{1}{c|}{10 seconds} & %\multicolumn{1}{c|}{30 seconds} & \multicolumn{1}{c|}{1 minute} & %\multicolumn{1}{c|}{2 minutes} & \multicolumn{1}{c|}{5 minutes} \\ %\hline
-%        \multirow{2}{*}{5}     & R: 30~s                         & R: 40~s  %                       & R: 3~m                        & R: 45~s    %                    & R: 7~s                         \\
-%                               & V: 6~h, 48~m                    & V: 20 h, %24 m                   & V: 40 h, 48 m       %          & V: 81 h, 36 m                  & %V: 204 h                       \\ \hline
-%        \multirow{2}{*}{6}     & R: 2~s                          & R: 22~ms %                       & R: 20~ms                      & R: 16~ms   %                    & R: 12~ms                       \\
-%                               & V: 0                            & V: 1     %                       & V: 1                %          & V: 1                           & %V: 1                           \\ \hline
-%        \multirow{2}{*}{7}     & R: 33~ms                        & R: 15~ms %                       & R: 5~ms                       & R: 23~ms   %                    & R: 23~ms                       \\
-%                               & V: 1                            & V: 1     %                       & V: 0                %          & V: 1                           & %V: 1                           \\ \hline
-%        \multirow{2}{*}{8}     & R: 16~ms                        & R: 16~ms %                       & R: 11~ms                      & R: 17~ms   %                    & R: 12~ms                       \\
-%                               & V: 1                            & V: 1     %                       & V: 0                %          & V: 0                           & %V: 0                           \\ \hline
-%        \multirow{2}{*}{9}     & R: 12~s                         & R: 18~ms %                       & R: 38~ms                      & R: 24~ms   %                    & R: 21~ms                       \\
-%                               & V: 31                           & V: 0     %                       & V: 0                %          & V: 0                           & %V: 0                           \\ \hline
-%
-%        \multirow{2}{*}{10}    & R: 3~s                          & R: 44~ms %                       & R: 18~ms                      & R: 13~ms   %                    & R: 12~ms                       \\
-%                               & V: 1                            & V: 1     %                       & V: 0                %          & V: 0                           & %V: 1                           \\ \hline
-%
-%        \multirow{2}{*}{11}    & R: 4~s                          & R: 15~ms %                       & R: 20~ms                      & R: 21~ms   %                    & R: 11~ms                       \\
-%                               & V: 1                            & V: 0     %                       & V: 0                %          & V: 1                           & %V: 0                           \\ \hline
-%
-%        \multirow{2}{*}{12}    & R: 3~s                          & R: 19~ms %                       & R: 14~ms                      & R: 9~ms    %                    & R: 11~ms                       \\
-%                               & V: 1                            & V: 0     %                       & V: 1                %          & V: 1                           & %V: 0                           \\ \hline
-%    \end{tabular}
-%    \caption{Results from running the ALOHA protocol with different %parameters.}
-%    \label{table:experiments:aloha-results}
-%\end{table}
-
+\subsection{Experiment}
+We ran an experiment with the Slotted ALOHA protocol from \autoref{algo:slottedaloha}. The experiment was conducted on a network topology of 33 nodes generated from \acrshort{gps} location data, from a field test conducted in the Philippines. The topology can be found in \autoref{ch:app:aloha-topologies}. The goal of the experiment is to show the difference between virtual and real time, when running the protocol for an hour with a different number of time slots S. 
 
 \begin{table}[H]
     \begin{tabular}{|l|l|l|l|l|l|l|l|l|}
         \hline
-        \diagbox{Time}{Slots} & 5    & 6   & 7    & 8    & 9    & 10    & 11   & 12   \\ \hline
+        \diagbox{Time}{Slots (S)} & 5    & 6   & 7    & 8    & 9    & 10    & 11   & 12   \\ \hline
         Real                  & 45 s & 5 s & 90 s & 60 s & 50 s & 105 s & 60 s & 88 s \\ \hline
         %        Virtual               & 6h, 48 m & 5 h, 36 m & 4 h, 48 m & 4 h, 15 m& 3 h, 42 m&    &    & 2 h, 48m   \\ \hline
     \end{tabular}
     \caption{Real time results from running the ALOHA protocol with different total time slots.}
     \label{table:experiments:aloha-results}
 \end{table}
+
+\autoref{table:experiments:aloha-results} show the real time duration the simulation took to run the Slotted ALOHA when modifying the number of time slots S. The table shows that running the protocol for an hour took between 5 seconds, at best, to 105 seconds at worst to simulate in real time. The non-deterministic nature of the Slotted ALOHA mean that we might get no colliding transmissions, where every node receive the secret message, and sleep for the rest of the protocol, as in the simulation where the number of time slots S = 6, but even in the worst case, we see that we save a significant amount of time.
+
+%The results show that virtual time gives significant time savings, when running the simulations.
+
+%Sleep real fast, listen real slow. Done.
+%

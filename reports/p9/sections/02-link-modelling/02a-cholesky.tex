@@ -34,6 +34,8 @@ In \autoref{sec:simulatingvalues}, we utilised the Cholesky decomposition on the
 \medbreak
 The first issue we have found with the Cholesky decomposition, or more specifically with the covariance matrix, is that the covariance matrix is not guaranteed to be a \gls{pd-matrix}. The covariance matrix is based on the relation between links in the network, which means that whether the matrix is positive-definite or not is entirely based on the network. To work around this, we have employed a tool called NearPD~\cite{website:nearPD} to transform our covariance matrix into a new matrix that has the positive-definite property, while minimising the Frobenius norm~\cite{website:frobieniusnorm} of the difference between the original and the new matrix. This significantly increases the time required to compute the link model, however, which leads us to our next major issue: The computational time required by the Cholesky decomposition itself. The computational time required for the NearPD tool and the Cholesky decomposition can be seen in \autoref{table:cholesky:spdtime}.\smallbreak
 
+The Cholesky decomposition has a computational complexity of $O(n^3)$~\cite{Press:2007:NRE:1403886}. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We present the first solution in this section, and clustering in \autoref{sec:clustering}.
+
 \begin{table}[H]
     \centering
     \begin{tabular}{|c|c|c|c|}
@@ -52,25 +54,24 @@ The first issue we have found with the Cholesky decomposition, or more specifica
         110   & 5995  & 75 minutes      & 93 seconds               \\\hline
         120   & 7140  & 127 minutes     & 155 seconds              \\\hline
         130   & 8385  & 235 minutes     & 250 seconds              \\\hline
-        140   & 9730  & \dots           & 582 seconds              \\\hline
-        150   & 11175 & \dots           & 14 minutes               \\\hline
-        160   & 12720 & \dots           & 17 minutes               \\\hline
-        170   & 14365 & \dots           & 20 minutes               \\\hline
-        180   & 16110 & \dots           & 29 minutes               \\\hline
-        190   & 17955 & \dots           & 39 minutes               \\\hline
-        200   & 19900 & \dots           & 52 minutes               \\\hline
+        140   & 9730  & Timeout         & \dots                    \\\hline%582 seconds              \\\hline
+        %150   & 11175 & \dots           & 14 minutes               \\\hline
+        %160   & 12720 & \dots           & 17 minutes               \\\hline
+        %170   & 14365 & \dots           & 20 minutes               \\\hline
+        %180   & 16110 & \dots           & 29 minutes               \\\hline
+        %190   & 17955 & \dots           & 39 minutes               \\\hline
+        %200   & 19900 & \dots           & 52 minutes               \\\hline
     \end{tabular}
     \caption{Computation time measurement for NearPD and Cholesky decomposition.}
     \label{table:cholesky:spdtime}
 \end{table}
 
-The Cholesky decomposition has a computational complexity of $O(n^3)$~\cite{Press:2007:NRE:1403886}. With a fully connected network of 1000 nodes, we would have a $\frac{1000(1000+1)}{2} - 1000 = 499500$ (\autoref{eq:lengthoflinks}) unique links, which means that our correlation (and covariance) matrix would be of size $499500 \times 499500$. This is a major issue, as we would like to be able to compute the link model in a relatively short amount of time. To combat this issue, we have two possible solutions: removing links with a distance over a certain threshold, and clustering nodes that are very close to each-other. We present the first solution in this section, and clustering in \autoref{sec:clustering}.\medbreak
-
-\autoref{table:cholesky:spdtime} shows time measurements from running the cholesky decomposition computation with different network sizes, with the NearPD tool. The measurements shows that the NearPD tool is not fast enough, as at only 130 nodes with 8385 links it takes 235 minutes. This is not fast enough and a better solution will have to be found. The cholesky decomposition computation speed is also problematic, as the goal is 1000 nodes and already at 200 it takes 52 minutes.
-
+\autoref{table:cholesky:spdtime} shows time measurements from running the cholesky decomposition computation with different network topology sizes with the NearPD tool. The measurements shows that the NearPD tool is not fast enough, as at only 130 nodes with 8385 links the tool takes 235 minutes to compute the \gls{pd-matrix}. This is not fast enough and a better solution will have to be found. The cholesky decomposition computation speed is also problematic, as the goal is 1000 nodes and already at 120 nodes the decomposition takes more than 2 minutes.
 
 \subsubsection{Distance Threshold}\label{sec:distancethreshold}
-In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} has significantly more importance in the total \gls{pathloss} than the stochastic shadow fading part. In \autoref{eq:pathlossdetermG}, we see that the distance \gls{pathloss} is 92 \acrshort{dbm} for links of 100 meters, and 100.2 \acrshort{dbm} for the diagonal links of $141.42$ meters, and in \autoref{eq:pathlossfadingG}, we see (stochastic) values between $-13.8$ and $6.4$ \acrshort{dbm}. This means that, entirely based on the distance part of the link model, according to the \gls{pep} formula in \autoref{sec:pep}, a distance of 1000 meters, and a transmission power of 26 \acrshort{dbm}, we would have a link \gls{pathloss} of $147$ \acrshort{dbm} (disregarding the stochastic shadow fading part of the \gls{pathloss}), which in turn would mean that the \gls{rssi} on the receiving end of the link would be $26 - 147 = -121$, or equivalent to a packet loss probability of 100~\% (assuming the noise figure and thermal noise is the same as in \autoref{sec:pep}, and the packet size is 160 bits). Hence removing links that are far away can potentially reduce the correlation matrix size significantly.
+In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} has significantly more importance in the total \gls{pathloss} than the stochastic shadow fading part. In \autoref{eq:pathlossdetermG}, we see that the distance \gls{pathloss} is 92 \acrshort{dbm} for links of 100 meters, and 100.2 \acrshort{dbm} for the diagonal links of $141.42$ meters, and in \autoref{eq:pathlossfadingG}, we see (stochastic) \gls{pathloss} values between $-13.837$ and $6.413$. This means that, entirely based on the distance part of the link model, according to the formula for computing packet error probability in \autoref{sec:pep}, with a distance of 1000 meters, and a transmission power of 26 \acrshort{dbm}, we would have a link \gls{pathloss} of $147$ \acrshort{dbm} (disregarding the stochastic shadow fading part of the \gls{pathloss}), which in turn would mean that the \gls{rssi} on the receiving end of the link would be $26 - 147 = -121$, or equivalent to a packet loss probability of 99.999~\% (assuming the noise figure and thermal noise is the same as in \autoref{sec:pep}, and the packet size is 160 bits). Hence removing links that are far away can potentially reduce the size of the correlation matrix significantly. To show this, we ran an experiment, where we generated 1000 nodes with random locations in a $25 \times 25$ kilometre area, created links between these nodes based on their location, and iteratively scaled the maximum distance allowed between nodes (the distance threshold) and calculated the link path loss, based on the distance threshold. The results of this experiment can be seen in \autoref{table:cholesky:distance-threshold}. Recall that a fully connected network topology of 1000 nodes would have a total of 499500 links. With a distance threshold of 1000 meters, we get a total of 2346 links in our $25 \times 25$ kilometre area, which is a significant improvement as we would be able to compute the Cholesky decomposition in approximately six seconds (disregarding the positive-definiteness of the correlation matrix) according to \autoref{table:cholesky:spdtime}.
+
+%The experiment consisted of generating 1000 random nodes in a 25 kilometre square area, create links from those nodes based on their location, iteratively scale the maximum allowed distance of the links (distance threshold) and calculate the link path loss. The results can be read in \autoref{table:cholesky:distance-threshold}.
 
 \begin{table}[H]
     \centering
@@ -93,9 +94,9 @@ In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} ha
         % 425 meters         & 2642  & \\\hline % & 8 seconds        \\\hline
         450 meters         & 490   & 0.001~\%    \\\hline % & 11 seconds       \\\hline
         % 475 meters         & 3290  & \\\hline % & 15 seconds       \\\hline
-        500 meters         & 592   & 6~\%        \\\hline % & 21 seconds       \\\hline
+        500 meters         & 592   & 6.000~\%        \\\hline % & 21 seconds       \\\hline
         % 525 meters         & 4035  & \\\hline % & 28 seconds       \\\hline
-        550 meters         & 723   & 82.33~\%    \\\hline % & 37 seconds       \\\hline
+        550 meters         & 723   & 82.333~\%    \\\hline % & 37 seconds       \\\hline
         % 575 meters         & 4830  & \\\hline % & 49 seconds       \\\hline
         600 meters         & 846   & 99.999~\%   \\\hline % & 62 seconds       \\\hline
         % 625 meters         & 5723  & \\\hline % & 82 seconds       \\\hline
@@ -118,17 +119,6 @@ In \autoref{sec:linkmodel}, we saw that the distance dependent \gls{pathloss} ha
     \caption{Results from the distance threshold experiments.}
     \label{table:cholesky:distance-threshold}
 \end{table}
-
-The experiment consisted of generating 1000 random nodes in a 25 kilometre square area, create links from those nodes based on their location, iteratively scale the maximum allowed distance of the links (distance threshold) and calculate the link path loss. The results can be read in \autoref{table:cholesky:distance-threshold}. The content of each column are as followed:
-
-\begin{description}
-    \item[Distance threshold:] The maximum distance of the link.
-    \item[Links:] The total amount of links.
-    \item[Probability:] The packet error probability, at the given distance threshold,without the shadow fading part.
-\end{description}
-
-
-The results shows that limiting the maximum distance can drastically reduce the total amount of links, even if the threshold is set relative high. When comparing the link counts with \autoref{table:cholesky:spdtime}, the improvements are clear. When the distance threshold is set to 750 meters, it results in 1164 links from 1000 nodes in a 25 kilometre square area. Without the distance threshold optimisations, 130 nodes would result in 8385 links which is significantly higher. This optimisation allows for larger networks, by drastically reducing the total links.
 
 
 % as the last row in \autoref{table:cholesky:distance-threshold} of 750m gives good results. More aggressive thresholds drastically reduces the total amount of links more, but has the potential of removing links that should have been there.

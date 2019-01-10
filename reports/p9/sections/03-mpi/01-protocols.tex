@@ -1,12 +1,13 @@
+\newpage
 \section{Hardware Emulation}\label{sec:mpiprotocol}
 In this section, we introduce the hardware functions required to emulate the radio hardware on a wireless sensor node. The three essential functions for hardware emulation is: broadcasting (\autoref{algo:hwfuncstransmit}), listening (\autoref{algo:hwfuncslisten}), and sleeping (\autoref{algo:hwfuncssleep}). Additionally, a function for reporting the current local time (\autoref{algo:hwfuncsupdatelocaltime}) of the node to the controller is added. This function should be used whenever none of the above functions are applicable, and will allow the controller to continue processing requests from other nodes.
 
 \subsection{Time}\label{sec:mpi:time}
-To ensure that all nodes in the network are synchronised, we monitor the local time of every node. The controller described in \autoref{sec:mpicontroller} uses the local time of nodes to track when it is able to process whenever nodes listen for transmissions. To do this, the controller requires regular time updates. These time updates are included in the \acrshort{mpi} message sent to the controller from a node, whenever the node broadcasts, listens or sleeps. The local time of nodes are tracked in real-time, as the network protocols we simulate may rely on this. \smallbreak
-As some protocols are designed to conserve power in a mobile device, nodes will spend a large amount of time sleeping, which can create time periods where nothing actually happens, during a simulation. To counteract this, we introduce virtual time. Virtual time means that the controller will be able to skip periods of inactivity, which ensures that resources will not go unused, and we are able to speed up the time required to run the simulations.
+To ensure that all nodes in the network are synchronised, we monitor the local time of every node. The controller described in \autoref{sec:mpicontroller} uses the local time of nodes to track when it is able to process nodes listening for transmissions. To do this, the controller requires regular time updates. These time updates are included in the \acrshort{mpi} message sent to the controller from a node, whenever the node broadcasts, listens or sleeps. The local time of nodes are tracked in real-time, as the network protocols we simulate may rely on this. \smallbreak
+As some protocols are designed to conserve power in a mobile device, nodes will spend a large amount of time sleeping, which can create time periods where nothing actually happens during a simulation. To counteract this, we introduce virtual time. Virtual time means that the controller will be able to skip periods of inactivity, which ensures that resources will not go unused, and we are able to speed up the time required to run the simulations.
 
 \subsection{Location}\label{sec:mpinodelocation} % gps?
-Recall that in \autoref{sec:linkmodel}, we use the location of the nodes to compute the link model for the wireless network topology. As we emulate the physical hardware of a mobile device, we also need to emulate the location of the device. The current location of each node should be known by the centralised controller, and whenever the location of a node is updated, a location update should be sent to the controller.
+Recall that in \autoref{sec:linkmodel}, we use the location of the nodes to compute the link model for the wireless network topology. As we emulate the physical hardware of a mobile device, we also emulate the \acrshort{gps} location of the device. The current location of each node should be known by the centralised controller, and whenever the location of a node is updated, a location update should be sent to the controller.
 
 %Time is real in the framework, because the protocols that will be simulated may rely on real time. This poses a problem. Some networks sleep most the time to save energy. 
 
@@ -42,7 +43,7 @@ id $\leftarrow$ unique identifier
 %    \label{algo:protocolsharedstate}
 %\end{algorithm}
 
-The local state for the hardware functions consist of three variables: clock, localtime, and id. The clock variable is used to measure the real-time spent by the node between calls to the hardware function. The localtime variable is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:mpi:time}). Finally, the id variable is a unique identifier assigned to each particular node. A common element for all of the hardware functions is that we initially update the localtime variable with the elapsed time since the clock variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The clock variable is reset at the end of all of the functions.\medbreak
+The local state for the hardware functions consist of three variables: clock, localtime, and id. The clock variable is used to measure the real-time spent by the node between calls to the hardware function. The localtime variable is used to track the local time of the node, as well as to enable virtual time (introduced in \autoref{sec:mpi:time}). Finally, the id variable is a unique identifier assigned to each node. A common element for all of the hardware functions is that we initially update the localtime variable with the elapsed time since the clock variable was reset last, before transmitting the current local time, as well as a duration, to the controller. The clock variable is reset at the end of all of the functions.\medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -64,7 +65,7 @@ The local state for the hardware functions consist of three variables: clock, lo
     \label{algo:hwfuncstransmit}
 \end{algorithm}
 
-The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function takes any arbitrary data packet and sends this to the controller using the \gls{mpi}. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet. The duration required for transmitting a packet is computed using the baudrate, as specified by the hardware parameters described in \autoref{sec:radio-communication}. This is sent to the controller, along with the packet, and finally we update the localtime variable with the duration, reset the clock variable and return the duration of the transmission.\medbreak
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function takes any arbitrary data packet and sends this to the controller using the \gls{mpi}. The controller takes care of distributing the packet to neighbouring nodes, including computing the probability of the neighbouring node receiving the packet. The duration required for transmitting a packet is computed using the \gls{baudrate} (the number of bits we can transmit per second~\cite{website:baudrate-mathworks}). This is sent to the controller, along with the packet, and finally we update the localtime variable with the duration, reset the clock variable and return the duration of the transmission.\medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -93,7 +94,7 @@ The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function takes any arbit
     \label{algo:hwfuncslisten}
 \end{algorithm}
 
-The \texttt{Listen} (\autoref{algo:hwfuncslisten}) function takes a duration, and sends this, along with the updated local time, to the controller. The controller will return any packets the listening node have received within the duration.\medbreak
+The \texttt{Listen} (\autoref{algo:hwfuncslisten}) function takes a duration and sends this, along with the updated local time, to the controller. The controller will return any packets the listening node have received within the duration.\medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon

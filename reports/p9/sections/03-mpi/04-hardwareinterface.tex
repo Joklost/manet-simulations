@@ -4,7 +4,7 @@ In this section we describe the design of the hardware (\gls{lowerlayer}) interf
 %The hardware interface is implemented in modern C++, using templates, which will allow a protocol implementation to transmit instances of arbitrary structures or classes between nodes, provided that the structure or class is a trivially copyable type~\cite{website:cpptriviallycopyable}.
 
 \begin{description}[style=nextline,leftmargin=0cm]
-    \item[\mintinline{cpp}{void hardware::init(const Location &loc)}]
+    \item[\mintinline{cpp}{void hardware::init(const mpilib::geo::Location &loc)}]
         Initialises the hardware functionality by initialising the \gls{mpi} functionality, as well as registering the node with the \gls{mpi} controller. The location is stored on the controller, and can later be updated by using the \mintinline{cpp}{set_location()} function. The location of a node is used to compute neighbourhood information, as well as the \gls{pathloss} experienced when transmitting data between nodes. This function has to be called exactly once, before calling any other hardware functions.
     
     \item[\mintinline{cpp}{void hardware::deinit()}]
@@ -13,8 +13,8 @@ In this section we describe the design of the hardware (\gls{lowerlayer}) interf
     \item[\mintinline{cpp}{std::chrono::microseconds}\\\mintinline{cpp}{hardware::broadcast(std::vector<unsigned char> &packet)}]
         Transmit a vector of bytes. \autoref{algo:hwfuncstransmit} contains a pseudo code description of this function. Returns the duration of the transmission, in microseconds.
 
-    \item[\mintinline{cpp}{std::vector<unsigned char>}\\\mintinline{cpp}{hardware::listen(std::chrono::microseconds duration)}]
-        Listen for data packets for a given duration of microseconds. \autoref{algo:hwfuncslisten} contains a pseudo code description of this function.
+    \item[\mintinline{cpp}{std::vector<std::vector<unsigned char>>}\\\mintinline{cpp}{hardware::listen(std::chrono::microseconds duration)}]
+        Listen for data packets for a given duration of microseconds. Returns a vector of vectors of bytes. \autoref{algo:hwfuncslisten} contains a pseudo code description of this function.
     
     \item[\mintinline{cpp}{void hardware::sleep(std::chrono::microseconds duration)}]
         Sleep for a given duration of microseconds. \autoref{algo:hwfuncssleep} contains a pseudo code description of this function.
@@ -28,7 +28,7 @@ In this section we describe the design of the hardware (\gls{lowerlayer}) interf
     \item[\mintinline{cpp}{unsigned long hardware::get_world_size()}]
         Gets the total amount of nodes registered to the \gls{mpi} controller. This function will return 0, if the \mintinline{cpp}{init_hardware()} function has not yet been called.
     
-    \item[\mintinline{cpp}{bool hardware::set_location(const Location &loc)}]
+    \item[\mintinline{cpp}{bool hardware::set_location(const mpilib::geo::Location &loc)}]
         Updates the location registered on the \gls{mpi} controller. Returns \mintinline{cpp}{true} if the location was successfully updated, and \mintinline{cpp}{false} if the location update failed on the controller, or if the \mintinline{cpp}{init_hardware()} function has not yet been called.
 
 \end{description}

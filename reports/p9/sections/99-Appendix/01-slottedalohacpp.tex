@@ -5,16 +5,6 @@
 
 #include <mpilib/hardware.h>
 
-struct Packet {
-    unsigned long rank{};
-    unsigned long selected{};
-
-    friend std::ostream &operator<<(std::ostream &os, const Packet &packet) {
-        os << "Packet{rank: " << packet.rank << ", selected: " << packet.selected << "}";
-        return os;
-    }
-};
-
 int main(int argc, char *argv[]) {
     mpilib::geo::Location l{57.012668, 10.994625};
     hardware::init(l);
@@ -29,11 +19,11 @@ int main(int argc, char *argv[]) {
         auto selected = dist(eng);
         for (auto current = 0; current < slots; ++current) {
             if (selected == current) {
-                Packet p{id, selected};
-                auto duration = hardware::broadcast(p);
+                std::vector<unsigned char> data{0xBE, 0xEF};
+                auto duration = hardware::broadcast(data);
                 hardware::sleep(200ms - duration);
             } else {
-                auto packets = hardware::listen<Packet>(200ms);
+                auto packets = hardware::listen(200ms);
                 
                 for (const auto &item : packets) {
                     std::cout << item << std::endl;    

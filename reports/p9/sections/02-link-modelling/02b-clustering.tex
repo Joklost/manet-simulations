@@ -33,7 +33,7 @@ Our chosen metric space is $\mathbb{R}^2$ using Euclidean distance.
 %A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with parameters $\varepsilon$. The goal is to find a subset of clusters, such that the maximum angle between any node to nodes in the cluster is minimised. 
 A set $\textbf{N} \subseteq \mathcal{X}$, is provided together with a parameter $k$, $k \leq |\textbf{N}|$. Initially, the set $\textbf{N}$ is a set of clusters, each containing a single node. The goal is to find a set of clusters, such that the computation time required for computing the link model can be reduced, while minimising the loss of precision in the stochastic shadow fading part. We minimise the loss of precision by minimising the difference of the correlation ($\Delta\theta$) between links to any node in a cluster, to the centroid of the cluster. The centroid of a cluster $x$ is defined as $cent(x) = \sum\limits_{n \in x} n \div |x|$. \smallbreak
 %
-The problem is defined as follows:\bigbreak
+The problem is defined as follows:\smallbreak
 
 %This correlation difference is computed using the autocorrelation function from \autoref{eq:pathlossautocorrelation}.
 
@@ -91,18 +91,19 @@ For a metric space $(\mathcal{X}, d)$,
 \end{figure}
 
 
-\subsubsection{Clustering algorithm choice}\label{sec:clustering:choice}
-In the paper~\cite{proceeding:clustering-Survey} the authors conduct a survey on density based clustering algorithms, giving an overview on existing algorithms. As mentioned above, we want the clustering to minimise $\Delta\theta$ between nodes. This is done be clustering nodes that are relative close to each other, to ensure that the clusters radius will not become to large. The algorithm needs to handle variable shaped clusters, variable densities and handle noise (outliers) which is nodes that was not added to a cluster.
+%\subsubsection{Choice of Clustering Algorithm}\label{sec:clustering:choice}
+%In the paper~\cite{proceeding:clustering-Survey}, the authors conduct a survey on density based clustering algorithms, giving an overview on existing algorithms. As mentioned above, we want the clustering to minimise the difference of the correlation ($\Delta\theta$) between links. We can approximate this by clustering nodes that are close to each other. The algorithm needs to handle clusters of varying densities and it should allow noise (outliers). \smallbreak
 
-The \gls{dbscan} is a widely used algorithm, but does not give results with variable densities. The \gls{vdbscan} is a variation of the \gls{dbscan} that fixes the problem with variable densities, and even automatically finds the parameters normally needed when running the algorithm. This however does not make it possible, to more aggressively specify the density threshold. The \gls{vdbscan}'s found optimal parameters, might not create the desired small clusters that is needed according to our clustering problem statement.\smallbreak
+%The \acrshort{dbscan} algorithm is a widely used algorithm, but does work very well when clustering with varying densities. 
 
+%The \acrshort{vdbscan} is a variation of the \acrshort{dbscan} that fixes the problem with varying densities, and even automatically finds the parameters normally needed when running the algorithm. 
 
-\gls{optics} however can handle variable densities although slower than \gls{dbscan}. The complexity of \gls{optics} is O$(n^2)$, but if implemented with a spatial index has the complexity of O$(n\log n)$. As such we choose to use the \gls{optics} algorithm.
+%This however does not make it possible, to more aggressively specify the density threshold. The \gls{vdbscan}'s found optimal parameters, might not create the desired small clusters that is needed according to our clustering problem statement.\smallbreak
 
-
+%\gls{optics} however can handle variable densities although slower than \gls{dbscan}. The complexity of \gls{optics} is O$(n^2)$, but if implemented with a spatial index has the complexity of O$(n\log n)$. As such we choose to use the \gls{optics} algorithm.
 
 \subsubsection{Approximation using OPTICS}
-We have chosen a greedy approach using the \gls{optics} algorithm~\cite{Ankerst:1999:OOP:304182.304187} to approximate solutions for our clustering problem. \gls{optics} is an algorithm for finding density-based clusters, and the run-time of the algorithm is O($n \ \cdot $ run-time of a neighbourhood query)~\cite[p.~53]{Ankerst:1999:OOP:304182.304187}. \smallbreak
+We have chosen a greedy approach using the \gls{optics} algorithm~\cite{Ankerst:1999:OOP:304182.304187} to approximate solutions for our clustering problem. \gls{optics} is an algorithm for finding density-based clusters, and the run-time of the algorithm is O($n \ \cdot $ run-time of a neighbourhood query)~\cite[p.~53]{Ankerst:1999:OOP:304182.304187}. We chose the \gls{optics} algorithm based on a survey on density-based clustering algorithms in \cite{proceeding:clustering-Survey}.\smallbreak
 
 The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilon$, describing the maximum distance between two nodes to consider for clustering, and $MinPts$, describing the minimum number of nodes required to form a new cluster. For our case, the parameter $MinPts = 2$. With this, the \gls{optics} algorithm will return the set of clusters $C \subseteq 2^{\textbf{N}}$, where any nodes not satisfying the $MinPts$ parameter will be a singleton cluster. \autoref{algo:clustering} presents the pseudo code description of our greedy approach, that repeatedly computes the a set of clusters $C$, until $|C| \leq k$, each time incrementing the $\varepsilon$ variable by 10 meters.
 
@@ -233,14 +234,14 @@ The algorithm requires three parameters: our input set $\textbf{N}$, $\varepsilo
 %     \label{table:clusteringtime}
 % \end{table}
 
+\subsubsection{Experiment}\label{sec:clustering:experiments}
+To measure the performance of our greedy approach, we conducted an experiment where we generated 1000 nodes with random locations in a $10 \times 10$ kilometre area, and ran the \texttt{Cluster} algorithm from \autoref{algo:clustering}, with different values for the $k$ parameter. The purpose of this experiment is to measure the computational time used to form a number of clusters $|C| \leq k$. The results of this experiment can be seen in \autoref{table:clustering-benchmark}.
 
-
-\subsubsection{Experiments}\label{sec:clustering:experiments}
-To measure the performance of our clustering approach, we ran an experiment. The experiment consisted of running the clustering algorithm on 1000 randomly generated nodes, create a fully connected network of the clusters and measure the computational time used on clustering. \autoref{table:clustering-benchmark} contain the results of this experiment.
+%To measure the performance of our clustering approach, we ran an experiment. The experiment consisted of running the clustering algorithm on 1000 randomly generated nodes, create a fully connected network of the clusters and measure the computational time used on clustering. \autoref{table:clustering-benchmark} contain the results of this experiment.
 
 \begin{table}[H]
     \begin{tabular}{|c|c|c|c|}\hline
-        Min clusters ($k$) & Resulting clusters & Links  & Clustering       \\\hline%& Cholesky \\\hline
+        Max clusters ($k$) & Resulting clusters & Links  & Clustering       \\\hline%& Cholesky \\\hline
         1000               & 1000               & 499500 & 244 milliseconds \\\hline%& \dots    \\\hline
         900                & 884                & 390286 & 1 second         \\\hline%& \dots    \\\hline
         800                & 771                & 296835 & 2 seconds        \\\hline%& \dots    \\\hline
@@ -257,11 +258,9 @@ To measure the performance of our clustering approach, we ran an experiment. The
         %  100          & 98                 & 4753   & 250 milliseconds & 45 seconds      \\\hline
         %  50           & 37                 & 666    & 253 milliseconds & 67 milliseconds \\\hline
     \end{tabular}
-    \caption{Experiment results from benchmarking clustering time.}
+    \caption{Experiment results from benchmarking time required to cluster.}
     \label{table:clustering-benchmark}
 \end{table}
-
-\todo[inline]{add table showing the results of the $\Delta\theta(C)$ function (the correlation difference)}
 
 %To verify that the clustering actually improves the cholesky computations, experiments have been run. The results can be soon in \autoref{table:clustering-benchmark}.\medbreak
 

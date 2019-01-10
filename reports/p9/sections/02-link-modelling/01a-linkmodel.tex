@@ -2,7 +2,7 @@
 In this section, we present the method for simulating link \gls{pathloss} (the link model) from \cite{paper:linkmodel}. We want to simulate the performance of nodes in a \gls{manet}. The performance is, however, heavily dependent on network conditions and the capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents methods for evaluating the performance of a wireless networks, and proceeds to introduce methods for simulating \gls{pathloss} on a multi-link model, based on a real-world performance measurement. \autoref{sec:pathloss} will summarise the method for simulating \gls{pathloss} on a \gls{manet}, and \autoref{sec:simulatingvalues} present the method, as well as an example of simulating the \gls{pathloss} on a network topology.% Note that the actual values used in this Section, is specific to the Reachi devices, and are based on on-site measurements. 
 
 \subsection{Units}
-In the following sections, we use different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrshort{db}~\cite{website:isadbdbm}, and the transmission power, as well as the \gls{rssi} as \acrshort{dbm}~\cite{website:isadbdbm}, where a value close to 0 is better.
+In the following sections, we use different units of measurements. For distances, all measurements (e.g., the distance between two nodes) will be in meters. We describe the strength of a radio signal using \acrshort{db}~\cite{website:isadbdbm}, and the transmission power, as well as the \gls{rssi} as \acrshort{dbm}~\cite{website:isadbdbm}. The \gls{rssi} is on a logarithmic scale, and the closer the value is to 0 the better.
 
 \subsection{Path Loss}\label{sec:pathloss}
 The \gls{pathloss} of a link is dependent on the distance between transmitter and receiver, as well as a stochastic shadow fading term. The \gls{pathloss} vector \vect{l_{pl}} is the sum of two parts:
@@ -87,7 +87,7 @@ The graph \textbf{G} would be equivalent to the following link vector:
 The length of the unique link vector of a fully connected network is denoted by the function $len(\vect{l})$.
 
 \begin{eq}\label{eq:lengthoflinks}
-    len(\vect{l}) = \sum\limits_{i=1}^{|\textbf{N}|-1} i = \frac{|\textbf{N}||\textbf{N}|+1)}{2} - |\textbf{N}|
+    len(\vect{l}) = \sum\limits_{i=1}^{|\textbf{N}|-1} i = \frac{|\textbf{N}|(|\textbf{N}|+1)}{2} - |\textbf{N}|
 \end{eq}
 
 First, we compute the distance dependent part of the path loss. The deterministic distance dependent part \vect{l_d} is obtained for each unique link in the network by:
