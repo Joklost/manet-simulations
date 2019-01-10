@@ -32,7 +32,7 @@ We show in \autoref{ch:experiments} how the library can be used to simulate the 
 \section{Future Work}\label{sec:futurework}
 Computing the link model still poses a significant scalability challenge, and in general, scaling the library to reach our goal of running repeatable simulations with up to 1000 devices, will prove to be an interesting task in the future.\smallbreak
 
-We want to implement, and experiment with, more advanced networking protocols such as the \gls{lmac} protocol~\cite{paper:lmac_protocol}. The Slotted ALOHA protocol is incredibly simple, and the random selection of broadcasting time slot is a good way for us to test the link model, as the protocol has a high probability of multiple nodes broadcasting at the same time, producing collisions.\smallbreak
+We want to implement, and experiment with, more advanced networking protocols such as the \gls{lmac} protocol~\cite{paper:lmac_protocol} and the NeoCortec NeoMesh~\cite{website:neocortec} protocol. The Slotted ALOHA protocol is incredibly simple, and the random selection of broadcasting time slot is a good way for us to test the link model, as the protocol has a high probability of multiple nodes broadcasting at the same time, producing collisions.\smallbreak
 
 We need to prove the correctness of the centralised controller. We introduce virtual time but to ensure that the controller works correctly, such that we do not miss any transmissions or receive transmissions that happened in the past, we need to formally prove this.\smallbreak
 

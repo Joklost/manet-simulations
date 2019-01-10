@@ -60,9 +60,8 @@ For a metric space $(\mathcal{X}, d)$,
     \item Output: A set of clusters $C \subseteq 2^{\textbf{N}}$, such that
           \begin{enumerate}
               \item $\bigcup\limits_{x \in C}x = \textbf{N}$,
-              \item $\forall x, y \in C, \ \text{if} \ x \neq y \ \text{then} \ x \cap y = \emptyset$,
-              \item $|C| \leq k$, and
-              \item $C(n)$ is the cluster in $C$ that contains $n$, where $n \in C(n)$
+              \item $\forall x, y \in C, \ \text{if} \ x \neq y \ \text{then} \ x \cap y = \emptyset$, and
+              \item $|C| \leq k$
           \end{enumerate}
     \item Goal: Minimise the $\Delta\theta(C)$ function:\smallbreak $\Delta\theta(C) = \mathlarger{\sum}\limits_{n_1, n_2, n_3 \ \in \ \textbf{N}} \left( r(l_{n_1,n_2}, l_{n_1,n_3}) - r(l_{cent(C(n_1),cent(C(n_2)}, l_{cent(C(n_1),cent(C(n_3)}) \right)^2$
 
@@ -81,7 +80,7 @@ For a metric space $(\mathcal{X}, d)$,
 
 %\todo[inline]{How to describe the goal? Is it the goal of the particular clustering algorithm, or our goal for using the clustering algorithm? In the second case, the goal is to reduce the number of overall nodes in the network, by creating clusters of nodes very close to each other, and using the centroid of the clusters for the link model.}
 
-\autoref{figure:clusteringgoal} illustrates the goal, where we want to minimise the correlation difference $\Delta\theta$ between the nodes $n$, $m$, and $u$ (as well of the rest of the nodes), to the centroids of their respective clusters $C(n)$, $C(m)$, and $C(u)$.
+\autoref{figure:clusteringgoal} illustrates the goal, where we want to minimise the correlation difference $\Delta\theta$ between the nodes $n$, $m$, and $u$ (as well of the rest of the nodes), to the centroids of their respective clusters $C(n)$, $C(m)$, and $C(u)$, where $C(n)$ is the cluster in $C$ that contains $n$, such that $n \in C(n)$
 
 \begin{figure}[ht]
     \centering
