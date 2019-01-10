@@ -12,7 +12,7 @@ Slotted ALOHA~\cite{Roberts:1975:APS:1024916.1024920} is a \gls{tdma} protocol, 
     \Fn{\FSlottedALOHA{S}}{
         secret $\leftarrow$ a single node picks a secret message\;
 
-        \Repeat{\textit{for 1 hour}}{
+        \Repeat{\textit{1 hour}}{
 
             selected $\leftarrow$ randomly select a slot $\in$ {1, 2, \dots, S}\;
 
@@ -56,7 +56,7 @@ We ran an experiment with the Slotted ALOHA protocol from \autoref{algo:slotteda
     \label{table:experiments:aloha-results}
 \end{table}
 
-\autoref{table:experiments:aloha-results} show the real time duration the simulation took to run the Slotted ALOHA when modifying the number of time slots S. The table shows that running the protocol for an hour took between 5 seconds, at best, to 105 seconds at worst to simulate in real time. The non-deterministic nature of the Slotted ALOHA mean that we might get no colliding transmissions, where every node receive the secret message, and sleep for the rest of the protocol, as in the simulation where the number of time slots S = 6, but even in the worst case, we see that we save a significant amount of time.
+\autoref{table:experiments:aloha-results} show the real time duration the simulation took to run the Slotted ALOHA with different parameters for the time slots S. We see that the shortest simulation took 5 seconds with 6 time slots, and the longest took 105 seconds with 10 time slots. This demonstrates the non-deterministic nature of the Slotted ALOHA protocol, where the time required to complete the simulation heavily depends on the number of colliding transmissions and lost packets. The main takeaway from this experiment is that we are able to run the hour long Slotted ALOHA protocol in less than two minutes, with 33 nodes.
 
 %The results show that virtual time gives significant time savings, when running the simulations.
 
