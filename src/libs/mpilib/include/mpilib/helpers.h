@@ -96,7 +96,7 @@ namespace mpilib {
      * @param octets The number of octets to transmit
      * @return Time transmission will take, in microseconds
      */
-    std::chrono::microseconds transmission_time(unsigned long baudrate, unsigned long octets);
+    std::chrono::microseconds compute_transmission_time(unsigned long baudrate, unsigned long octets);
 }
 
 #endif /* MANETSIMS_HELPERS_H */

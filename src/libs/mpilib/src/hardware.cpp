@@ -54,7 +54,7 @@ std::chrono::microseconds hardware::broadcast(std::vector<octet> data) {
         return 0us;
     }
 
-    auto duration = mpilib::transmission_time(BAUDRATE, data.size());
+    auto duration = mpilib::compute_transmission_time(BAUDRATE, data.size());
     hardware::prepare_localtime(duration);
     hardware::logger->debug("broadcast(octets={}, localtime={}, duration={})",
                             data.size(), hardware::localtime - duration, duration);

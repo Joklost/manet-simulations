@@ -22,6 +22,6 @@ std::string mpilib::processor_name(const char *processor_name, int world_rank) {
     return std::string{processor_name} + sid;
 }
 
-std::chrono::microseconds mpilib::transmission_time(unsigned long baudrate, unsigned long octets) {
+std::chrono::microseconds mpilib::compute_transmission_time(unsigned long baudrate, unsigned long octets) {
     return std::chrono::microseconds(static_cast<unsigned long>((1.0 / baudrate) * (octets * 8) * 1000 * 1000));
 }

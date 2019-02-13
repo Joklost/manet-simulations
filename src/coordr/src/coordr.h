@@ -22,6 +22,25 @@ class Coordinator {
     char processor_name[MPI_MAX_PROCESSOR_NAME]{};
 
     /* Model */
+    struct Action {
+        unsigned long start{};
+        unsigned long end{};
+        int rank{};
+
+        bool is_within(Action listen);
+    };
+
+    struct Listen : Action {
+        bool is_processed{};
+    };
+
+    struct Transmission : Action {
+        std::vector<octet> data;
+    };
+
+    std::vector<Transmission> transmit_actions{};
+    std::vector<Listen> listen_actions{};
+
     std::map<int, mpilib::Node> nodes{};
     std::vector<std::vector<double>> link_model;
 

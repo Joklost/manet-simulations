@@ -14,8 +14,9 @@ void Coordinator::run() {
     this->c->debug("init(nodes={})", this->world_size);
 
     if (!this->handshake()) {
-        mpi::deinit();
         this->c->debug("deinit()");
+        mpi::send(DIE, this->lmc_node, DIE);
+        mpi::deinit();
         return;
     }
 
@@ -43,38 +44,50 @@ void Coordinator::run() {
                 break;
             }
 
-        }
+        } else if (status.tag == TX_PKT) {
+            this->transmit_actions.emplace_back();
+            auto &tx = this->transmit_actions.back();
+            tx.rank = status.source;
+            tx.start = mpi::recv<unsigned long>(status.source, TX_PKT);
+            tx.data = mpi::recv<std::vector<octet>>(status.source, TX_PKT_DATA);
+            tx.end = tx.start + mpilib::compute_transmission_time(BAUDRATE, tx.data.size()).count();
 
-        else if (status.tag == TX_PKT) {
-            auto localtime = mpi::recv<unsigned long>(status.source, TX_PKT);
-            auto packet = mpi::recv<std::vector<octet>>(status.source, TX_PKT_DATA);
-            auto duration = static_cast<unsigned long>(mpilib::transmission_time(BAUDRATE, packet.size()).count());
-        }
+        } else if (status.tag == RX_PKT) {
+            this->listen_actions.emplace_back();
+            auto &rx = this->listen_actions.back();
+            rx.rank = status.source;
+            rx.start = mpi::recv<unsigned long>(status.source, RX_PKT);
+            rx.end = rx.start + mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
 
-        else if (status.tag == RX_PKT) {
-            auto localtime = mpi::recv<unsigned long>(status.source, RX_PKT);
-            auto duration = mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
-        }
-
-        else if (status.tag == SLEEP) {
+        } else if (status.tag == SLEEP) {
+            auto &node = this->nodes[status.source];
             auto localtime = mpi::recv<unsigned long>(status.source, SLEEP);
             auto duration = mpi::recv<unsigned long>(status.source, SLEEP_DURATION);
+            node.localtime = localtime + duration;
+
+        } else if (status.tag == SET_LOCATION) {
+            auto &node = this->nodes[status.source];
+            node.loc = update_location(status.source);
+        } else if (status.tag == SET_LOCAL_TIME) {
+            auto &node = this->nodes[status.source];
+            node.localtime = mpi::recv<unsigned long>(status.source, SET_LOCAL_TIME);
+//            this->c->debug("register_localtime(source={}, tag={}, localtime={})", status.source, status.tag, localtime);
         }
 
-        else if (status.tag == SET_LOCATION) {
-            auto location = update_location(status.source);
-        }
+        if (status.tag == LINK_MODEL) {
+            auto count = mpi::recv<unsigned long>(status.source, LINK_MODEL);
+            std::vector<mpilib::Link> link_model{};
+            link_model.reserve(count);
+            for (auto i = 0; i < count; ++i) {
+                auto link_buffer = mpi::recv<std::vector<octet>>(status.source, LINK_MODEL_LINK);
+                link_model.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
+            }
 
-        else if (status.tag == SET_LOCAL_TIME) {
-            auto localtime = mpi::recv<unsigned long>(status.source, SET_LOCAL_TIME);
-            this->c->debug("register_localtime(source={}, tag={}, localtime={})", status.source, status.tag, localtime);
         }
-
-        break;
     }
 
     this->c->debug("deinit()");
-
+    mpi::send(DIE, this->lmc_node, DIE);
     mpi::deinit();
 }
 
@@ -146,4 +159,9 @@ mpilib::geo::Location Coordinator::update_location(const int rank) {
     this->c->debug("update_location(source={}, loc={})", rank, loc);
     this->nodes[rank].loc = loc;
     return loc;
+}
+
+bool Coordinator::Action::is_within(Coordinator::Action listen) {
+    return this->start >= listen.start &&
+           this->end <= listen.end;
 }
