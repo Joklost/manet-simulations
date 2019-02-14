@@ -75,7 +75,6 @@ namespace mpilib {
         }
     }
 
-
     template<typename T>
     bool is_equal(T a, T b) {
         return fabs(a - b) < std::numeric_limits<T>::epsilon();
@@ -84,6 +83,11 @@ namespace mpilib {
     template<typename T>
     bool is_equal(T a, T b, T epsilon) {
         return fabs(a - b) < epsilon;
+    }
+
+    template<typename T>
+    bool is_zero(T a) {
+        return is_equal(a, (T) 0.0);
     }
 
     uint64_t generate_link_id(uint32_t id1, uint32_t id2);

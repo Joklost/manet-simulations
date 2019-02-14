@@ -64,7 +64,7 @@ class Coordinator {
      */
     mpilib::geo::Location update_location(int rank);
 
-    bool check_link(Listen &rx, Transmission &tx);
+    bool has_link(Listen &rx, Transmission &tx);
 
 public:
     explicit Coordinator(bool debug) : debug(debug) {}

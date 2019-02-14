@@ -1,33 +1,27 @@
 #include <random>
 
 #include <mpilib/geomath.h>
+#include <reachi/radiomodel.h>
 
 #include "coordr.h"
 
 #define TX_POWER 26.0
-#define THRESHOLD 110.0 /* RSSI in dBm */
+#define THRESHOLD -110.0 /* RSSI in dBm */
 
 
-bool Coordinator::check_link(Coordinator::Listen &rx, Coordinator::Transmission &tx) {
+bool Coordinator::has_link(Coordinator::Listen &rx, Coordinator::Transmission &tx) {
     /* First condition should not be possible? */
     if (rx.rank == tx.rank || !tx.is_within(rx)) {
         return false;
     }
 
-    //auto &tx_node = this->nodes[tx.rank];
-    //auto &rx_node = this->nodes[rx.rank];
     auto pathloss = this->link_model[rx.rank][tx.rank];
     auto rssi = TX_POWER - pathloss;
 
     /* If the distance is greater than the threshold
      * we know that the packet will be dropped. */
-    if (rssi > THRESHOLD || mpilib::is_equal(rssi, 0.0)) {
-        return false;
-    }
+    return !(rssi > THRESHOLD || mpilib::is_zero(rssi));
 
-    rx.transmissions.push_back(tx);
-
-    return true;
 }
 
 
@@ -87,7 +81,9 @@ void Coordinator::run() {
             this->nodes[status.source].localtime = tx.end;
 
             for (auto &rx : this->listen_actions) {
-                this->check_link(rx, tx);
+                if (this->has_link(rx, tx)) {
+                    rx.transmissions.push_back(tx);
+                }
             }
 
         } else if (status.tag == RX_PKT) {
@@ -99,7 +95,9 @@ void Coordinator::run() {
             this->nodes[status.source].localtime = rx.end;
 
             for (auto &tx : this->transmit_actions) {
-                this->check_link(rx, tx);
+                if (this->has_link(rx, tx)) {
+                    rx.transmissions.push_back(tx);
+                }
             }
 
         } else if (status.tag == SLEEP) {
@@ -148,11 +146,50 @@ void Coordinator::run() {
             if (rx.end > min_time) {
                 continue;
             }
+
+            std::vector<std::vector<octet>> packets{};
+
             //rx.processed = true;
 
-            /* We have already checked if a link exists. */
+            /* We have already checked if a link exists. Compute probability for packet error. */
+            for (auto &tx : rx.transmissions) {
+                auto rssi = TX_POWER - this->link_model[tx.rank][rx.rank];
+                std::vector<double> interference{};
 
-            /* Compute interfering transmitters. */
+                /* Compute interfering transmitters. */
+                for (auto &interfering_tx : this->transmit_actions) {
+                    if (tx.rank == interfering_tx.rank) {
+                        continue;
+                    }
+
+                    /* Check if transmissions intersect. */
+                    if (tx.end <= interfering_tx.start || tx.start >= interfering_tx.end) {
+                        continue;
+                    }
+
+                    auto interfering_pathloss = this->link_model[tx.rank][interfering_tx.rank];
+                    auto rssi_i = TX_POWER - interfering_pathloss;
+                    if (rssi_i > THRESHOLD || mpilib::is_zero(interfering_pathloss)) {
+                        continue;
+                    }
+
+                    interference.push_back(rssi_i);
+                }
+
+                auto pep = reachi::radiomodel::pep(rssi, tx.data.size(), interference);
+                std::bernoulli_distribution d(1.0 - pep);
+                auto should_receive = d(gen);
+
+                if (should_receive) {
+                    packets.emplace_back(tx.data);
+                }
+            }
+
+            mpi::send(packets.size(), rx.rank, RX_PKT_COUNT);
+
+            for (auto &packet : packets) {
+                mpi::send(packet, rx.rank, RX_PKT_DATA);
+            }
         }
     }
 
