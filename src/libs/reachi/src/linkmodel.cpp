@@ -8,6 +8,7 @@
 #include <reachi/ostr.h>
 #include <Eigen/Eigenvalues>
 
+
 std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLink> &links) {
     std::vector<double> l_distance{};
 
@@ -99,9 +100,9 @@ reachi::linalg::vecvec<double> reachi::linkmodel::near_pd(const reachi::linalg::
         q = reachi::linalg::slice_column_from_index_list(q, p);
         auto q_t = q;
 
-        for (auto index = 0, column = 0; index < p.size(); ++index, ++column) {
+        for (auto i = 0; i < p.size(); ++i) {
             for (auto &row : q)
-                row[column] = row[column] * d[index];
+                row[i] = row[i] * d[i];
         }
 
         x = reachi::linalg::crossprod(reachi::linalg::transpose(q), q_t);
@@ -155,7 +156,7 @@ std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::v
     auto d_t = 1_km;
     auto d_r = 1_km;
 
-    auto temporal_coefficient = std::exp(-(std::log(2) * (20 / (d_t + d_r))));
+    auto temporal_coefficient = std::exp(-(std::log(2) * ((d_t + d_r) / 20)));
 
     /* compute l_fading */
     auto l_fading = compute_link_fading(links, time);
@@ -166,5 +167,3 @@ std::vector<double> reachi::linkmodel::compute_temporal_correlation(const std::v
 ::std::vector<double> reachi::linkmodel::compute(const std::vector<reachi::Optics::CLink> &links, double time) {
     return compute_link_distance(links);// + compute_link_fading(links, time); /* TODO: + temporal*/
 }
-
-
