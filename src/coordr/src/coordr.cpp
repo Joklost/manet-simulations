@@ -1,7 +1,40 @@
+#include <random>
+
+#include <mpilib/geomath.h>
+
 #include "coordr.h"
+
+#define TX_POWER 26.0
+#define THRESHOLD 110.0 /* RSSI in dBm */
+
+
+bool Coordinator::check_link(Coordinator::Listen &rx, Coordinator::Transmission &tx) {
+    /* First condition should not be possible? */
+    if (rx.rank == tx.rank || !tx.is_within(rx)) {
+        return false;
+    }
+
+    //auto &tx_node = this->nodes[tx.rank];
+    //auto &rx_node = this->nodes[rx.rank];
+    auto pathloss = this->link_model[rx.rank][tx.rank];
+    auto rssi = TX_POWER - pathloss;
+
+    /* If the distance is greater than the threshold
+     * we know that the packet will be dropped. */
+    if (rssi > THRESHOLD || mpilib::is_equal(rssi, 0.0)) {
+        return false;
+    }
+
+    rx.transmissions.push_back(tx);
+
+    return true;
+}
 
 
 void Coordinator::run() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
     this->lmc_node = this->world_size + 1;
@@ -51,6 +84,11 @@ void Coordinator::run() {
             tx.start = mpi::recv<unsigned long>(status.source, TX_PKT);
             tx.data = mpi::recv<std::vector<octet>>(status.source, TX_PKT_DATA);
             tx.end = tx.start + mpilib::compute_transmission_time(BAUDRATE, tx.data.size()).count();
+            this->nodes[status.source].localtime = tx.end;
+
+            for (auto &rx : this->listen_actions) {
+                this->check_link(rx, tx);
+            }
 
         } else if (status.tag == RX_PKT) {
             this->listen_actions.emplace_back();
@@ -58,6 +96,11 @@ void Coordinator::run() {
             rx.rank = status.source;
             rx.start = mpi::recv<unsigned long>(status.source, RX_PKT);
             rx.end = rx.start + mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
+            this->nodes[status.source].localtime = rx.end;
+
+            for (auto &tx : this->transmit_actions) {
+                this->check_link(rx, tx);
+            }
 
         } else if (status.tag == SLEEP) {
             auto &node = this->nodes[status.source];
@@ -68,13 +111,12 @@ void Coordinator::run() {
         } else if (status.tag == SET_LOCATION) {
             auto &node = this->nodes[status.source];
             node.loc = update_location(status.source);
+
         } else if (status.tag == SET_LOCAL_TIME) {
             auto &node = this->nodes[status.source];
             node.localtime = mpi::recv<unsigned long>(status.source, SET_LOCAL_TIME);
-//            this->c->debug("register_localtime(source={}, tag={}, localtime={})", status.source, status.tag, localtime);
-        }
 
-        if (status.tag == LINK_MODEL) {
+        } else if (status.tag == LINK_MODEL) {
             auto count = mpi::recv<unsigned long>(status.source, LINK_MODEL);
             std::vector<mpilib::Link> link_model{};
             link_model.reserve(count);
@@ -83,6 +125,34 @@ void Coordinator::run() {
                 link_model.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
             }
 
+        }
+
+        /* Process Actions */
+        if (this->listen_actions.empty()) {
+            continue;
+        }
+
+        unsigned long min_time = std::numeric_limits<unsigned long>::max();
+        for (const auto &item : this->nodes) {
+            auto &node = item.second;
+            if (node.localtime < min_time) {
+                min_time = node.localtime;
+            }
+        }
+
+        if (min_time == std::numeric_limits<unsigned long>::max()) {
+            continue;
+        }
+
+        for (auto &rx : this->listen_actions) {
+            if (rx.end > min_time) {
+                continue;
+            }
+            //rx.processed = true;
+
+            /* We have already checked if a link exists. */
+
+            /* Compute interfering transmitters. */
         }
     }
 
@@ -161,7 +231,8 @@ mpilib::geo::Location Coordinator::update_location(const int rank) {
     return loc;
 }
 
-bool Coordinator::Action::is_within(Coordinator::Action listen) {
+
+bool Coordinator::Transmission::is_within(Coordinator::Listen &listen) {
     return this->start >= listen.start &&
            this->end <= listen.end;
 }

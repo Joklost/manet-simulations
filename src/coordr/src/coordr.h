@@ -9,6 +9,7 @@
 #include <mpilib/link.h>
 #include <mpilib/node.h>
 
+
 class Coordinator {
     /* Debug */
     bool debug = false;
@@ -27,15 +28,19 @@ class Coordinator {
         unsigned long end{};
         int rank{};
 
-        bool is_within(Action listen);
     };
 
+    struct Transmission;
+
     struct Listen : Action {
-        bool is_processed{};
+        bool processed{};
+        std::vector<Transmission> transmissions{};
     };
 
     struct Transmission : Action {
         std::vector<octet> data;
+
+        bool is_within(Listen &listen);
     };
 
     std::vector<Transmission> transmit_actions{};
@@ -58,6 +63,8 @@ class Coordinator {
      * @return The updated location of the node.
      */
     mpilib::geo::Location update_location(int rank);
+
+    bool check_link(Listen &rx, Transmission &tx);
 
 public:
     explicit Coordinator(bool debug) : debug(debug) {}
