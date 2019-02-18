@@ -1,0 +1,151 @@
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{FCoordinator}{Coordinator}
+    \SetKwProg{Fn}{procedure}{}{}
+
+    \textbf{Structure} Message \{ action, source, localtime, duration, data \}\;
+    \textbf{Structure} Transmission \{ source, start, end, data \}\;
+    \textbf{Structure} Listen \{ source, start, end, transmissions \}\;    
+    \textbf{Structure} Node \{ localtime \}\; % location
+    \;
+
+    \Fn{\FCoordinator{}}{
+        transmissions $\leftarrow$ empty Transmission list\;
+        listens $\leftarrow$ empty Listen list\;
+        nodes $\leftarrow$ map containing all nodes with id as key\;
+        \;
+        
+        \Repeat{\textit{protocol terminates}}{
+            m $\leftarrow$ \Await Message \From any node\; \label{line:action-await}
+            nodes(m.source).localtime $\leftarrow$ m.localtime + m.duration\; \label{line:action-updatelocaltime}
+
+            coordinatortime $\leftarrow \min_{\forall \text{n} \in \text{nodes}}$(n.localtime)\; \label{line:controllertime}
+            \;
+
+            \If{m.action = transmit}{ \label{line:action-transmit}
+                t $\leftarrow$ Transmission \{ m.source, m.localtime, m.localtime $+$ m.duration, m.data \}\;
+                \Append t \KwTo transmissions\;
+                \;
+                \ForEach{l $\in$ listens}{
+                    \If{t.start $\geq$ l.start \And t.end $\leq$ l.end}{
+                        \Append t \KwTo l.transmissions\;
+                    }
+
+                    \If{l.end $\leq$ coordinatortime}{
+                        \texttt{Process}(l)\;
+                        \Remove l \From listens\;
+                    }
+                }
+
+            }
+
+            \ElseIf{m.action = listen}{ \label{line:action-listen}
+                l $\leftarrow$ Listen \{ m.source, m.localtime, m.localtime $+$ m.duration \}\;
+                \;
+                \ForEach{t $\in$ transmissions}{
+                    \If{t.start $\geq$ l.start \And t.end $\leq$ l.end}{
+                        \Append t \KwTo l.transmissions\;
+                    }
+                }
+
+                \If{l.end $\leq$ coordinatortime}{
+                    \texttt{Process}(l)\;
+                }\Else{
+                    \Append l \KwTo listens\;
+                }
+            }
+
+            \ForEach{t $\in$ transmissions}{
+                \If{t.end $\leq$ coordinatortime}{
+                    \Remove t \From transmissions\;
+                }
+            }
+
+            %$\argmin$\; %?
+
+            %\ForEach{l $\in$ listens}{
+            %    \If{l.end $>$ coordinatortime}{
+            %        \Continue\;
+            %    }
+
+            %    packets $\leftarrow$ empty Packet list\;
+
+            %    \ForEach{t $\in$ l.transmissions}{
+            %        \If{\texttt{ShouldReceive}(l, t, l.transmissions, |t.data|)}{
+            %            \Append t.data \To packets\;
+            %        }
+            %    }
+
+            %    \Send $|$packets$|$ \To l.source\; \label{line:sendcount}
+
+            %    \ForEach{p $\in$ packets}{ \label{line:sendpackets}
+            %        \Send p \To l.source\;
+            %    }                
+
+            %    \Remove l \From listens\;
+            %}
+
+            %\ForEach{t $\in$ transmissions}{
+            %    \If{controllertime $>$ t.end}{
+            %        \Remove t \From transmissions\;
+            %    }
+            %}
+
+        }
+    }
+    \caption{The \texttt{Coordinator} procedure.}
+    \label{algo:mpicoordinator}
+\end{algorithm}
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FProcess}{Process}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FProcess{l}}{
+        packets $\leftarrow$ empty Packet list\;
+
+        \ForEach{t $\in$ l.transmissions}{
+            \If{\texttt{ShouldReceive}(l, t, l.transmissions, |t.data|)}{
+                \Append t.data \To packets\;
+            }
+        }
+
+        \Send $|$packets$|$ \To l.source\; \label{line:sendcount}
+
+        \ForEach{p $\in$ packets}{ \label{line:sendpackets}
+            \Send p \To l.source\;
+        }   
+    }
+
+    \caption{The \texttt{Process} Function.}
+    \label{algo:coordinatorprocess}
+\end{algorithm}
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{True if the transmission should be received.}
+    \SetKwFunction{FShouldReceive}{ShouldReceive}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FShouldReceive{l, t, transmissions, packetsize}}{
+        n$_r \leftarrow$ l.id\;
+        n$_t \leftarrow$ t.id\;
+        nodes$_t \leftarrow$ empty Transmission list\;
+
+        \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
+            \If{t.end $>$ t$^\prime$.start \And t.start $<$ t$^\prime$.end}{
+                \Append t$^\prime$ \To nodes$_t$\;
+            }
+        }
+
+        probability $\leftarrow$ $P_p(\text{n}_r, \text{m}_t, \text{nodes}_t, \text{packetsize})$\;
+        should-receive $\leftarrow$ randomly choose based on probability\;
+        \KwRet should-receive\;
+    }
+
+    \caption{The \texttt{ShouldReceive} Function.}
+    \label{algo:controllershouldreceive}
+\end{algorithm}

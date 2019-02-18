@@ -1,0 +1,52 @@
+\input{setup/preamble.tex}% package inclusion and set up of the document
+\input{setup/hyphenations.tex}%
+\input{setup/macros.tex}% my new macros
+
+\input{setup/Glossary.tex}
+
+\begin{document}
+%frontmatter
+
+\pagestyle{empty} %disable headers and footers
+\pagenumbering{roman} %use roman page numbering in the frontmatter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{sections/00-Front-Matter/01-frontpage.tex}
+%\input{sections/00-Front-Matter/02-colophon.tex}
+%\input{sections/00-Front-Matter/03-titlepages.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\listoftodos
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\cleardoublepage
+%\pdfbookmark[0]{Table of contents}{label:contents}
+%\pagestyle{fancy} %enable headers and footers again
+%\setcounter{tocdepth}{1}
+%\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{sections/00-Front-Matter/04-preface.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%mainmatter
+\pagenumbering{arabic} %use arabic page numbering in the mainmatter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{sections/01-Preliminaries/00-main.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{sections/xx-mpi/00-main.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\input{sections/05-conclusion/00-main.tex}
+
+%\nocite{*}
+%\bibliography{bib/mybib}
+%\label{bib:mybiblio}
+
+%\appendix
+%\printnoidxglossaries
+%\input{sections/99-Appendix/00-main.tex}
+
+\end{document}

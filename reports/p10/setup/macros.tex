@@ -1,0 +1,217 @@
+% see, e.g., http://en.wikibooks.org/wiki/LaTeX/Customizing_LaTeX#New_commands
+% for more information on how to create macros
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Macros for the titlepage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Creates the aau titlepage
+\newcommand{\aautitlepage}[3]{%
+  {
+    %set up various length
+    \ifx\titlepageleftcolumnwidth\undefined
+      \newlength{\titlepageleftcolumnwidth}
+      \newlength{\titlepagerightcolumnwidth}
+    \fi
+    \setlength{\titlepageleftcolumnwidth}{0.5\textwidth-\tabcolsep}
+    \setlength{\titlepagerightcolumnwidth}{\textwidth-2\tabcolsep-\titlepageleftcolumnwidth}
+    %create title page
+    \thispagestyle{empty}
+    \noindent%
+    \begin{tabular}{@{}ll@{}}
+      \parbox{\titlepageleftcolumnwidth}{
+        \iflanguage{danish}{%
+          \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_da}
+        }{%
+          \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_en}
+        }
+      } &
+      \parbox{\titlepagerightcolumnwidth}{\raggedleft\sf\small
+        #2
+      }\bigskip\\
+       #1 &
+      \parbox[t]{\titlepagerightcolumnwidth}{%
+      \textbf{Abstract:}\bigskip\par
+        \fbox{\parbox{\titlepagerightcolumnwidth-2\fboxsep-2\fboxrule}{%
+          #3
+        }}
+      }\\
+    \end{tabular}
+    \vfill
+    \iflanguage{danish}{%
+      \noindent{\footnotesize\emph{Rapportens indhold er frit tilgængeligt, men offentliggørelse (med kildeangivelse) må kun ske efter aftale med forfatterne.}}
+    }{%
+      \noindent{\footnotesize\emph{The content of this report is freely available, but publication (with reference) may only be pursued due to agreement with the author.}}
+    }
+    \clearpage
+  }
+}
+
+\newcommand*{\inlinegraphic}[1]{%
+    \raisebox{-.02\baselineskip}{%
+        \includegraphics[
+        height=\baselineskip,
+        width=\baselineskip,
+        keepaspectratio,
+        ]{#1}%
+    }%
+}
+
+%Create english project info
+\newcommand{\englishprojectinfo}[8]{%
+  \parbox[t]{\titlepageleftcolumnwidth}{
+    \textbf{Title:}\\ #1\bigskip\par
+    \textbf{Theme:}\\ #2\bigskip\par
+    \textbf{Project Period:}\\ #3\bigskip\par
+    \textbf{Project Group:}\\ #4\bigskip\par
+    \textbf{Participant(s):}\\ #5\bigskip\par
+    \textbf{Supervisor(s):}\\ #6\bigskip\par
+    \textbf{Copies:} #7\bigskip\par
+    \textbf{Page Numbers:} \pageref{LastPage}\bigskip\par
+    \textbf{Date of Completion:}\\ #8
+  }
+}
+
+%Create danish project info
+\newcommand{\danishprojectinfo}[8]{%
+  \parbox[t]{\titlepageleftcolumnwidth}{
+    \textbf{Titel:}\\ #1\bigskip\par
+    \textbf{Tema:}\\ #2\bigskip\par
+    \textbf{Projektperiode:}\\ #3\bigskip\par
+    \textbf{Projektgruppe:}\\ #4\bigskip\par
+    \textbf{Deltagere:}\\ #5\bigskip\par
+    \textbf{Vejleder:}\\ #6\bigskip\par
+    \textbf{Oplagstal:} #7\bigskip\par
+    \textbf{Sidetal:} \pageref{LastPage}\bigskip\par
+    \textbf{Afleveringsdato:}\\ #8
+  }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% An example environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont}
+\theoremstyle{break}
+\def\theoremframecommand{{\color{aaublue!50}\vrule width 5pt \hspace{5pt}}}
+\newshadedtheorem{exa}{Example}[chapter]
+\newenvironment{example}[1]{%
+		\begin{exa}[#1]
+}{%
+		\end{exa}
+}
+
+% Code listing macros
+\newenvironment{java}[3][]
+{\VerbatimEnvironment
+\begin{listing}[H]
+    \caption{#2}\label{#3}
+    \begin{minted}[
+        linenos=true,
+        breaklines=true,
+        breakautoindent=true,
+        mathescape=true,
+        escapeinside=\#\%,
+        #1]{Java}}
+{\end{minted}\end{listing}}
+
+% Code listing macros
+\newenvironment{cpp}[3][]
+{\VerbatimEnvironment
+\begin{listing}[ht]
+    \caption{#2}\label{#3}
+    \begin{minted}[
+        linenos=true,
+        breaklines=true,
+        breakautoindent=true,
+        mathescape=true,
+        escapeinside=\#\%,
+        #1]{cpp}}
+{\end{minted}\end{listing}}
+
+\newenvironment{csharp}[3][]
+{\VerbatimEnvironment
+\begin{listing}[H]
+    \caption{#2}\label{#3}
+    \begin{minted}[
+        linenos=true,
+        breaklines=true,
+        breakautoindent=true,
+        mathescape=true,
+        escapeinside=\#\%,
+        #1]{csharp}}
+{\end{minted}\end{listing}}
+
+\newenvironment{xml}[3][]
+{\VerbatimEnvironment
+\begin{listing}[!htb]
+    \caption{#2}\label{#3}
+    \begin{minted}[
+        linenos=true,
+        breaklines=true,
+        breakautoindent=true,
+        mathescape=true,
+        escapeinside=\#\%,
+        #1]{XML}}
+{\end{minted}\end{listing}}
+
+\NewEnviron{eq}{%
+    \begin{equation}
+        \scalebox{1.2}{$\BODY$}
+    \end{equation}
+}
+
+% this is needed, or the \renewcommand for the \listingautorefname will fail
+\newcommand{\listingautorefname}{Code} 
+
+\addto\extrasenglish{
+    \renewcommand{\chapterautorefname}{Chapter}
+    \renewcommand{\listingautorefname}{Code}
+    \renewcommand{\sectionautorefname}{Section}
+    \renewcommand{\subsectionautorefname}{Section}
+    \renewcommand{\subsubsectionautorefname}{Section}
+    \renewcommand{\algorithmautorefname}{Algorithm}
+}
+
+\newcommand{\seqpacket}[2]{Packet~[Type:~\texttt{#1}, Data:~\texttt{#2}]}
+
+\newcommand{\tableref}[1]{\autoref{table:#1}}
+\newcommand{\figureref}[1]{\autoref{figure:#1}}
+\newcommand{\coderef}[1]{\autoref{code:#1}}
+\newcommand{\secref}[1]{\autoref{sec:#1}}
+\newcommand{\chapref}[1]{\autoref{chap:#1}}
+\newcommand{\appendixref}[1]{\autoref{app:#1}}
+\renewcommand{\lineref}[1]{Line \ref{line:#1}}
+
+\newcommand{\doublequote}[1]{``{#1}''}
+\newcommand{\singlequote}[1]{`{#1}'}
+
+\newcommand{\vect}[1]{\ensuremath{\overrightarrow{#1}}}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+
+\newcommand{\citationneeded}[1][]{[citation needed]}
+
+%\makeatletter
+%\newcounter{datastructures}
+%\let\c@algocf\c@datastructures
+
+%\newenvironment{datastructures}[1][htb]
+%  {\renewcommand{\algorithmcfname}{Data Structures}% Update algorithm name
+%   \let\c@algocf\c@datastructures% Update algorithm counter
+%   \begin{algorithm}[#1]%
+%  }{\end{algorithm}}
+%\makeatother
+\renewcommand{\labelenumi}{\Roman{enumi}}
+
+\SetKw{Await}{await}
+\SetKw{From}{from}
+\SetKw{Send}{send}
+\SetKw{Append}{append}
+\SetKw{Clear}{clear}
+\SetKw{Remove}{remove}
+\SetKw{And}{and}
+\SetKw{Or}{or}
+\SetKw{To}{to}
+\SetKw{Transmit}{transmit}
+\SetKw{Listen}{listen}
+\SetKw{Continue}{continue}
+\SetKw{Now}{now}

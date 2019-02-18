@@ -1,0 +1,92 @@
+\makenoidxglossaries
+\setglossarystyle{altlist}
+\setacronymstyle{long-short}
+
+\newacronym{acronym:name}{What to describe}{The description!}
+
+\newacronym{mac}{MAC}{Medium Access Control}
+\newacronym{gps}{GPS}{Global Positioning System}
+\newacronym{tdma}{TDMA}{Time Division Multiple Access}
+\newacronym{wsn}{WSN}{Wireless Sensor Network}
+\newacronym{mpi}{MPI}{Message Passing Interface}
+\newacronym{lmac}{LMAC}{Lightweight Medium Access Protocol}
+\newacronym{manet}{MANET}{Mobile Ad-hoc Network}
+\newacronym{rssi}{RSSI}{Received Signal Strength Indication}
+\newacronym{tls}{TLS}{Total Least Squares}
+\newacronym{db}{dB}{decibel}
+\newacronym{dbm}{dBm}{\acrshort{db} relative to a milliwatt}
+\newacronym{iid}{IID}{Independent and Identically Distributed}
+\newacronym{snr}{SNR}{Signal to Noise Ratio}
+\newacronym{snir}{SN(I)R}{Signal to Noise (and Interference) Ratio}
+\newacronym{optics}{OPTICS}{Ordering Points To Identify the Clustering Structure}
+\newacronym{pep}{PEP}{Packet Error Probability}
+\newacronym{lmc}{LMC}{Link Model Computer}
+\newacronym{dbscan}{DBSCAN}{Density Based Spatial Clustering Applications with Noise}
+\newacronym{vdbscan}{VDBSCAN}{Varied Density Based Spatial Clustering of Applications with Noise}
+\newacronym{uml}{UML}{Unified Modeling Language}
+
+\newglossaryentry{glossary:name}
+{
+    name={text name in lower case},
+    description={Description of the term without period}
+}
+
+\newglossaryentry{symmetric}
+{
+    name={symmetric},
+    description={$a_{i,j} = a_{j,i}$ for $i, j = 0, \dots , N - 1$~\cite{Press:2007:NRE:1403886}}
+}
+
+\newglossaryentry{baudrate}
+{
+    name={baud rate},
+    description={The baud rate is the rate at which information can be transferred as a wireless signal~\cite{website:baudrate-mathworks}, and is equivalent to bits per second.}
+}
+
+\newglossaryentry{lt-matrix}
+{
+    name={lower triangular matrix},
+    description={A square matrix where all entries above the diagonal are zero~\cite{Press:2007:NRE:1403886}}
+}
+
+\newglossaryentry{conjugate-transpose}
+{
+    name={conjugate transpose},
+    description={The element in the $i$-th row and $j$-th column is equal to the complex conjugate of the element in the $j$-th row and $i$-th column for all indices $i$ and $j$~\cite{Press:2007:NRE:1403886}}
+}
+
+\newglossaryentry{pd-matrix}
+{
+    name={positive-definite matrix},
+    description={A matrix is positive-definite if $\forall n \in M$, such that $eigenvalue(n) > 0$~\cite{website:positive-definite-wolfram}}
+}
+
+\newglossaryentry{hop}
+{
+    name={hop},
+    description={The amount of nodes between source and destination}
+}
+
+\newglossaryentry{octet}
+{
+    name={octet},
+    description={A unit of digital information consisting of exactly eight bits}
+}
+
+\newglossaryentry{lowerlayer}
+{
+    name={lower layer},
+    description={The software simulating radio hardware}
+}
+
+\newglossaryentry{upperlayer}
+{
+    name={upper layer},
+    description={The software implementation of a \acrshort{manet} protocol, e.g., an implementation of the \acrshort{lmac} protocol}
+}
+
+\newglossaryentry{pathloss}
+{
+    name={path loss},
+    description={The signal loss inflicted by the propagation of a electromagnetic wave from transmitter to receiver~\cite[p.~10]{paper:linkmodel}}
+}
