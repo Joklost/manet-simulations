@@ -16,17 +16,13 @@ namespace reachi2 {
 
         double distance_pathloss(double distance);
 
-        double distance_pathloss(mpilib::geo::Location to, mpilib::geo::Location from);
+        double distance_pathloss(mpilib::geo::Location &to, mpilib::geo::Location &from);
 
-        double distance_pathloss(reachi2::Link link);
+        double distance_pathloss(reachi2::Link &link);
 
         double autocorrelation(double angle);
     }
 }
-
-
-
-
 
 
 #endif //MANETSIMS_MATH_H
