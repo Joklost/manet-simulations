@@ -1,12 +1,16 @@
+
+#include <ostream>
+
 #include <reachi/linkmodel.h>
 #include <reachi/datagen.h>
+
 #include <mpilib/node.h>
-#include <ostream>
+#include <mpilib/httpclient.h>
 
 #include "lmc.h"
 
-void LinkModelComputer::run() {
 
+void LinkModelComputer::run() {
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
 
@@ -16,6 +20,11 @@ void LinkModelComputer::run() {
         this->c->set_level(spdlog::level::debug);
     }
     this->c->debug("init()");
+
+    auto response = this->httpclient.get("/vis/register-map");
+    if (response.status_code == 200) {
+        this->uuid = response.text;
+    }
 
     /* Ensure that the workers are ready before using MPI. */
     auto compute = std::thread{&LinkModelComputer::compute, this};
@@ -150,12 +159,22 @@ Action LinkModelComputer::compute_link_model() {
     auto eps = 0.01;
     auto minpts = 2;
 
-    auto link_threshold = 1.5_km;
+    auto link_threshold = 750_m;
 
     auto time = 0.0, time_delta = 0.0;
     std::vector<reachi::Node> model_nodes{};
     for (auto &node : this->nodes) {
         model_nodes.emplace_back(node.second.rank, node.second.loc);
+    }
+
+    if (!this->uuid.empty()) {
+        auto node_links = reachi::data::create_link_vector(model_nodes, link_threshold);
+        json j_nodes = model_nodes;
+        json j_links = node_links;
+
+        this->httpclient.post("/vis/add-nodes/" + this->uuid, j_nodes);
+        this->httpclient.post("/vis/add-links/" + this->uuid, j_links);
+        this->c->info("http://0.0.0.0:5000/vis/maps/{}", this->uuid);
     }
 
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);

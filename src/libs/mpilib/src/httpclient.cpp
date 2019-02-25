@@ -1,7 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <mpilib/httpclient.h>
-#if 0
 mpilib::HttpClient::HttpClient(std::string base_url) {
     this->host = std::move(base_url);
 }
@@ -30,4 +29,3 @@ cpr::AsyncResponse mpilib::HttpClient::get_async(std::string endpoint) {
     auto response = cpr::GetAsync(cpr::Url{this->host + endpoint});
     return response;
 }
-#endif

@@ -4,8 +4,13 @@
 #include <iostream>
 #include <csignal>
 #include <thread>
+<<<<<<< HEAD
 #include <mpilib/geomath.h>
 #include <random>
+=======
+#include <random>
+#include <mpilib/geomath.h>
+>>>>>>> Adds working coordinator
 
 struct Packet {
     unsigned long rank{};
@@ -65,17 +70,20 @@ std::string format_duration(std::chrono::microseconds us) {
 int main(int argc, char *argv[]) {
     auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
 
-    mpilib::geo::Location l1{57.01266813458001, 10.994625734716218};
-
+    mpilib::geo::Location l1{57.0121621, 9.990679};
+    auto l2 = mpilib::geo::square(l1, 3_km);
+    auto l = mpilib::geo::random_location(l1, l2);
     hardware::init(l1, false, debug);
     auto id = hardware::get_id();
-    auto l = mpilib::geo::move_location(l1, 500_m * id, 90);
+    //auto l = mpilib::geo::move_location(l1, 500_m * id, 90);
+
     hardware::handshake(l);
     auto &console = hardware::logger;
     auto slots = hardware::get_world_size();
     std::random_device rd{};
     std::mt19937 eng{rd()};
-    std::uniform_int_distribution<unsigned long> dist{0ul, 8};
+
+    std::uniform_int_distribution<unsigned long> dist{0ul, 32};
 
     Packet secret{};
 
@@ -90,8 +98,9 @@ int main(int argc, char *argv[]) {
             if (selected == current) {
                 if (secret.rank != 0ul) {
                     //secret.rank = id;
+                    hardware::sleep(20ms);
                     auto duration = hardware::broadcast(mpilib::serialise(secret));
-                    hardware::sleep(slot_length - duration);
+                    hardware::sleep(slot_length - duration - 20ms);
                 } else {
                     hardware::sleep(slot_length);
                 }

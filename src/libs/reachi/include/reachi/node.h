@@ -2,21 +2,18 @@
 #define MANETSIMS_REACHI_NODE_H
 
 #include <vector>
-#if 0
 #include <nlohmann/json.hpp>
-#endif
 #include <mpilib/location.h>
 #include <ostream>
 
 #include "constants.h"
-#if 0
+
 using json = nlohmann::json;
-#endif
 namespace reachi {
 
     class Node {
     public:
-        Node();
+        Node() = default;
 
         Node(uint32_t id, mpilib::geo::Location location);
 
@@ -55,7 +52,7 @@ namespace reachi {
         void set_processed(bool processed);
 
     private:
-        uint32_t id;
+        uint32_t id{};
         mpilib::geo::Location current_location;
         std::vector<mpilib::geo::Location> location_history;
 
@@ -64,11 +61,10 @@ namespace reachi {
         double core_distance{};
         bool processed{};
     };
-#if 0
+
     void to_json(json &j, const Node &p);
 
     void from_json(const json &j, Node &p);
-#endif
 }
 
 namespace std {
