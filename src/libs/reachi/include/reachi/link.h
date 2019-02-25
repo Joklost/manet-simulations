@@ -11,7 +11,7 @@ namespace reachi {
 
     class Link {
     public:
-        Link(uint64_t id, reachi::Node node1, reachi::Node node2);
+        Link(uint64_t id, reachi::Node &node1, reachi::Node &node2);
 
         const ::std::pair<reachi::Node, reachi::Node> &get_nodes() const;
 

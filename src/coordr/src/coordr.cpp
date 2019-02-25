@@ -16,19 +16,6 @@
 #define NOISE_FIGURE 4.2
 #endif
 
-/*
-bool Coordinator::has_link(Coordinator::Listen &rx, Coordinator::Transmission &tx) {
-    if (rx.rank == tx.rank || !tx.is_within(rx)) {
-        return false;
-    }
-
-    auto pathloss = this->link_model[rx.rank][tx.rank];
-    auto rssi = TX_POWER - pathloss;
-
-    return !(rssi > THRESHOLD || mpilib::is_zero(rssi));
-}
-*/
-
 void Coordinator::run() {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -147,67 +134,72 @@ void Coordinator::run() {
                 break;
             }
 
-            if (act.type == Listen) {
-                this->action_queue.pop();
+            if (act.type != Listen) {
+                continue;
+            }
 
-                for (auto &tx : this->transmissions) {
-                    if (!tx.is_within(act)) {
+            this->action_queue.pop();
+
+            for (auto &tx : this->transmissions) {
+                if (!tx.is_within(act)) {
+                    /* Time interval does not intersect. */
+                    continue;
+                }
+
+                auto pathloss = this->link_model[tx.rank][act.rank];
+                if (mpilib::is_zero(pathloss)) {
+                    /* No link. */
+                    continue;
+                }
+
+                std::vector<double> interference{};
+                auto rssi = TX_POWER - pathloss;
+
+                for (auto &tx_i : this->transmissions) {
+                    if (tx_i.rank == tx.rank) {
+                        /* No interference from own transmission. */
                         continue;
                     }
 
-                    auto pathloss = this->link_model[tx.rank][act.rank];
-                    if (mpilib::is_zero(pathloss)) {
+                    if (act.end <= tx_i.start || act.start >= tx_i.end) {
+                        /* Time interval does not intersect. */
+                        continue;
+                    }
+
+                    auto interfering_pathloss = this->link_model[act.rank][tx_i.rank];
+                    if (mpilib::is_zero(interfering_pathloss)) {
                         /* No link. */
                         continue;
                     }
 
-                    std::vector<double> interference{};
-                    auto rssi = TX_POWER - pathloss;
-
-                    for (auto &tx_i : this->transmissions) {
-                        if (tx_i.rank == tx.rank) {
-                            continue;
-                        }
-
-                        if (act.end <= tx_i.start || act.start >= tx_i.end) {
-                            /* Time interval does not intersect. */
-                            continue;
-                        }
-
-                        auto interfering_pathloss = this->link_model[act.rank][tx_i.rank];
-                        if (mpilib::is_zero(interfering_pathloss)) {
-                            /* No link. */
-                            continue;
-                        }
-
-                        interference.push_back(TX_POWER - interfering_pathloss);
-                    }
-
-                    auto pep = reachi::radiomodel::pep(rssi, tx.packets.back().size(), interference);
-                    std::bernoulli_distribution d(1.0 - pep);
-                    auto should_receive = d(gen);
-
-                    if (should_receive) {
-                        act.packets.push_back(tx.packets.back());
-                    } else {
-                        auto interfering_power = 0.0;
-                        for (auto &RSSI_interference_dB : interference) {
-                            interfering_power += reachi::radiomodel::linearize(RSSI_interference_dB);
-                        }
-
-                        if (!mpilib::is_zero(interfering_power)) {
-                            interfering_power = reachi::radiomodel::logarithmicize(interfering_power);
-
-                        }
-                        this->c->info("packet_dropped(src: {}, dst: {}, rssi: {} dBm, pep: {}, p_i: {} dBm, p_ic: {})", act.rank, tx.rank, rssi, pep, interfering_power, interference.size());
-                    }
+                    interference.push_back(TX_POWER - interfering_pathloss);
                 }
 
-                mpi::send(act.packets.size(), act.rank, RX_PKT_COUNT);
+                auto pep = reachi::radiomodel::pep(rssi, tx.packets.back().size(), interference);
+                std::bernoulli_distribution d(1.0 - pep);
+                auto should_receive = d(gen);
 
-                for (auto &packet : act.packets) {
-                    mpi::send(packet, act.rank, RX_PKT_DATA);
+                if (should_receive) {
+                    act.packets.push_back(tx.packets.back());
+                } else {
+                    auto interfering_power = 0.0;
+                    for (auto &RSSI_interference_dB : interference) {
+                        interfering_power += reachi::radiomodel::linearize(RSSI_interference_dB);
+                    }
+
+                    if (!mpilib::is_zero(interfering_power)) {
+                        interfering_power = reachi::radiomodel::logarithmicize(interfering_power);
+
+                    }
+                    this->c->info("packet_dropped(src: {}, dst: {}, rssi: {} dBm, pep: {}, p_i: {} dBm, p_ic: {})",
+                                  act.rank, tx.rank, rssi, pep, interfering_power, interference.size());
                 }
+            }
+
+            mpi::send(act.packets.size(), act.rank, RX_PKT_COUNT);
+
+            for (auto &packet : act.packets) {
+                mpi::send(packet, act.rank, RX_PKT_DATA);
             }
         }
 
