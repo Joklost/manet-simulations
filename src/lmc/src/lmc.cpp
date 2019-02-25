@@ -62,6 +62,7 @@ void LinkModelComputer::recv() {
 }
 
 void LinkModelComputer::control() {
+    auto location_updates = 0; // TODO: fix temp fix
 
     while (this->work) {
         auto act = this->queue.pop();
@@ -77,8 +78,12 @@ void LinkModelComputer::control() {
             this->c->debug("update_location(rank={}, loc={})", act.rank, loc);
             this->nodes[act.rank].loc = loc;
 
-            this->is_valid = false;
-            this->cond_.notify_one();
+            location_updates++;
+            if (location_updates == this->nodes.size()) {
+                location_updates = 0;
+                this->is_valid = false;
+                this->cond_.notify_one();
+            }
         }
 
         if (act.type == link_model_t) {
@@ -107,12 +112,12 @@ bool LinkModelComputer::handshake() {
     }
 
     /* Wait for first Link Model to compute, and send ready signal to controller. */
-    compute_link_model();
+    auto act = compute_link_model();
     mpi::send(this->world_rank, CTRLR, HANDSHAKE);
 
     /* Send link model to controller. */
-    mpi::send(this->link_model.size(), CTRLR, LINK_MODEL);
-    for (auto &link : this->link_model) {
+    mpi::send(act.link_model.size(), CTRLR, LINK_MODEL);
+    for (auto &link : act.link_model) {
         auto link_buffer = mpilib::serialise(link);
         mpi::send(link_buffer, CTRLR, LINK_MODEL_LINK);
     }
@@ -133,12 +138,13 @@ void LinkModelComputer::compute() {
             continue;
         }
 
-        compute_link_model();
+        auto act = compute_link_model();
+        this->queue.push(act);
     }
 
 }
 
-void LinkModelComputer::compute_link_model() {
+Action LinkModelComputer::compute_link_model() {
     reachi::Optics optics{};
 
     auto eps = 0.01;
@@ -159,7 +165,7 @@ void LinkModelComputer::compute_link_model() {
     this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), links.size());
 
     auto start = std::chrono::steady_clock::now();
-    auto link_model = reachi::linkmodel::compute(links);
+    auto lm = reachi::linkmodel::compute(links);
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
     this->c->debug("compute_done(execution={})", duration.count());
 
@@ -170,7 +176,7 @@ void LinkModelComputer::compute_link_model() {
         auto &link = links[i];
         auto &c1 = link.get_clusters().first;
         auto &c2 = link.get_clusters().second;
-        auto pathloss = link_model[i];
+        auto pathloss = lm[i];
 
         for (auto &n1 : c1.get_nodes()) {
             for (auto &n2 : c2.get_nodes()) {
@@ -185,4 +191,5 @@ void LinkModelComputer::compute_link_model() {
 
     Action act{link_model_t};
     act.link_model = model;
+    return act;
 }

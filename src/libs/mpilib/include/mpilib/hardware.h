@@ -29,7 +29,9 @@ namespace hardware {
      * @param loc The initial geolocation of this node.
      * @param debug Enable debug logging.
      */
-    void init(const mpilib::geo::Location &loc, bool debug = false);
+    void init(const mpilib::geo::Location &loc, bool handshake = true, bool debug = false);
+
+    void handshake(const mpilib::geo::Location &loc);
 
     /**
      * Deinitialise the hardware interface.

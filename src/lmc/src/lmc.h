@@ -57,7 +57,7 @@ class LinkModelComputer {
 
     void compute();
 
-    void compute_link_model();
+    Action compute_link_model();
 
 public:
 

@@ -1,7 +1,7 @@
 #include <mpilib/hardware.h>
 
 
-void hardware::init(const mpilib::geo::Location &loc, bool debug) {
+void hardware::init(const mpilib::geo::Location &loc, bool handshake, bool debug) {
     if (hardware::initialized) {
         return;
     }
@@ -23,6 +23,12 @@ void hardware::init(const mpilib::geo::Location &loc, bool debug) {
     /* Subtract ctrlr from world size. */
     hardware::world_size = hardware::world_size - 1;
 
+    if (handshake) {
+        hardware::handshake(loc);
+    }
+}
+
+void hardware::handshake(const mpilib::geo::Location &loc) {
     /* Handshake */
     auto magic = mpi::recv<int>(CTRLR, HANDSHAKE);
     if (mpi::send(magic, CTRLR, HANDSHAKE) == MPI_SUCCESS) {
@@ -98,8 +104,8 @@ void hardware::sleep(std::chrono::microseconds duration) {
     hardware::prepare_localtime(duration);
     hardware::logger->debug("sleep(localtime={}, duration={})", hardware::localtime - duration, duration);
 
-    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, SLEEP);
-    mpi::send(static_cast<unsigned long>(duration.count()), CTRLR, SLEEP_DURATION);
+    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, NOOP);
+    mpi::send(static_cast<unsigned long>(duration.count()), CTRLR, NOOP_DURATION);
 
     hardware::clock = hardware::now();
 }
@@ -111,7 +117,8 @@ void hardware::report_localtime() {
 
     hardware::prepare_localtime(0us);
     hardware::logger->debug("report_localtime(localtime={})", hardware::localtime);
-    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, SET_LOCAL_TIME);
+    mpi::send(static_cast<unsigned long>(hardware::localtime.count()), CTRLR, NOOP);
+    mpi::send(static_cast<unsigned long>(0ul), CTRLR, NOOP_DURATION);
 
     hardware::clock = hardware::now();
 }

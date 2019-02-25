@@ -83,8 +83,8 @@ int mpilib::geo::Location::get_time() const {
     return time;
 }
 
-void mpilib::geo::Location::set_time(int time) {
-    mpilib::geo::Location::time = time;
+void mpilib::geo::Location::set_time(int new_time) {
+    mpilib::geo::Location::time = new_time;
 }
 
 mpilib::geo::Location::Location(double latitude, double longitude) : latitude(latitude), longitude(longitude),
@@ -95,19 +95,39 @@ mpilib::geo::Location::Location(int time, double latitude, double longitude) : t
 
 mpilib::geo::Location::Location() = default;
 
+/**
+ * Kiloeter literal.
+ * @param m Distance in kilometers.
+ * @return m.
+ */
 double mpilib::geo::literals::operator ""_km(long double km) {
     return static_cast<double>(km);
 }
 
+/**
+ * Kiloeter literal.
+ * @param m Distance in kilometers.
+ * @return m.
+ */
 double mpilib::geo::literals::operator ""_km(unsigned long long km) {
     return static_cast<double>(km);
 }
 
+/**
+ * Meter literal.
+ * @param m Distance in meters.
+ * @return m converted to kilometers.
+ */
 double mpilib::geo::literals::operator ""_m(long double m) {
     return static_cast<double>(m / KM);
 
 }
 
+/**
+ * Meter literal.
+ * @param m Distance in meters.
+ * @return m converted to kilometers.
+ */
 double mpilib::geo::literals::operator ""_m(unsigned long long m) {
     return m / KM;
 }
