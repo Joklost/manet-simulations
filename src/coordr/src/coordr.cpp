@@ -6,7 +6,6 @@
 #include "coordr.h"
 
 #define TX_POWER 26.0
-#define THRESHOLD -110.0 /* RSSI in dBm */
 
 #ifndef THERMAL_NOISE
 #define THERMAL_NOISE -119.66
@@ -39,7 +38,6 @@ void Coordinator::run() {
     }
 
     while (true) {
-
         auto status = mpi::probe();
 
         if (status.tag == DIE) {
@@ -61,57 +59,44 @@ void Coordinator::run() {
                 /* Break the loop to deinit mpi. */
                 break;
             }
-
-        }
-
-        if (status.tag == TX_PKT) {
+        } else if (status.tag == TX_PKT) {
             Action act{Transmission, status.source};
             act.start = mpi::recv<unsigned long>(status.source, TX_PKT);
             auto data = mpi::recv<std::vector<octet>>(status.source, TX_PKT_DATA);
             act.packets.push_back(data);
             act.end = act.start + mpilib::compute_transmission_time(BAUDRATE, data.size()).count();
-            //this->action_queue.push(act);
+
             this->transmissions.push_back(act);
-
             this->nodes[status.source].localtime = act.end;
-        }
-
-        if (status.tag == RX_PKT) {
+        } else if (status.tag == RX_PKT) {
             Action act{Listen, status.source};
             act.start = mpi::recv<unsigned long>(status.source, RX_PKT);
             act.end = act.start + mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
+
             this->action_queue.push(act);
-
             this->nodes[status.source].localtime = act.end;
-        }
-
-        if (status.tag == NOOP) {
+        } else if (status.tag == NOOP) {
             Action act{NoOp, status.source};
             act.start = mpi::recv<unsigned long>(status.source, NOOP);
             act.end = act.start + mpi::recv<unsigned long>(status.source, NOOP_DURATION);
-            //this->action_queue.push(act);
 
             this->nodes[status.source].localtime = act.end;
-        }
-
-        if (status.tag == SET_LOCATION) {
+        } else if (status.tag == SET_LOCATION) {
             auto &node = this->nodes[status.source];
             node.loc = update_location(status.source);
+        } else if (status.tag == LINK_MODEL) {
+//            auto count = mpi::recv<unsigned long>(status.source, LINK_MODEL);
+//            std::vector<mpilib::Link> links{};
+//            links.reserve(count);
+//            for (auto i = 0; i < count; ++i) {
+//                auto link_buffer = mpi::recv<std::vector<octet>>(status.source, LINK_MODEL_LINK);
+//                links.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
+//            }
+//
+//            set_linkmodel(links);
         }
 
-        if (status.tag == LINK_MODEL) {
-            auto count = mpi::recv<unsigned long>(status.source, LINK_MODEL);
-            std::vector<mpilib::Link> links{};
-            links.reserve(count);
-            for (auto i = 0; i < count; ++i) {
-                auto link_buffer = mpi::recv<std::vector<octet>>(status.source, LINK_MODEL_LINK);
-                links.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
-            }
-
-            set_linkmodel(links);
-        }
-
-        unsigned long mintime = std::numeric_limits<unsigned long>::max();
+        auto mintime = std::numeric_limits<unsigned long>::max();
         for (const auto &item : this->nodes) {
             auto &node = item.second;
             if (node.localtime < mintime) {
@@ -124,20 +109,11 @@ void Coordinator::run() {
         }
 
         while (true) {
-            if (this->action_queue.empty()) {
+            if (this->action_queue.empty() || this->action_queue.top().end > mintime) {
                 break;
             }
 
             auto act = this->action_queue.top();
-
-            if (act.end > mintime) {
-                break;
-            }
-
-            if (act.type != Listen) {
-                continue;
-            }
-
             this->action_queue.pop();
 
             for (auto &tx : this->transmissions) {
@@ -179,9 +155,8 @@ void Coordinator::run() {
                 std::bernoulli_distribution d(1.0 - pep);
                 auto should_receive = d(gen);
 
-                if (should_receive) {
-                    act.packets.push_back(tx.packets.back());
-                } else {
+                /* Print RSSI and interference for debugging purposes. */
+                if (this->debug) {
                     auto interfering_power = 0.0;
                     for (auto &RSSI_interference_dB : interference) {
                         interfering_power += reachi::radiomodel::linearize(RSSI_interference_dB);
@@ -189,10 +164,16 @@ void Coordinator::run() {
 
                     if (!mpilib::is_zero(interfering_power)) {
                         interfering_power = reachi::radiomodel::logarithmicize(interfering_power);
-
                     }
-                    this->c->info("packet_dropped(src: {}, dst: {}, rssi: {} dBm, pep: {}, p_i: {} dBm, p_ic: {})",
-                                  act.rank, tx.rank, rssi, pep, interfering_power, interference.size());
+
+                    this->c->debug("{}(src: {}, dst: {}, rssi: {} dBm, pep: {}, p_i: {} dBm, p_ic: {})",
+                                   should_receive ? "recv" : "drop",
+                                   tx.rank, act.rank, rssi, pep,
+                                   interfering_power, interference.size());
+                }
+
+                if (should_receive) {
+                    act.packets.push_back(tx.packets.back());
                 }
             }
 
@@ -263,7 +244,7 @@ bool Coordinator::handshake() {
 
     set_linkmodel(links);
 
-    /* Set the clocks on all nodes. */
+    /* Sets the clock on all nodes. */
     for (auto i = 1; i <= world_size; ++i) {
         mpi::send(i, i, READY);
     }
