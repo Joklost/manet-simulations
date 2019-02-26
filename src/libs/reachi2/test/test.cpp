@@ -1,13 +1,23 @@
 #include <catch2/catch.hpp>
-#include <Eigen/Cholesky>
+#include <Eigen/Core>
 #include <iostream>
+#include <chrono>
 
+#include <reachi/datagen.h>
+#include <mpilib/geomath.h>
+#include <mpilib/location.h>
 #include "reachi2/math.h"
+#include "reachi2/constants.h"
+#include "reachi2/linkmodel.h"
 
-TEST_CASE("ol", "[d]") {
-    Eigen::MatrixXd matrix{};
+using namespace std::literals::chrono_literals;
+using namespace mpilib::geo::literals;
 
-    Eigen::LDLT<Eigen::Ref<Eigen::MatrixXd>> ldlt(matrix);
+TEST_CASE("Linkmodel test", "[linkmodel]") {
+    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = mpilib::geo::square(upper, 5_km);
 
-    std::cout << matrix << std::endl;
+    auto nodes = reachi::data::generate_nodes(10, upper, lower);
+
+    reachi2::Linkmodel linkmodel {nodes};
 }

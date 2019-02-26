@@ -326,6 +326,7 @@ pip-selfcheck.json
 
 ### VisualStudioCode ###
 .vscode/*
+reports/p10/.vscode/*
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
