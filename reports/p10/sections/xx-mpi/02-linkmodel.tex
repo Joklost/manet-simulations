@@ -1,0 +1,24 @@
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{Linkmodel}{Linkmodel}
+    \SetKwProg{Fn}{Linkmodel}{}{}
+
+    \Fn{\Linkmodel{l}}{
+        packets $\leftarrow$ empty Packet list\;
+
+        \ForEach{t $\in$ l.transmissions}{
+            \If{\texttt{ShouldReceive}(l, t, l.transmissions, |t.data|)}{
+                \Append t.data \To packets\;
+            }
+        }
+
+        \Send $|$packets$|$ \To l.source\; \label{line:sendcount}
+
+        \ForEach{p $\in$ packets}{ \label{line:sendpackets}
+            \Send p \To l.source\;
+        }
+    }
+
+    \caption{Pseoducode for the linkmodel}
+    \label{algo:linkmodel}
+\end{algorithm}
