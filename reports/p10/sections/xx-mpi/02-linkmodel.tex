@@ -1,24 +1,56 @@
 \begin{algorithm}[ht]
     \DontPrintSemicolon
-    \SetKwFunction{Linkmodel}{Linkmodel}
-    \SetKwProg{Fn}{Linkmodel}{}{}
+    \SetKwFunction{FLinkmodel}{Linkmodel}
+    \SetKwProg{Fn}{Function}{}{}
 
-    \Fn{\Linkmodel{l}}{
-        packets $\leftarrow$ empty Packet list\;
+    \Fn{\FLinkmodel{links}}{
+        \ForEach{$l \in $ links}{
+            neighbours $\leftarrow$ findNeighbourhood($l$)\;
+            \ForEach{$neighbour \in neighbours$}{
+                C $\leftarrow r(l, neighbour)$ // The autocorrelation function\;
 
-        \ForEach{t $\in$ l.transmissions}{
-            \If{\texttt{ShouldReceive}(l, t, l.transmissions, |t.data|)}{
-                \Append t.data \To packets\;
+                $\Sigma \leftarrow \sigma^2$C // The covariance matrix\;
             }
-        }
-
-        \Send $|$packets$|$ \To l.source\; \label{line:sendcount}
-
-        \ForEach{p $\in$ packets}{ \label{line:sendpackets}
-            \Send p \To l.source\;
         }
     }
 
     \caption{Pseoducode for the linkmodel}
     \label{algo:linkmodel}
 \end{algorithm}
+
+
+
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FLinkmodel}{Linkmodel}
+    \SetKwProg{Fn}{Function}{}{}
+
+    \Fn{\FLinkmodel{links}}{
+        \textbf{Structure} $l_{pl}$ (id, value)\;\;
+
+        \ForEach{$l \in $ links}{
+            neighbours $\leftarrow$ findNeighbourhood($l$)\;
+            fading $\leftarrow$ 0\;
+
+            \ForEach{$neighbour \in neighbours$}{
+                angle $\leftarrow \theta(l, neighbour)$\;
+
+                dev $\leftarrow$ calculate deviation based on $angle$\;
+
+                Pick a random value $r$ from a gaussian distribution with mean $=$ 0, and the deviation $=$ dev\;
+
+                fading $\leftarrow$ fading $+$ r\;
+            }
+
+            $l_d \leftarrow 10\gamma\log_{10}(d(l)) - 18.8$\;
+            $l_{pl}$.append($l.id, l_d + fading$)\;
+        }
+    }
+
+    \caption{Pseoducode for version 2}
+    \label{algo:linkmodel2}
+\end{algorithm}
+
+

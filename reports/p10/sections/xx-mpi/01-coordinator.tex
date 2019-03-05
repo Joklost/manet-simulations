@@ -4,10 +4,10 @@
     \SetKwFunction{FCoordinator}{Coordinator}
     \SetKwProg{Fn}{procedure}{}{}
 
-    \textbf{Structure} Message \{ action, source, localtime, duration, data \}\;
-    \textbf{Structure} Transmission \{ source, start, end, data \}\;
-    \textbf{Structure} Listen \{ source, start, end, transmissions \}\;    
-    \textbf{Structure} Node \{ localtime \}\; % location
+    \textbf{Structure} Message ( action, source, localtime, duration, data )\;
+    \textbf{Structure} Transmission ( source, start, end, data )\;
+    \textbf{Structure} Listen ( source, start, end, transmissions )\;    
+    \textbf{Structure} Node ( localtime )\; % location
     \;
 
     \Fn{\FCoordinator{}}{
@@ -24,7 +24,7 @@
             \;
 
             \If{m.action = transmit}{ \label{line:action-transmit}
-                t $\leftarrow$ Transmission \{ m.source, m.localtime, m.localtime $+$ m.duration, m.data \}\;
+                t $\leftarrow$ Transmission ( m.source, m.localtime, m.localtime $+$ m.duration, m.data )\;
                 \Append t \KwTo transmissions\;
                 \;
                 \ForEach{l $\in$ listens}{
@@ -41,7 +41,7 @@
             }
 
             \ElseIf{m.action = listen}{ \label{line:action-listen}
-                l $\leftarrow$ Listen \{ m.source, m.localtime, m.localtime $+$ m.duration \}\;
+                l $\leftarrow$ Listen ( m.source, m.localtime, m.localtime $+$ m.duration )\;
                 \;
                 \ForEach{t $\in$ transmissions}{
                     \If{t.start $\geq$ l.start \And t.end $\leq$ l.end}{
