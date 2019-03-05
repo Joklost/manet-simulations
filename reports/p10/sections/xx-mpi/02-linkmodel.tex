@@ -1,4 +1,4 @@
-\begin{algorithm}[ht]
+\begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FLinkmodel}{Linkmodel}
     \SetKwProg{Fn}{Function}{}{}
@@ -22,7 +22,7 @@
 
 
 
-\begin{algorithm}[ht]
+\begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FLinkmodel}{Linkmodel}
     \SetKwProg{Fn}{Function}{}{}
@@ -32,7 +32,7 @@
 
         \ForEach{$l \in $ links}{
             neighbours $\leftarrow$ findNeighbourhood($l$)\;
-            fading $\leftarrow$ 0\;
+            $l_{fading} \leftarrow$ 0\;\;
 
             \ForEach{$neighbour \in neighbours$}{
                 angle $\leftarrow \theta(l, neighbour)$\;
@@ -41,16 +41,17 @@
 
                 Pick a random value $r$ from a gaussian distribution with mean $=$ 0, and the deviation $=$ dev\;
 
-                fading $\leftarrow$ fading $+$ r\;
+                $l_{fading} \leftarrow l_{fading} +$ r\;
             }
 
             $l_d \leftarrow 10\gamma\log_{10}(d(l)) - 18.8$\;
-            $l_{pl}$.append($l.id, l_d + fading$)\;
+            $l_{pl}$.append($l.id, l_d + l_{fading}$)\;
         }
     }
 
-    \caption{Pseoducode for version 2}
+    \caption{Pseoducode for version 2 of linkmodel}
     \label{algo:linkmodel2}
 \end{algorithm}
 
 
+\autoref{algo:linkmodel2} shows pseoducode for the new linkmodel. The approach taken is faulty and does not give correct results. The approach taken was picking a random link, and find all links sharing a node thereby discovering the neighbourhood. Then the neighbourhood is iterated through. The angle between the current neighbour and the link, is calculated and used to compute a deviation value. The deviation value is used as the deviation parameter for a Gaussian random value. The deviation is based on the angle, so a larger angle means a larger deviation resulting in potentially larger random values drawn from the Gaussian distribution. The random value is then accumulated with all random values from the neighbourhood. The sum represents the stochastic fading. The pathloss $l_{pl}$ is then computed as usual with $l_{pl} = l_d + l_f$.
