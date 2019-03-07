@@ -8,6 +8,7 @@
 #include <mpilib/queue.h>
 #include <mpilib/node.h>
 #include <mpilib/link.h>
+#include <mpilib/httpclient.h>
 
 enum Type {
     update_location_t, link_model_t, poison_t
@@ -39,6 +40,9 @@ class LinkModelComputer {
     char processor_name[MPI_MAX_PROCESSOR_NAME]{};
     std::shared_ptr<spdlog::logger> c;
 
+    mpilib::HttpClient httpclient;
+    std::string uuid{};
+
     bool is_valid = false;
 
     std::vector<mpilib::Link> link_model{};
@@ -57,11 +61,11 @@ class LinkModelComputer {
 
     void compute();
 
-    void compute_link_model();
+    Action compute_link_model();
 
 public:
 
-    explicit LinkModelComputer(bool debug) : debug(debug) {}
+    explicit LinkModelComputer(bool debug) : debug(debug), httpclient("http://0.0.0.0:5000") {}
 
     void run();
 };

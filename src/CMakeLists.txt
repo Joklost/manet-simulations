@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.8)
 
 project(manetsims VERSION 1.0)
 
@@ -34,8 +34,12 @@ include_directories(${JSON_INCLUDE_DIRS})
 set(MPI_EXECUTABLE_SUFFIX ".mpich")
 find_package(MPI REQUIRED)
 
+# Add libraries
 add_subdirectory(libs)
-add_subdirectory(lmac)
-add_subdirectory(alohanet)
+
+# Add executables
 add_subdirectory(coordr)
+add_subdirectory(scratch)
 add_subdirectory(lmc)
+#add_subdirectory(lmac)
+add_subdirectory(alohanet)

@@ -11,7 +11,7 @@ namespace reachi {
 
     class Link {
     public:
-        Link(uint64_t id, reachi::Node node1, reachi::Node node2);
+        Link(uint64_t id, reachi::Node &node1, reachi::Node &node2);
 
         const ::std::pair<reachi::Node, reachi::Node> &get_nodes() const;
 
@@ -38,6 +38,9 @@ namespace reachi {
 
     };
 
+    void to_json(json &j, const Link &p);
+
+    void from_json(const json &j, Link &p);
 }
 
 #endif /* MANETSIMS_LINK_H */

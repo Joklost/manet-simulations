@@ -1,7 +1,11 @@
-#include <mpilib/hardware.h>
-#include <random>
 #include <ostream>
-#include <cstdlib>
+#include <iostream>
+#include <csignal>
+#include <thread>
+#include <random>
+
+#include <mpilib/hardware.h>
+#include <mpilib/geomath.h>
 
 struct Packet {
     unsigned long rank{};
@@ -38,33 +42,23 @@ std::string format_duration(std::chrono::microseconds us) {
     return oss.str();
 }
 
-
 int main(int argc, char *argv[]) {
-    auto debug = false;
-    mpilib::geo::Location l{};
-    if (argc > 1 && std::string{"--debug"} == std::string{argv[1]}) {
-        debug = true;
+    auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
 
-        mpilib::geo::Location l1{57.01266813458001, 10.994625734716218};
-        mpilib::geo::Location l2 = square(l1, 1.0);
-        l = random_location(l1, l2);
-    }
-    if (argc == 3) {
-        char *end;
-        auto lat = std::strtod(argv[1], &end);
-        auto lon = std::strtod(argv[2], &end);
-        l = mpilib::geo::Location{lat, lon};
-    }
-
-    hardware::init(l, debug);
-
+    mpilib::geo::Location l1{57.0121621, 9.990679};
+    auto l2 = mpilib::geo::square(l1, 1.5_km);
+    auto l = mpilib::geo::random_location(l1, l2);
+    hardware::init(l1, false, debug);
     auto id = hardware::get_id();
-    std::string sid = std::string(3 - std::to_string(id).length(), '0') + std::to_string(id);
-    auto console = spdlog::stderr_color_st("aloha" + sid);
+    //auto l = mpilib::geo::move_location(l1, 500_m * id, 90);
+
+    hardware::handshake(l);
+    auto &console = hardware::logger;
     auto slots = hardware::get_world_size();
     std::random_device rd{};
     std::mt19937 eng{rd()};
-    std::uniform_int_distribution<unsigned long> dist{0ul, 8};
+
+    std::uniform_int_distribution<unsigned long> dist{0ul, 32};
 
     Packet secret{};
 
@@ -73,14 +67,15 @@ int main(int argc, char *argv[]) {
     }
 
     auto slot_length = 2s;
-    for (auto i = 0; i < 3; ++i) {
+    for (auto i = 0; i < 6; ++i) {
         auto selected = dist(eng);
         for (auto current = 0; current < slots; ++current) {
             if (selected == current) {
                 if (secret.rank != 0ul) {
                     //secret.rank = id;
+                    hardware::sleep(20ms);
                     auto duration = hardware::broadcast(mpilib::serialise(secret));
-                    hardware::sleep(slot_length - duration);
+                    hardware::sleep(slot_length - duration - 20ms);
                 } else {
                     hardware::sleep(slot_length);
                 }
@@ -108,4 +103,6 @@ int main(int argc, char *argv[]) {
     }
 
     hardware::deinit();
+
+    return 0;
 }

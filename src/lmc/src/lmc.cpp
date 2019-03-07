@@ -1,12 +1,16 @@
+
+#include <ostream>
+
 #include <reachi/linkmodel.h>
 #include <reachi/datagen.h>
+
 #include <mpilib/node.h>
-#include <ostream>
+#include <mpilib/httpclient.h>
 
 #include "lmc.h"
 
-void LinkModelComputer::run() {
 
+void LinkModelComputer::run() {
     mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
     this->world_size = this->world_size - 2;
 
@@ -16,6 +20,11 @@ void LinkModelComputer::run() {
         this->c->set_level(spdlog::level::debug);
     }
     this->c->debug("init()");
+
+    auto response = this->httpclient.get("/vis/register-map");
+    if (response.status_code == 200) {
+        this->uuid = response.text;
+    }
 
     /* Ensure that the workers are ready before using MPI. */
     auto compute = std::thread{&LinkModelComputer::compute, this};
@@ -62,6 +71,7 @@ void LinkModelComputer::recv() {
 }
 
 void LinkModelComputer::control() {
+    auto location_updates = 0; // TODO: fix temp fix
 
     while (this->work) {
         auto act = this->queue.pop();
@@ -77,8 +87,12 @@ void LinkModelComputer::control() {
             this->c->debug("update_location(rank={}, loc={})", act.rank, loc);
             this->nodes[act.rank].loc = loc;
 
-            this->is_valid = false;
-            this->cond_.notify_one();
+            location_updates++;
+            if (location_updates == this->nodes.size()) {
+                location_updates = 0;
+                this->is_valid = false;
+                this->cond_.notify_one();
+            }
         }
 
         if (act.type == link_model_t) {
@@ -107,12 +121,12 @@ bool LinkModelComputer::handshake() {
     }
 
     /* Wait for first Link Model to compute, and send ready signal to controller. */
-    compute_link_model();
+    auto act = compute_link_model();
     mpi::send(this->world_rank, CTRLR, HANDSHAKE);
 
     /* Send link model to controller. */
-    mpi::send(this->link_model.size(), CTRLR, LINK_MODEL);
-    for (auto &link : this->link_model) {
+    mpi::send(act.link_model.size(), CTRLR, LINK_MODEL);
+    for (auto &link : act.link_model) {
         auto link_buffer = mpilib::serialise(link);
         mpi::send(link_buffer, CTRLR, LINK_MODEL_LINK);
     }
@@ -133,23 +147,34 @@ void LinkModelComputer::compute() {
             continue;
         }
 
-        compute_link_model();
+        auto act = compute_link_model();
+        this->queue.push(act);
     }
 
 }
 
-void LinkModelComputer::compute_link_model() {
+Action LinkModelComputer::compute_link_model() {
     reachi::Optics optics{};
 
     auto eps = 0.01;
     auto minpts = 2;
 
-    auto link_threshold = 1.5_km;
+    auto link_threshold = 750_m;
 
     auto time = 0.0, time_delta = 0.0;
     std::vector<reachi::Node> model_nodes{};
     for (auto &node : this->nodes) {
         model_nodes.emplace_back(node.second.rank, node.second.loc);
+    }
+
+    if (!this->uuid.empty()) {
+        auto node_links = reachi::data::create_link_vector(model_nodes, link_threshold);
+        json j_nodes = model_nodes;
+        json j_links = node_links;
+
+        this->httpclient.post("/vis/add-nodes/" + this->uuid, j_nodes);
+        this->httpclient.post("/vis/add-links/" + this->uuid, j_links);
+        this->c->info("http://0.0.0.0:5000/vis/maps/{}", this->uuid);
     }
 
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);
@@ -159,7 +184,7 @@ void LinkModelComputer::compute_link_model() {
     this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), links.size());
 
     auto start = std::chrono::steady_clock::now();
-    auto link_model = reachi::linkmodel::compute(links);
+    auto lm = reachi::linkmodel::compute(links);
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
     this->c->debug("compute_done(execution={})", duration.count());
 
@@ -170,7 +195,7 @@ void LinkModelComputer::compute_link_model() {
         auto &link = links[i];
         auto &c1 = link.get_clusters().first;
         auto &c2 = link.get_clusters().second;
-        auto pathloss = link_model[i];
+        auto pathloss = lm[i];
 
         for (auto &n1 : c1.get_nodes()) {
             for (auto &n2 : c2.get_nodes()) {
@@ -185,4 +210,5 @@ void LinkModelComputer::compute_link_model() {
 
     Action act{link_model_t};
     act.link_model = model;
+    return act;
 }

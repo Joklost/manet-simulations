@@ -5,9 +5,7 @@
 
 #include <reachi/datagen.h>
 
-#if 0
 using json = nlohmann::json;
-#endif
 
 std::vector<reachi::Node>
 reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
@@ -138,7 +136,6 @@ reachi::data::generate_ring_topology(mpilib::geo::Location start, double distanc
 }
 
 
-#if 0
 void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes) {
     visualise_nodes(nodes, 10000);
 }
@@ -176,4 +173,3 @@ void reachi::data::visualise_clusters(std::vector<reachi::Optics::Cluster> clust
     json j = serialized_clusters;
     httpclient.post_async("/colornodes", j);
 }
-#endif
