@@ -2,7 +2,6 @@
 #include <limits>
 
 #include <geo/geo.h>
-#include <mpilib/helpers.h>
 #include <reachi/math.h>
 #include <reachi/svd.h>
 

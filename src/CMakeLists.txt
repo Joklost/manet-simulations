@@ -39,7 +39,5 @@ add_subdirectory(libs)
 
 # Add executables
 add_subdirectory(coordr)
-add_subdirectory(scratch)
 add_subdirectory(lmc)
-#add_subdirectory(lmac)
 add_subdirectory(alohanet)

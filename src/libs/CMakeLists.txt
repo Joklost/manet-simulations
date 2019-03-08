@@ -17,15 +17,18 @@ endif()
 
 add_subdirectory(Catch2)
 
+add_subdirectory(common)
 add_subdirectory(geo)
 
 add_subdirectory(json)
 add_subdirectory(cpr)
+add_subdirectory(http)
+
+add_subdirectory(eigen)
+add_subdirectory(reachi)
+#add_subdirectory(reachi2)
+
+add_subdirectory(linkaiders)
 
 add_subdirectory(spdlog)
 add_subdirectory(mpilib)
-add_subdirectory(reachi)
-#add_subdirectory(reachi2)
-add_subdirectory(eigen)
-
-add_subdirectory(linkaiders)

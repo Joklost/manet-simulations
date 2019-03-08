@@ -6,4 +6,4 @@ target_include_directories(linkaiders_test PUBLIC ${PROJECT_SOURCE_DIR}/test)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gpslog.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
-add_test(NAME TestLinkAiders COMMAND linkaiders_test)
+add_test(NAME TestLinkAiders COMMAND test_linkaiders)

@@ -2,13 +2,11 @@
 #define MANETSIMS_REACHI_NODE_H
 
 #include <vector>
-#include <nlohmann/json.hpp>
 #include <geo/geo.h>
 #include <ostream>
 
 #include "constants.h"
 
-using json = nlohmann::json;
 namespace reachi {
 
     class Node {
@@ -61,10 +59,6 @@ namespace reachi {
         double core_distance{};
         bool processed{};
     };
-
-    void to_json(json &j, const Node &p);
-
-    void from_json(const json &j, Node &p);
 }
 
 namespace std {

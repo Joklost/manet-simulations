@@ -20,8 +20,8 @@ install(TARGETS reachi EXPORT ReachiLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(reachi mpilib eigen nlohmann_json::nlohmann_json)
-add_subdirectory(benchmark)
+target_link_libraries(reachi eigen common geo)
+#add_subdirectory(benchmark)
 enable_testing()
 
 add_subdirectory(test)

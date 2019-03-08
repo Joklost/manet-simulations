@@ -2,8 +2,7 @@
 #define MANETSIMS_REACHI_OSTR_H
 
 #include <ostream>
-
-#include <mpilib/ostr.h>
+#include <iterator>
 
 #include "node.h"
 #include "linalg.h"

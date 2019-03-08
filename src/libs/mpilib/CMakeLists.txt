@@ -1,6 +1,6 @@
 project(mpilib LANGUAGES C CXX VERSION 1.0)
 
-add_library(mpilib src/mpi.cpp src/hardware.cpp src/ostr.cpp src/helpers.cpp src/httpclient.cpp src/hwglobals.cpp src/node.cpp)
+add_library(mpilib src/mpi.cpp src/hardware.cpp src/ostr.cpp src/helpers.cpp src/hwglobals.cpp src/node.cpp)
 set_target_properties(mpilib PROPERTIES LINKER_LANGUAGE CXX)
 
 # Define headers for this library. PUBLIC headers are used for
@@ -18,7 +18,7 @@ install(TARGETS mpilib EXPORT MPILibLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(mpilib spdlog mpich nlohmann_json::nlohmann_json cpr geo)
+target_link_libraries(mpilib spdlog mpich geo common)
 
 enable_testing()
 

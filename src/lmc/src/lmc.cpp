@@ -5,7 +5,6 @@
 #include <reachi/datagen.h>
 
 #include <mpilib/node.h>
-#include <mpilib/httpclient.h>
 
 #include "lmc.h"
 
@@ -211,4 +210,28 @@ Action LinkModelComputer::compute_link_model() {
     Action act{link_model_t};
     act.link_model = model;
     return act;
+}
+
+void reachi::to_json(json &j, const reachi::Node &p) {
+    j = json{{"id",  p.get_id()},
+             {"lat", p.get_location().get_latitude()},
+             {"lon", p.get_location().get_longitude()}};
+}
+
+void reachi::from_json(const json &j, reachi::Node &p) {
+    auto id = j.at("id").get<uint32_t>();
+    auto lat = j.at("lat").get<double>();
+    auto lon = j.at("lon").get<double>();
+
+    p = {id, {lat, lon}};
+}
+
+void reachi::to_json(json &j, const reachi::Link &p) {
+    j = json{{"id", p.get_id()},
+             {"first", p.get_nodes().first.get_id()},
+             {"second", p.get_nodes().second.get_id()}};
+}
+
+void reachi::from_json(const json &j, reachi::Link &p) {
+
 }

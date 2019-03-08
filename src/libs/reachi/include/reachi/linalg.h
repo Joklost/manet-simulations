@@ -1,9 +1,11 @@
 #ifndef MANETSIMS_LINALG_H
 #define MANETSIMS_LINALG_H
 
+#include <cassert>
 #include <vector>
 #include <cmath>
-#include <mpilib/helpers.h>
+
+#include <common/equality.h>
 
 namespace reachi {
     namespace linalg {
@@ -327,7 +329,7 @@ namespace reachi {
         bool compare_vectors(std::vector<T> a, std::vector<T> b, T epsilon) {
             if (a.size() != b.size()) return false;
             for (auto i = 0; i < a.size(); i++) {
-                if (!mpilib::is_equal(a[i], b[i], epsilon)) {
+                if (!common::is_equal(a[i], b[i], epsilon)) {
                     return false;
                 }
             }

@@ -1,11 +1,8 @@
 #include <random>
-#include <mpilib/httpclient.h>
-#include <mpilib/helpers.h>
 #include <geo/geo.h>
 
 #include <reachi/datagen.h>
-
-using json = nlohmann::json;
+#include <common/helpers.h>
 
 std::vector<reachi::Node>
 reachi::data::generate_nodes(unsigned long count, geo::Location &upper, geo::Location &lower) {
@@ -73,7 +70,7 @@ reachi::data::create_link_vector(std::vector<reachi::Node> &nodes, double thresh
                 continue;
             }
 
-            Link l{mpilib::generate_link_id(i, j), nodes[i], nodes[j]};
+            Link l{common::combine_ids(i, j), nodes[i], nodes[j]};
             if (l.get_distance() < threshold or threshold <= 0.01) {
                 links.emplace_back(l);
             }
@@ -133,43 +130,4 @@ reachi::data::generate_ring_topology(geo::Location start, double distance, doubl
     }
 
     return nodes;
-}
-
-
-void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes) {
-    visualise_nodes(nodes, 10000);
-}
-
-void reachi::data::visualise_nodes(std::vector<reachi::Node> &nodes, unsigned long chunk_size) {
-    mpilib::HttpClient httpclient{"http://localhost:8050"};
-    httpclient.get("/clear");
-
-    mpilib::for_each_interval(nodes.begin(), nodes.end(), chunk_size, [&httpclient, &chunk_size](auto from, auto to) {
-        std::vector<reachi::Node> node_chunk{from, to};
-
-        json j = node_chunk;
-        httpclient.post_async("/updatechunk", j);
-    });
-}
-
-void reachi::data::visualise_clusters(std::vector<reachi::Optics::Cluster> clusters) {
-    mpilib::HttpClient httpclient{"http://localhost:8050"};
-
-    std::vector<json> serialized_clusters{};
-    serialized_clusters.reserve(clusters.size());
-
-    for (auto &cluster : clusters) {
-        std::vector<int> nodes{};
-        nodes.reserve(cluster.get_nodes().size());
-
-        for (auto &node : cluster.get_nodes()) {
-            nodes.emplace_back(node.get_id());
-        }
-
-        json c = nodes;
-        serialized_clusters.emplace_back(c);
-    }
-
-    json j = serialized_clusters;
-    httpclient.post_async("/colornodes", j);
 }

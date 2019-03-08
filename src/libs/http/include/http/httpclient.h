@@ -1,12 +1,11 @@
-#ifndef MANETSIMS_HTTPCLIENT_H
-#define MANETSIMS_HTTPCLIENT_H
+#ifndef HTTP_HTTPCLIENT_H
+#define HTTP_HTTPCLIENT_H
 
 #include <string>
 #include <nlohmann/json.hpp>
 #include <cpr/cpr.h>
-#include <spdlog/spdlog.h>
 
-namespace mpilib {
+namespace http {
 
     class HttpClient {
         std::string host;
@@ -25,4 +24,4 @@ namespace mpilib {
 
 }
 
-#endif //MANETSIMS_HTTPCLIENT_H
+#endif //HTTP_HTTPCLIENT_H

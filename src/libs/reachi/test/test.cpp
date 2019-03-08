@@ -10,10 +10,7 @@
 #include <reachi/qr.h>
 #include <reachi/datagen.h>
 #include <reachi/ostr.h>
-#include <mpilib/helpers.h>
-#include <mpilib/ostr.h>
 #include <Eigen/Eigenvalues>
-
 
 TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
     reachi::linalg::vecvec<double> matrix{{25.0, 15.0, -5.0},

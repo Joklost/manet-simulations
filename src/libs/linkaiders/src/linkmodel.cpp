@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <geo/geo.h>
+#include <common/strings.h>
 
 struct Node {
     unsigned long id{};
@@ -28,24 +29,6 @@ struct LinkModel {
     NodeMap nodes{};
 };
 
-std::vector<std::string> split(const std::string &string, const std::string &delim) {
-    std::vector<std::string> tokens{};
-    size_t prev{}, pos{};
-
-    do {
-        pos = string.find(delim, prev);
-        if (pos == std::string::npos) {
-            pos = string.length();
-        }
-
-        std::string token = string.substr(prev, pos - prev);
-        if (!token.empty()) {
-            tokens.push_back(token);
-        }
-        prev = pos + delim.length();
-    } while (pos < string.length() && prev < string.length());
-    return tokens;
-}
 
 NodeMap parse_gpsfile(char *gpslog) {
     NodeMap nodes{};
@@ -61,7 +44,7 @@ NodeMap parse_gpsfile(char *gpslog) {
                 continue;
             }
 
-            auto tokens = split(line, ",");
+            auto tokens = common::split(line, ",");
             auto id = std::stoul(tokens[0]);
             auto latitude = std::stod(tokens[1]);
             auto longitude = std::stod(tokens[2]);

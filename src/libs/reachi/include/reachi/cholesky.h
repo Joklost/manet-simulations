@@ -4,8 +4,11 @@
 #include <vector>
 #include <future>
 #include <cmath>
+#include <algorithm>
 
 #include "math.h"
+
+#include <common/equality.h>
 
 namespace reachi {
     namespace cholesky {
@@ -138,8 +141,6 @@ namespace reachi {
             b = row_sums * b;
             auto bb = b * b;
             reachi::linalg::vecvec<T> bbc = bb - c;
-            ::std::cout << frobenius_norm(bbc) << ::std::endl;
-
             reachi::linalg::vecvec<T> r{};
 
             return reachi::linalg::vecvec<T>{};
@@ -171,7 +172,7 @@ namespace reachi {
                             sum += ret[r][j] * ret[c][j];
                         }
 
-                        assert(!mpilib::is_equal(ret[c][c], (T) 0));
+                        assert(!common::is_equal(ret[c][c], (T) 0));
                         ret[r][c] = ((T) 1) / ret[c][c] * (a[r][c] - sum);
                     }
                 }

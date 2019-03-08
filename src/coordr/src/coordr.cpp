@@ -1,5 +1,6 @@
 #include <random>
 
+#include <common/equality.h>
 #include <geo/geo.h>
 #include <reachi/radiomodel.h>
 
@@ -123,7 +124,7 @@ void Coordinator::run() {
                 }
 
                 auto pathloss = this->link_model[tx.rank][act.rank];
-                if (mpilib::is_zero(pathloss)) {
+                if (common::is_zero(pathloss)) {
                     /* No link. */
                     continue;
                 }
@@ -143,7 +144,7 @@ void Coordinator::run() {
                     }
 
                     auto interfering_pathloss = this->link_model[act.rank][tx_i.rank];
-                    if (mpilib::is_zero(interfering_pathloss)) {
+                    if (common::is_zero(interfering_pathloss)) {
                         /* No link. */
                         continue;
                     }
@@ -162,7 +163,7 @@ void Coordinator::run() {
                         interfering_power += reachi::radiomodel::linearize(RSSI_interference_dB);
                     }
 
-                    if (!mpilib::is_zero(interfering_power)) {
+                    if (!common::is_zero(interfering_power)) {
                         interfering_power = reachi::radiomodel::logarithmicize(interfering_power);
                     }
 

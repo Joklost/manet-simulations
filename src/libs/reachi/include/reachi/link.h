@@ -37,10 +37,6 @@ namespace reachi {
         ::std::pair<reachi::Node, reachi::Node> nodes;
 
     };
-
-    void to_json(json &j, const Link &p);
-
-    void from_json(const json &j, Link &p);
 }
 
 #endif /* MANETSIMS_LINK_H */

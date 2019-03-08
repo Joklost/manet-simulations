@@ -7,7 +7,6 @@
 #include <reachi/qr.h>
 #include <reachi/ostr.h>
 #include <Eigen/Eigenvalues>
-#include "../../linkaiders/include/linkaiders/linkmodel.h"
 
 
 std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLink> &links) {
@@ -38,7 +37,6 @@ reachi::linkmodel::nearest_SPD(const reachi::linalg::vecvec<double> &matrix) {
                      (std::numeric_limits<double>::epsilon() * std::abs(min_eig))) *
                     reachi::linalg::identity(spd.size());
 
-        std::cout << spd[0][0] << std::endl;
         scalar++;
 
     }
@@ -141,7 +139,7 @@ std::vector<double> compute_link_fading(const std::vector<reachi::Optics::CLink>
     auto autocorrelation_matrix = reachi::cholesky::cholesky(sigma);
 
     auto l_fading = autocorrelation_matrix * reachi::math::generate_gaussian_vector(0.0, 1.0, links.size());
-    return mpilib::is_equal(time, 0.0) ? l_fading : l_fading * time;
+    return common::is_equal(time, 0.0) ? l_fading : l_fading * time;
 }
 
 

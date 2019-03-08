@@ -1,6 +1,6 @@
 #include <reachi/linalg.h>
 
-#include <mpilib/helpers.h>
+#include <common/equality.h>
 
 reachi::linalg::vecvec<double> reachi::linalg::identity(unsigned long n) {
     vecvec<double> ret{};
@@ -112,7 +112,7 @@ reachi::linalg::Eigen reachi::linalg::eig(const vecvec<double> &c, unsigned long
 
         thresh = ::std::sqrt(thresh) / (double) (4 * n);
         /* Break if threshold is pretty close to 0. */
-        if (mpilib::is_equal(thresh, 0.0, 0.005)) {
+        if (common::is_equal(thresh, 0.0, 0.005)) {
             break;
         }
 
@@ -125,15 +125,15 @@ reachi::linalg::Eigen reachi::linalg::eig(const vecvec<double> &c, unsigned long
                 double g;
 
                 /* Annihilate tiny offdiagonal elements. */
-                if (4 < it_num && mpilib::is_equal(termp, ::std::fabs(d[p])) &&
-                    mpilib::is_equal(termq, ::std::fabs(d[q]))) {
+                if (4 < it_num && common::is_equal(termp, ::std::fabs(d[p])) &&
+                    common::is_equal(termq, ::std::fabs(d[q]))) {
                     a[p][q] = 0.0;
                 } else if (thresh <= ::std::fabs(a[p][q])) {
                     /* Otherwise, apply a rotation. */
                     h = d[q] - d[p];
                     auto term = ::std::fabs(h) + gapq;
                     double t;
-                    if (mpilib::is_equal(term, ::std::fabs(h))) {
+                    if (common::is_equal(term, ::std::fabs(h))) {
                         t = a[p][q] / h;
                     } else {
                         auto theta = 0.5 * h / a[p][q];

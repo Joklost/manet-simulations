@@ -8,7 +8,12 @@
 #include <mpilib/queue.h>
 #include <mpilib/node.h>
 #include <mpilib/link.h>
-#include <mpilib/httpclient.h>
+#include <http/httpclient.h>
+
+#include <reachi/node.h>
+#include <reachi/link.h>
+
+using json = nlohmann::json;
 
 enum Type {
     update_location_t, link_model_t, poison_t
@@ -40,18 +45,12 @@ class LinkModelComputer {
     char processor_name[MPI_MAX_PROCESSOR_NAME]{};
     std::shared_ptr<spdlog::logger> c;
 
-    mpilib::HttpClient httpclient;
+    http::HttpClient httpclient;
     std::string uuid{};
 
     bool is_valid = false;
 
     std::vector<mpilib::Link> link_model{};
-
-//    void update_model_data(std::vector<reachi::Node>);
-//
-//    std::vector<double> fetch_model();
-//
-//    void compute_linkmodel(std::vector<reachi::Node> &nodes);
 
     bool handshake();
 
@@ -70,12 +69,14 @@ public:
     void run();
 };
 
-/*
- * notes:
- *
- * needs Nodes information(a list of all nodes) to do the clustering
- *
- *
- */
+namespace reachi {
+    void to_json(json &j, const reachi::Node &p);
+
+    void from_json(const json &j, reachi::Node &p);
+
+    void to_json(json &j, const reachi::Link &p);
+
+    void from_json(const json &j, reachi::Link &p);
+}
 
 #endif /* MANETSIMS_LINKMODEL_INTERFACE_H */

@@ -1,7 +1,6 @@
 
 #include <utility>
 #include <reachi/node.h>
-#include <mpilib/node.h>
 
 reachi::Node::Node(uint32_t id, geo::Location location) : current_location(location) {
     this->id = id;
@@ -38,19 +37,7 @@ bool reachi::Node::operator<=(const Node &rhs) const {
 bool reachi::Node::operator>=(const Node &rhs) const {
     return !(*this < rhs);
 }
-void reachi::to_json(json &j, const reachi::Node &p) {
-    j = json{{"id",  p.get_id()},
-             {"lat", p.get_location().get_latitude()},
-             {"lon", p.get_location().get_longitude()}};
-}
 
-void reachi::from_json(const json &j, reachi::Node &p) {
-    auto id = j.at("id").get<uint32_t>();
-    auto lat = j.at("lat").get<double>();
-    auto lon = j.at("lon").get<double>();
-
-    p = {id, {lat, lon}};
-}
 void reachi::Node::update_location(geo::Location &location, const int time) {
     location.set_time(time);
     this->location_history.emplace_back(this->current_location);

@@ -1,14 +1,16 @@
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <cassert>
+#include <algorithm>
 
 #include <reachi/clustering.h>
 #include <reachi/math.h>
-#include <mpilib/helpers.h>
+
+#include <common/equality.h>
+#include <common/iters.h>
 
 reachi::Optics::Optics() = default;
 
 double reachi::Optics::core_distance(Node &p) {
-    if (!mpilib::is_equal(p.get_core_distance(), reachi::UNDEFINED)) {
+    if (!common::is_equal(p.get_core_distance(), reachi::UNDEFINED)) {
         return p.get_core_distance();
     }
 
@@ -63,7 +65,7 @@ void reachi::Optics::update_seeds(Node &p, std::vector<uint32_t> &seeds) {
         }
 
         auto reachdist = std::max(coredist, distance_between(p.get_location(), o.get_location()));
-        if (mpilib::is_equal(o.get_reachability_distance(), reachi::UNDEFINED)) {
+        if (common::is_equal(o.get_reachability_distance(), reachi::UNDEFINED)) {
             /* 'o' is not in seeds */
             o.set_reachability_distance(reachdist);
             seeds.emplace_back(o.get_id());
@@ -100,7 +102,7 @@ std::vector<reachi::Node> reachi::Optics::compute_ordering(std::vector<reachi::N
         auto &p = this->graph[this->unprocessed.front()];
         this->processed(p);
 
-        if (mpilib::is_equal(this->core_distance(p), reachi::UNDEFINED)) {
+        if (common::is_equal(this->core_distance(p), reachi::UNDEFINED)) {
             continue;
         }
 
@@ -116,7 +118,7 @@ std::vector<reachi::Node> reachi::Optics::compute_ordering(std::vector<reachi::N
 
             this->processed(q);
 
-            if (!mpilib::is_equal(this->core_distance(q), reachi::UNDEFINED)) {
+            if (!common::is_equal(this->core_distance(q), reachi::UNDEFINED)) {
                 update_seeds(q, seeds);
             }
         }
@@ -141,11 +143,11 @@ std::vector<reachi::Optics::Cluster> reachi::Optics::cluster(std::vector<Node> &
     std::vector<reachi::Optics::Cluster> clusters{};
     std::vector<int> separators{};
 
-    mpilib::enumerate(ordering.begin(), ordering.end(), 0, [&threshold, &separators](int i, Node &p) {
+    common::enumerate(ordering.begin(), ordering.end(), 0, [&threshold, &separators](int i, Node &p) {
 
         double reachdist{};
 
-        if (mpilib::is_equal(p.get_reachability_distance(), reachi::UNDEFINED)) {
+        if (common::is_equal(p.get_reachability_distance(), reachi::UNDEFINED)) {
             reachdist = std::numeric_limits<double>::infinity();
         } else {
             reachdist = p.get_reachability_distance();
