@@ -29,6 +29,10 @@
 #define MAX_LINK_DISTANCE 1
 #endif
 
+#ifndef PACKET_SIZE
+#define PACKET_SIZE 160
+#endif
+
 //#define UNDEFINED -0.1
 
 

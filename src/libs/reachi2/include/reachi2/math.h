@@ -5,14 +5,7 @@
 #include <vector>
 
 #include <mpilib/location.h>
-#include "link.h"
 
-
-namespace reachi2 {
-    namespace math {
-
-    }
-}
 
 
 #endif //MANETSIMS_MATH_H

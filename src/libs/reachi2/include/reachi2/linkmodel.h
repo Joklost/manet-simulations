@@ -4,7 +4,11 @@
 #include <vector>
 #include <unordered_map>
 
-#include "reachi2/link.h"
+#include "link.h"
+
+
+#define TX_POWER 26.0
+
 
 namespace reachi2 {
     class Linkmodel {
@@ -19,15 +23,15 @@ namespace reachi2 {
 
         const double generate_gaussian_value(double mean, double std_deviation) const;
 
-        Linkmodel(const std::vector<reachi2::Node> &nodes, double threshold);
+        Linkmodel(std::vector<reachi2::Node> &nodes, double threshold = 0.55);
 
         Linkmodel(std::vector<reachi2::Link> &links);
 
     private:
         std::unordered_map<int, std::vector<int>> neighbourhoods{};
-        std::vector<reachi2::Link> graph{};
-        std::vector<double> pathloss_values{};
-        std::unordered_map<int, double> model{};
+        std::vector<reachi2::Link> links{};
+        std::unordered_map<int, double> pep{};
+        std::unordered_map<int, double> prev_rssi{};
     };
 }
 #endif //MANETSIMS_LINKMODEL_H

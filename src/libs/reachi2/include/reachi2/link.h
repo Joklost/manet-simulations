@@ -4,7 +4,8 @@
 #include <mpilib/geomath.h>
 
 namespace reachi2 {
-    struct Node {
+    class Node {
+    public:
         unsigned int id;
         mpilib::geo::Location location;
 
@@ -25,7 +26,8 @@ namespace reachi2 {
         }
     };
 
-    struct Link {
+    class Link {
+    public:
         unsigned int id;
         Node node1, node2;
         double distance;
