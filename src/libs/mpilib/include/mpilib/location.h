@@ -21,7 +21,7 @@ namespace mpilib {
 
             Location(double latitude, double longitude);
 
-            Location(int time, double latitude, double longitude);
+            Location(unsigned long time, double latitude, double longitude);
 
             bool operator==(const Location &rhs) const;
 
@@ -41,18 +41,18 @@ namespace mpilib {
                 return os;
             }
 
-            void move(int time, double distance /*kilometers */, double bearing /* degrees */);
+            void move(unsigned long time, double distance /*kilometers */, double bearing /* degrees */);
 
             double get_latitude() const;
 
             double get_longitude() const;
 
-            int get_time() const;
+            unsigned long get_time() const;
 
-            void set_time(int time);
+            void set_time(unsigned long time);
 
         private:
-            int time{};
+            unsigned long time{};
             double latitude{};
             double longitude{};
         };

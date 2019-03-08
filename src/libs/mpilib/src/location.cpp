@@ -56,7 +56,7 @@ mpilib::geo::Location mpilib::geo::square(const mpilib::geo::Location &corner, d
 }
 
 /* https://stackoverflow.com/questions/7222382/get-lat-long-given-current-point-distance-and-bearing */
-void mpilib::geo::Location::move(const int time, const double distance, const double bearing) {
+void mpilib::geo::Location::move(const unsigned long new_time, const double distance, const double bearing) {
     auto lat_origin = mpilib::geo::deg2rad(this->latitude);
     auto lon_origin = mpilib::geo::deg2rad(this->longitude);
     auto brng = mpilib::geo::deg2rad(bearing);
@@ -79,19 +79,19 @@ double mpilib::geo::Location::get_longitude() const {
     return longitude;
 }
 
-int mpilib::geo::Location::get_time() const {
+unsigned long mpilib::geo::Location::get_time() const {
     return time;
 }
 
-void mpilib::geo::Location::set_time(int new_time) {
+void mpilib::geo::Location::set_time(unsigned long new_time) {
     mpilib::geo::Location::time = new_time;
 }
 
 mpilib::geo::Location::Location(double latitude, double longitude) : latitude(latitude), longitude(longitude),
                                                                      time(0) {}
 
-mpilib::geo::Location::Location(int time, double latitude, double longitude) : time(time), latitude(latitude),
-                                                                               longitude(longitude) {}
+mpilib::geo::Location::Location(unsigned long time, double latitude, double longitude) : time(time), latitude(latitude),
+                                                                                         longitude(longitude) {}
 
 mpilib::geo::Location::Location() = default;
 

@@ -7,6 +7,7 @@
 #include <reachi/qr.h>
 #include <reachi/ostr.h>
 #include <Eigen/Eigenvalues>
+#include "../../linkaiders/include/linkaiders/linkmodel.h"
 
 
 std::vector<double> compute_link_distance(const std::vector<reachi::Optics::CLink> &links) {

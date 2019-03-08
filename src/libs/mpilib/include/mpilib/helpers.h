@@ -101,6 +101,8 @@ namespace mpilib {
      * @return Time transmission will take, in microseconds
      */
     std::chrono::microseconds compute_transmission_time(unsigned long baudrate, unsigned long octets);
+
+    std::vector<std::string> split(const std::string &string, const std::string &delim);
 }
 
 #endif /* MANETSIMS_HELPERS_H */

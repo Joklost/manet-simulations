@@ -24,3 +24,5 @@ add_subdirectory(mpilib)
 add_subdirectory(reachi)
 #add_subdirectory(reachi2)
 add_subdirectory(eigen)
+
+add_subdirectory(linkaiders)
