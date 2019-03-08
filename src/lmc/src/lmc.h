@@ -1,5 +1,5 @@
-#ifndef MANETSIMS_LINKMODEL_INTERFACE_H
-#define MANETSIMS_LINKMODEL_INTERFACE_H
+#ifndef LINKMODEL_COMPUTER_H
+#define LINKMODEL_COMPUTER_H
 
 #include <vector>
 #include <map>
@@ -8,12 +8,16 @@
 #include <mpilib/queue.h>
 #include <mpilib/node.h>
 #include <mpilib/link.h>
-#include <http/httpclient.h>
 
 #include <reachi/node.h>
 #include <reachi/link.h>
 
+#ifdef INSTALL_HTTP
+#include <http/httpclient.h>
+
 using json = nlohmann::json;
+#endif /* INSTALL_HTTP */
+
 
 enum Type {
     update_location_t, link_model_t, poison_t
@@ -45,8 +49,10 @@ class LinkModelComputer {
     char processor_name[MPI_MAX_PROCESSOR_NAME]{};
     std::shared_ptr<spdlog::logger> c;
 
+#ifdef INSTALL_HTTP
     http::HttpClient httpclient;
     std::string uuid{};
+#endif /* INSTALL_HTTP */
 
     bool is_valid = false;
 
@@ -64,11 +70,16 @@ class LinkModelComputer {
 
 public:
 
+#ifdef INSTALL_HTTP
     explicit LinkModelComputer(bool debug) : debug(debug), httpclient("http://0.0.0.0:5000") {}
+#else
+    explicit LinkModelComputer(bool debug) : debug(debug) {}
+#endif /* INSTALL_HTTP */
 
     void run();
 };
 
+#ifdef INSTALL_HTTP
 namespace reachi {
     void to_json(json &j, const reachi::Node &p);
 
@@ -78,5 +89,6 @@ namespace reachi {
 
     void from_json(const json &j, reachi::Link &p);
 }
+#endif /* INSTALL_HTTP */
 
-#endif /* MANETSIMS_LINKMODEL_INTERFACE_H */
+#endif /* LINKMODEL_COMPUTER_H */

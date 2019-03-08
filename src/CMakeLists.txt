@@ -1,4 +1,11 @@
-cmake_minimum_required(VERSION 3.8)
+if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    cmake_minimum_required(VERSION 3.7.1)
+    set(INSTALL_HTTP FALSE)
+else ()
+    cmake_minimum_required(VERSION 3.8)
+    add_compile_definitions(INSTALL_HTTP)
+    set(INSTALL_HTTP TRUE)
+endif ()
 
 project(manetsims VERSION 1.0)
 
@@ -29,7 +36,9 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/libs/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif ()
 
-include_directories(${JSON_INCLUDE_DIRS})
+if (INSTALL_HTTP)
+    include_directories(${JSON_INCLUDE_DIRS})
+endif ()
 
 set(MPI_EXECUTABLE_SUFFIX ".mpich")
 find_package(MPI REQUIRED)

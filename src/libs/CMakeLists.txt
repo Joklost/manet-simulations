@@ -1,6 +1,8 @@
-set(JSON_BuildTests OFF CACHE BOOL "Don't build json test")
+set(JSON_BuildTests OFF CACHE BOOL "Don't build json tests")
 set(BUILD_CPR_TESTS OFF CACHE BOOL "Don't build cpr tests")
-set(CATCH_BUILD_TESTING OFF CACHE BOOL "Don't build Catch2 test")
+set(CATCH_BUILD_TESTING OFF CACHE BOOL "Don't build Catch2 tests")
+set(EIGEN_SPLIT_LARGE_TESTS OFF CACHE BOOL "Don't split Eigen tests")
+
 
 find_package(CURL)
 if(CURL_FOUND)
@@ -20,9 +22,11 @@ add_subdirectory(Catch2)
 add_subdirectory(common)
 add_subdirectory(geo)
 
-add_subdirectory(json)
-add_subdirectory(cpr)
-add_subdirectory(http)
+if(INSTALL_HTTP)
+    add_subdirectory(json)
+    add_subdirectory(cpr)
+    add_subdirectory(http)
+endif()
 
 add_subdirectory(eigen)
 add_subdirectory(reachi)

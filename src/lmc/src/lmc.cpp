@@ -20,10 +20,12 @@ void LinkModelComputer::run() {
     }
     this->c->debug("init()");
 
+#ifdef INSTALL_HTTP
     auto response = this->httpclient.get("/vis/register-map");
     if (response.status_code == 200) {
         this->uuid = response.text;
     }
+#endif /* INSTALL_HTTP */
 
     /* Ensure that the workers are ready before using MPI. */
     auto compute = std::thread{&LinkModelComputer::compute, this};
@@ -166,6 +168,7 @@ Action LinkModelComputer::compute_link_model() {
         model_nodes.emplace_back(node.second.rank, node.second.loc);
     }
 
+#ifdef INSTALL_HTTP
     if (!this->uuid.empty()) {
         auto node_links = reachi::data::create_link_vector(model_nodes, link_threshold);
         json j_nodes = model_nodes;
@@ -175,6 +178,7 @@ Action LinkModelComputer::compute_link_model() {
         this->httpclient.post("/vis/add-links/" + this->uuid, j_links);
         this->c->info("http://0.0.0.0:5000/vis/maps/{}", this->uuid);
     }
+#endif /* INSTALL_HTTP */
 
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
@@ -212,6 +216,7 @@ Action LinkModelComputer::compute_link_model() {
     return act;
 }
 
+#ifdef INSTALL_HTTP
 void reachi::to_json(json &j, const reachi::Node &p) {
     j = json{{"id",  p.get_id()},
              {"lat", p.get_location().get_latitude()},
@@ -235,3 +240,4 @@ void reachi::to_json(json &j, const reachi::Link &p) {
 void reachi::from_json(const json &j, reachi::Link &p) {
 
 }
+#endif /* INSTALL_HTTP */
