@@ -31,7 +31,7 @@ void deinit(void *model);
  * @param timestamp Timestamp to check
  * @return True if the nodes are connected
  */
-bool is_connected(void *model, int x, int y, double timestamp);
+bool is_connected(void *model, int x, int y, unsigned long timestamp);
 
 /**
  * Notify the link model that a node starts sending on a specific channel.
@@ -40,7 +40,7 @@ bool is_connected(void *model, int x, int y, double timestamp);
  * @param chn Channel identifier
  * @param timestamp Timestamp to start sending
  */
-void begin_send(void *model, int id, int chn, double timestamp);
+void begin_send(void *model, int id, int chn, unsigned long timestamp);
 
 /**
  * Notify the link model that a node stops sending on a specific channel.
@@ -49,7 +49,7 @@ void begin_send(void *model, int id, int chn, double timestamp);
  * @param chn Channel identifier
  * @param timestamp Timestamp to stop sending
  */
-void end_send(void *model, int id, int chn, double timestamp);
+void end_send(void *model, int id, int chn, unsigned long timestamp);
 
 /**
  * Notify the link model that a node starts listening on a specific channel.
@@ -58,7 +58,7 @@ void end_send(void *model, int id, int chn, double timestamp);
  * @param chn Channel identifier
  * @param timestamp Timestamp to start listening
  */
-void begin_listen(void *model, int id, int chn, double timestamp);
+void begin_listen(void *model, int id, int chn, unsigned long timestamp);
 
 /**
  * Returns node identifier of the other node if transmission was completed before timestamp.
@@ -68,7 +68,7 @@ void begin_listen(void *model, int id, int chn, double timestamp);
  * @param timestamp Timestamp to check for completion
  * @return Node identifier of receiving node.
  */
-int status(void *model, int id, int chn, double timestamp);
+int status(void *model, int id, int chn, unsigned long timestamp);
 
 /**
  * Notify the link model that a node stops listening on a specific channel.
@@ -78,7 +78,7 @@ int status(void *model, int id, int chn, double timestamp);
  * @param timestamp Timestamp to stop listening
  * @return Node identifier of receiving node.
  */
-int end_listen(void *model, int id, int chn, double timestamp);
+int end_listen(void *model, int id, int chn, unsigned long timestamp);
 
 #ifdef __cplusplus
 }
