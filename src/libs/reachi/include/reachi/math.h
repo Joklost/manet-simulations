@@ -6,7 +6,7 @@
 #include <map>
 #include <cmath>
 #include <mpilib/helpers.h>
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 #include <mpilib/defines.h>
 
 #include "link.h"
@@ -37,7 +37,7 @@ namespace reachi {
 
         double distance_pathloss(double distance);
 
-        double distance_pathloss(mpilib::geo::Location to, mpilib::geo::Location from);
+        double distance_pathloss(geo::Location to, geo::Location from);
 
         double distance_pathloss(Link link);
 

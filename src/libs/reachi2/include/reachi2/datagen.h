@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 #include "link.h"
 
 namespace reachi2 {
@@ -18,7 +18,7 @@ namespace reachi2 {
          * @param lower The lower right geographical bound
          * @return A vector of nodes (a graph)
          */
-        std::vector<reachi2::Node> generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower);
+        std::vector<reachi2::Node> generate_nodes(unsigned long count, geo::Location &upper, geo::Location &lower);
 
         /**
          * Create a vector of unique (undirected) links from a set of nodes (a graph).

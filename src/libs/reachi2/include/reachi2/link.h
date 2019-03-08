@@ -1,13 +1,13 @@
 #ifndef MANETSIMS_LINK_H
 #define MANETSIMS_LINK_H
 
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 
 namespace reachi2 {
     class Node {
     public:
         unsigned int id;
-        mpilib::geo::Location location;
+        geo::Location location;
 
         bool operator==(const Node &rhs) const {
             return id == rhs.id;
@@ -36,7 +36,7 @@ namespace reachi2 {
             this->id = id;
             this->node1 = node1;
             this->node2 = node2;
-            this->distance = mpilib::geo::distance_between(node1.location, node2.location);
+            this->distance = geo::distance_between(node1.location, node2.location);
         }
 
         bool operator==(const Link &rhs) const {
@@ -49,13 +49,13 @@ namespace reachi2 {
 
         double angle_between(const Link &link) const {
             if (this->node1 == link.node1) {
-                return mpilib::geo::angle_between(this->node1.location, this->node2.location, link.node2.location);
+                return geo::angle_between(this->node1.location, this->node2.location, link.node2.location);
             } else if(this->node1 == link.node2) {
-                return mpilib::geo::angle_between(this->node1.location, this->node2.location, link.node1.location);
+                return geo::angle_between(this->node1.location, this->node2.location, link.node1.location);
             } else if(this->node2 == link.node1) {
-                return mpilib::geo::angle_between(this->node2.location, this->node1.location, link.node2.location);
+                return geo::angle_between(this->node2.location, this->node1.location, link.node2.location);
             } else {
-                return mpilib::geo::angle_between(this->node2.location, this->node1.location, link.node1.location);
+                return geo::angle_between(this->node2.location, this->node1.location, link.node1.location);
             }
         }
 

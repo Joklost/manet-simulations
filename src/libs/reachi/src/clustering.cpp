@@ -199,7 +199,7 @@ void reachi::Optics::clusterize_remaining(const std::vector<reachi::Node> &nodes
     assert(node_count == clusters.size());
 }
 
-mpilib::geo::Location reachi::Optics::Cluster::centroid() const {
+geo::Location reachi::Optics::Cluster::centroid() const {
     if (this->nodes.size() == 1) {
         return this->nodes.front().get_location();
     }
@@ -218,7 +218,7 @@ mpilib::geo::Location reachi::Optics::Cluster::centroid() const {
     lat = lat / this->nodes.size();
     lon = lon / this->nodes.size();
 
-    mpilib::geo::Location l{lat, lon};
+    geo::Location l{lat, lon};
 
     this->_centroid = l;
     this->cached = true;
@@ -234,7 +234,7 @@ const std::vector<reachi::Node> &reachi::Optics::Cluster::get_nodes() const {
 }
 
 double reachi::Optics::Cluster::radius() const {
-    mpilib::geo::Location centroid = this->centroid();
+    geo::Location centroid = this->centroid();
     auto radius = 0.0;
 
     for (auto &node : this->nodes) {
@@ -248,11 +248,11 @@ double reachi::Optics::Cluster::radius() const {
 }
 
 double reachi::Optics::Cluster::cost() const {
-    mpilib::geo::Location centroid = this->centroid();
+    geo::Location centroid = this->centroid();
     auto cost = 0.0;
 
     for (auto &node : this->nodes) {
-        auto distance = distance_between(centroid, node.get_location());
+        auto distance = geo::distance_between(centroid, node.get_location());
         cost += distance;
     }
 

@@ -6,12 +6,12 @@
 #include <thread>
 #include <random>
 
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 
 class TestPacket {
 public:
     unsigned long rank{};
-    mpilib::geo::Location loc{};
+    geo::Location loc{};
 
     bool operator==(const TestPacket &rhs) const {
         return rank == rhs.rank;
@@ -31,12 +31,12 @@ public:
 int main(int argc, char *argv[]) {
     auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
 
-    mpilib::geo::Location l1{57.0121621, 9.990679};
-    auto l2 = mpilib::geo::square(l1, 2_km);
-    auto l = mpilib::geo::random_location(l1, l2);
+    geo::Location l1{57.0121621, 9.990679};
+    auto l2 = geo::square(l1, 2_km);
+    auto l = geo::random_location(l1, l2);
     hardware::init(l1, false, debug);
     auto id = hardware::get_id();
-    //auto l = mpilib::geo::move_location(l1, 500_m * id, 90);
+    //auto l = geo::move_location(l1, 500_m * id, 90);
 
     hardware::handshake(l);
     auto &console = hardware::logger;

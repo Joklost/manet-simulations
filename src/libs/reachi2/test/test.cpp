@@ -3,21 +3,21 @@
 #include <iostream>
 #include <chrono>
 
-#include <mpilib/geomath.h>
-#include <mpilib/location.h>
+#include <geo/geo.h>
+#include <geo/geo.h>
 #include "reachi2/datagen.h"
 #include "reachi2/math.h"
 #include "reachi2/constants.h"
 #include "reachi2/linkmodel.h"
 
 using namespace std::literals::chrono_literals;
-using namespace mpilib::geo::literals;
+using namespace geo::literals;
 
 
 
 TEST_CASE("Linkmodel test", "[linkmodel]") {
-    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 1_km);
+    geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = geo::square(upper, 1_km);
     auto TX_DBM = 26.0;
 
     auto nodes = reachi2::data::generate_nodes(10, upper, lower);

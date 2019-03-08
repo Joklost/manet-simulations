@@ -86,7 +86,7 @@ class Coordinator {
      * @param rank The node's rank.
      * @return The updated location of the node.
      */
-    mpilib::geo::Location update_location(int rank);
+    geo::Location update_location(int rank);
 
     void set_linkmodel(std::vector<mpilib::Link> &links);
     //bool has_link(Listen &rx, Transmission &tx);

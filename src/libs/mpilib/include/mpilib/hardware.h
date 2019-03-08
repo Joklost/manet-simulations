@@ -29,9 +29,9 @@ namespace hardware {
      * @param loc The initial geolocation of this node.
      * @param debug Enable debug logging.
      */
-    void init(const mpilib::geo::Location &loc, bool handshake = true, bool debug = false);
+    void init(const geo::Location &loc, bool handshake = true, bool debug = false);
 
-    void handshake(const mpilib::geo::Location &loc);
+    void handshake(const geo::Location &loc);
 
     /**
      * Deinitialise the hardware interface.
@@ -61,7 +61,7 @@ namespace hardware {
      * @param loc The new geolocation.
      * @return bool, true if successfull.
      */
-    bool set_location(const mpilib::geo::Location &loc);
+    bool set_location(const geo::Location &loc);
 
     /**
      * Report the local time of this node to the controller.

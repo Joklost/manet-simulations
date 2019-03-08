@@ -1,7 +1,7 @@
 #include <mpilib/hardware.h>
 
 
-void hardware::init(const mpilib::geo::Location &loc, bool handshake, bool debug) {
+void hardware::init(const geo::Location &loc, bool handshake, bool debug) {
     if (hardware::initialized) {
         return;
     }
@@ -28,7 +28,7 @@ void hardware::init(const mpilib::geo::Location &loc, bool handshake, bool debug
     }
 }
 
-void hardware::handshake(const mpilib::geo::Location &loc) {
+void hardware::handshake(const geo::Location &loc) {
     /* Handshake */
     auto magic = mpi::recv<int>(CTRLR, HANDSHAKE);
     if (mpi::send(magic, CTRLR, HANDSHAKE) == MPI_SUCCESS) {
@@ -124,14 +124,14 @@ void hardware::report_localtime() {
 }
 
 
-bool hardware::set_location(const mpilib::geo::Location &loc) {
+bool hardware::set_location(const geo::Location &loc) {
     if (!hardware::initialized) {
         return false;
     }
 
     hardware::logger->debug("set_location(loc={})", loc);
 
-    auto buffer = mpilib::serialise<mpilib::geo::Location>(loc);
+    auto buffer = mpilib::serialise<geo::Location>(loc);
     return mpi::send(buffer, CTRLR, SET_LOCATION) == MPI_SUCCESS;
 }
 

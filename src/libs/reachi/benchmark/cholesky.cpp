@@ -36,8 +36,8 @@ std::string format_duration(std::chrono::microseconds us) {
 }
 
 int main(int argc, char *argv[]) {
-    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 5_km);
+    geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = geo::square(upper, 5_km);
 
     auto step = 10ul;
     auto steps = 20ul;

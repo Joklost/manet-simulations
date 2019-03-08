@@ -4,12 +4,11 @@
 #include <string>
 #include <unordered_map>
 
-#include <mpilib/location.h>
-#include <mpilib/helpers.h>
+#include <geo/geo.h>
 
 struct Node {
     unsigned long id{};
-    std::vector<mpilib::geo::Location> location_history{};
+    std::vector<geo::Location> location_history{};
 };
 
 struct LinkModel {
@@ -18,6 +17,25 @@ struct LinkModel {
 
     std::unordered_map<unsigned long, Node> nodes{};
 };
+
+std::vector<std::string> split(const std::string &string, const std::string &delim) {
+    std::vector<std::string> tokens{};
+    size_t prev{}, pos{};
+
+    do {
+        pos = string.find(delim, prev);
+        if (pos == std::string::npos) {
+            pos = string.length();
+        }
+
+        std::string token = string.substr(prev, pos - prev);
+        if (!token.empty()) {
+            tokens.push_back(token);
+        }
+        prev = pos + delim.length();
+    } while (pos < string.length() && prev < string.length());
+    return tokens;
+}
 
 std::unordered_map<unsigned long, Node> parse_gpsfile(char *gpslog) {
     std::unordered_map<unsigned long, Node> nodes{};
@@ -31,7 +49,7 @@ std::unordered_map<unsigned long, Node> parse_gpsfile(char *gpslog) {
             std::getline(logfile, line);
             gps.push_back(line);
 
-            auto tokens = mpilib::split(line, ",");
+            auto tokens = split(line, ",");
 
             /* 0: id, 1: latitude, 2: longitude, 3: timestamp */
             auto id = std::stoul(tokens[0]);

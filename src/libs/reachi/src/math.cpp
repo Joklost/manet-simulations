@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 #include <mpilib/helpers.h>
 #include <reachi/math.h>
 #include <reachi/svd.h>
@@ -10,7 +10,7 @@ double reachi::math::distance_pathloss(const double distance) {
     return (10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
 }
 
-double reachi::math::distance_pathloss(const mpilib::geo::Location to, const mpilib::geo::Location from) {
+double reachi::math::distance_pathloss(const geo::Location to, const geo::Location from) {
     return distance_pathloss(distance_between(from, to) * KM);
 }
 
@@ -92,7 +92,7 @@ reachi::linalg::vecvec<double> reachi::math::generate_correlation_matrix(std::ve
                                  links[j].get_clusters().second :
                                  links[j].get_clusters().first;
 
-                auto angle = mpilib::geo::angle_between(common_node.centroid(), li_unique.centroid(),
+                auto angle = geo::angle_between(common_node.centroid(), li_unique.centroid(),
                                                         lj_unique.centroid());
                 auto value = autocorrelation(angle);
 

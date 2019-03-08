@@ -17,7 +17,7 @@ install(TARGETS linkaiders EXPORT LinkAidersLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(linkaiders mpilib)
+target_link_libraries(linkaiders geo)
 
 enable_testing()
 add_subdirectory(test)

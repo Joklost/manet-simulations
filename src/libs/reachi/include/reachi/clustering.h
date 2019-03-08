@@ -27,7 +27,7 @@ namespace reachi {
         public:
             Cluster(uint32_t id, ::std::vector<Node> &nodes) : id(id), nodes(nodes) {}
 
-            mpilib::geo::Location centroid() const;
+            geo::Location centroid() const;
 
             unsigned long size() const;
 
@@ -50,7 +50,7 @@ namespace reachi {
             ::std::vector<Node> nodes{};
 
             mutable bool cached = false;
-            mutable mpilib::geo::Location _centroid{};
+            mutable geo::Location _centroid{};
         };
 
         class CLink {

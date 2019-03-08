@@ -5,7 +5,7 @@
 #include <random>
 
 #include <mpilib/hardware.h>
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 
 struct Packet {
     unsigned long rank{};
@@ -45,12 +45,12 @@ std::string format_duration(std::chrono::microseconds us) {
 int main(int argc, char *argv[]) {
     auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
 
-    mpilib::geo::Location l1{57.0121621, 9.990679};
-    auto l2 = mpilib::geo::square(l1, 1.5_km);
-    auto l = mpilib::geo::random_location(l1, l2);
+    geo::Location l1{57.0121621, 9.990679};
+    auto l2 = geo::square(l1, 1.5_km);
+    auto l = geo::random_location(l1, l2);
     hardware::init(l1, false, debug);
     auto id = hardware::get_id();
-    //auto l = mpilib::geo::move_location(l1, 500_m * id, 90);
+    //auto l = geo::move_location(l1, 500_m * id, 90);
 
     hardware::handshake(l);
     auto &console = hardware::logger;

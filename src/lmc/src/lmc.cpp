@@ -83,7 +83,7 @@ void LinkModelComputer::control() {
         }
 
         if (act.type == update_location_t) {
-            auto loc = mpilib::deserialise<mpilib::geo::Location>(act.data);
+            auto loc = mpilib::deserialise<geo::Location>(act.data);
             this->c->debug("update_location(rank={}, loc={})", act.rank, loc);
             this->nodes[act.rank].loc = loc;
 

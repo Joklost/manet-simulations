@@ -4,7 +4,7 @@
 #include <reachi2/datagen.h>
 
 std::vector<reachi2::Node>
-reachi2::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
+reachi2::data::generate_nodes(unsigned long count, geo::Location &upper, geo::Location &lower) {
     std::vector<reachi2::Node> nodes{};
     nodes.reserve(count);
 
@@ -23,7 +23,7 @@ reachi2::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper,
     auto gen_lon = std::bind(dist_lon, eng_lon);
 
     for (uint32_t i = 1; i <= count; ++i) {
-        mpilib::geo::Location l{gen_lat(), gen_lon()};
+        geo::Location l{gen_lat(), gen_lon()};
         reachi2::Node n{i, l};
         nodes.emplace_back(n);
     }

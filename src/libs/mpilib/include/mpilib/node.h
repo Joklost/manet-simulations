@@ -1,14 +1,14 @@
 #ifndef MANETSIMS_MPI_NODE_H
 #define MANETSIMS_MPI_NODE_H
 
-#include "location.h"
+#include <geo/geo.h>
 
 namespace mpilib {
 
     class Node {
     public:
         int rank{};
-        mpilib::geo::Location loc{};
+        geo::Location loc{};
         unsigned long localtime{};
         bool dead{};
 

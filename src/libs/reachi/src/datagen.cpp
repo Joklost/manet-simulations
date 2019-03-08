@@ -1,14 +1,14 @@
 #include <random>
 #include <mpilib/httpclient.h>
 #include <mpilib/helpers.h>
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 
 #include <reachi/datagen.h>
 
 using json = nlohmann::json;
 
 std::vector<reachi::Node>
-reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower) {
+reachi::data::generate_nodes(unsigned long count, geo::Location &upper, geo::Location &lower) {
     std::vector<reachi::Node> nodes{};
     nodes.reserve(count);
 
@@ -27,7 +27,7 @@ reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, 
     auto gen_lon = std::bind(dist_lon, eng_lon);
 
     for (uint32_t i = 1; i <= count; ++i) {
-        mpilib::geo::Location l{gen_lat(), gen_lon()};
+        geo::Location l{gen_lat(), gen_lon()};
         reachi::Node n{i, l};
         nodes.emplace_back(n);
     }
@@ -36,7 +36,7 @@ reachi::data::generate_nodes(unsigned long count, mpilib::geo::Location &upper, 
 }
 
 std::vector<reachi::Node>
-reachi::data::generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long count,
+reachi::data::generate_cluster(geo::Location &center, uint32_t begin, unsigned long count,
                                double radius /* kilometer */) {
     std::vector<reachi::Node> nodes{};
     nodes.reserve(count);
@@ -106,7 +106,7 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
 }
 
 
-::std::vector<reachi::Node> reachi::data::generate_line_topology(mpilib::geo::Location start, double distance, int size) {
+::std::vector<reachi::Node> reachi::data::generate_line_topology(geo::Location start, double distance, int size) {
     ::std::vector<reachi::Node> nodes{reachi::Node{0, start}};
 
     for (uint32_t i = 1; i < size; ++i) {
@@ -119,7 +119,7 @@ reachi::data::create_link_vector(std::vector<Optics::Cluster> &clusters, double 
 }
 
 ::std::vector<reachi::Node>
-reachi::data::generate_ring_topology(mpilib::geo::Location start, double distance, double size) {
+reachi::data::generate_ring_topology(geo::Location start, double distance, double size) {
     ::std::vector<reachi::Node> nodes{};
     double degree = 0.0;
     double step = 360.0 / size;

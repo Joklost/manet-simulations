@@ -15,10 +15,13 @@ else()
     set(CMAKE_USE_OPENSSL OFF CACHE BOOL "OPENSSL not found")
 endif()
 
+add_subdirectory(Catch2)
+
+add_subdirectory(geo)
+
 add_subdirectory(json)
 add_subdirectory(cpr)
 
-add_subdirectory(Catch2)
 add_subdirectory(spdlog)
 add_subdirectory(mpilib)
 add_subdirectory(reachi)

@@ -26,21 +26,3 @@ std::chrono::microseconds mpilib::compute_transmission_time(unsigned long baudra
     return std::chrono::microseconds(static_cast<unsigned long>((1.0 / baudrate) * (octets * 8) * 1000 * 1000));
 }
 
-std::vector<std::string> mpilib::split(const std::string &string, const std::string &delim) {
-    std::vector<std::string> tokens{};
-    size_t prev{}, pos{};
-
-    do {
-        pos = string.find(delim, prev);
-        if (pos == std::string::npos) {
-            pos = string.length();
-        }
-
-        std::string token = string.substr(prev, pos - prev);
-        if (!token.empty()) {
-            tokens.push_back(token);
-        }
-        prev = pos + delim.length();
-    } while (pos < string.length() && prev < string.length());
-    return tokens;
-}

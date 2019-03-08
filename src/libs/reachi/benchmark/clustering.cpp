@@ -50,8 +50,8 @@ std::string format_duration(std::chrono::microseconds us) {
 
 /* This block is for clustering experiments on distance threshold */
 int main(int argc, char *argv[]) {
-    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 10_km);
+    geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = geo::square(upper, 10_km);
     auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
     std::vector<double> thresholds{100_m, 125_m, 150_m, 175_m, 200_m, 225_m, 250_m, 275_m, 300_m, 325_m, 350_m, 375_m,
@@ -90,8 +90,8 @@ int main(int argc, char *argv[]) {
 
 #if 0 /* This block is for clustering experiments on eps */
 int main(int argc, char *argv[]) {
-    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 10_km);
+    geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = geo::square(upper, 10_km);
     auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
     std::vector<int> cluster_sizes{1000, 900, 800, 700, 600, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50};
@@ -149,8 +149,8 @@ int main(int argc, char *argv[]) {
 
 #if 0
 int main(int argc, char *argv[]) {
-    mpilib::geo::Location upper{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::square(upper, 10_km);
+    geo::Location upper{57.01266813458001, 10.994625734716218};
+    auto lower = geo::square(upper, 10_km);
     auto nodes = reachi::data::generate_nodes(NODES, upper, lower);
 
     auto links = reachi::data::create_link_vector(nodes);
@@ -320,7 +320,7 @@ long clusterize_remaining(const std::vector<reachi::Node> &nodes, std::vector<re
     return node_count;
 }
 
-mpilib::geo::Location create_square(mpilib::geo::Location &upper, double size) {
+geo::Location create_square(geo::Location &upper, double size) {
     return move_location(move_location(upper, size, 180), size, 90);
 }
 
@@ -328,8 +328,8 @@ int main(int argc, char *argv[]) {
     std::vector<std::future<void>> futures{};
     std::vector<std::thread> threads{};
 
-    mpilib::geo::Location upper{57.0134, 9.99008};
-    mpilib::geo::Location lower = create_square(upper, AREA);
+    geo::Location upper{57.0134, 9.99008};
+    geo::Location lower = create_square(upper, AREA);
 
     auto setup_start = std::chrono::steady_clock::now();
     /**/

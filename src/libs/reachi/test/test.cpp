@@ -27,8 +27,8 @@ TEST_CASE("Compute the Cholesky decomposition (slow)", "[math]") {
 }
 
 TEST_CASE("Comparing cholesky implementations for correct results", "[math]") {
-    auto upper = mpilib::geo::Location{57.01266813458001, 10.994625734716218};
-    auto lower = mpilib::geo::Location{57.0117698, 10.9929758};
+    auto upper = geo::Location{57.01266813458001, 10.994625734716218};
+    auto lower = geo::Location{57.0117698, 10.9929758};
     auto nodes = reachi::data::generate_nodes(25, upper, lower);
     auto links = reachi::data::create_link_vector(nodes, 1);
 
@@ -148,8 +148,8 @@ TEST_CASE("Compute the distance dependent path loss (double)", "[math]") {
 }
 
 TEST_CASE("Compute the distance dependent path loss (Location)", "[math]") {
-    mpilib::geo::Location l1{57.01266813458001, 9.994625734716218};
-    mpilib::geo::Location l2{57.01266813458001, 9.9929758};
+    geo::Location l1{57.01266813458001, 9.994625734716218};
+    geo::Location l2{57.01266813458001, 9.9929758};
     REQUIRE(reachi::math::distance_pathloss(l1, l2) == Approx(91.2).margin(0.1));
 }
 
@@ -642,8 +642,8 @@ TEST_CASE("Correlation matrix generation performance measure", "[linkmodel]") {
     // std::cout << measure<>::execution(generate_correlation_matrix_slow, links) << std::endl;
     // std::cout << measure<>::execution(generate_correlation_matrix, links) << std::endl;
 
-    auto upper = mpilib::geo::Location{57.01266813458001, 9.994625734716218};
-    auto lower = mpilib::geo::Location{57.0117698, 9.9929758};
+    auto upper = geo::Location{57.01266813458001, 9.994625734716218};
+    auto lower = geo::Location{57.0117698, 9.9929758};
     auto nodes = reachi::data::generate_nodes(15, upper, lower);
     auto links = reachi::data::create_link_vector(nodes, MAX_LINK_DISTANCE);
 
@@ -693,7 +693,7 @@ TEST_CASE("SVD verification", "[svd]") {
 
 
 TEST_CASE("Generate Aloha line topology", "[aloha]") {
-    mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
+    geo::Location l{57.01266813458001, 9.994625734716218};
     auto nodes = reachi::data::generate_line_topology(l, 100_m, 100);
 
     /*std::cout << "#!/usr/bin/env bash\nmpirun -n 1 ctrlr/ctrlr $2 : \\" << std::endl;
@@ -719,7 +719,7 @@ TEST_CASE("Generate Aloha line topology", "[aloha]") {
 }
 
 TEST_CASE("Generate Aloha ring topology", "[aloha]") {
-    mpilib::geo::Location l{57.01266813458001, 9.994625734716218};
+    geo::Location l{57.01266813458001, 9.994625734716218};
     auto nodes = reachi::data::generate_ring_topology(l, 250_m, 100);
 
     std::cout << "{" << std::endl;

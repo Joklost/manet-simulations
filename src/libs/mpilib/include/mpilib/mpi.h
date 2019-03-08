@@ -12,7 +12,7 @@
 #include <mpilib/ostr.h>
 #include <mpilib/defines.h>
 #include <mpilib/helpers.h>
-#include <mpilib/location.h>
+#include <geo/geo.h>
 
 namespace mpi {
 

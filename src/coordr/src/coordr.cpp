@@ -1,6 +1,6 @@
 #include <random>
 
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 #include <reachi/radiomodel.h>
 
 #include "coordr.h"
@@ -264,9 +264,9 @@ void Coordinator::set_linkmodel(std::vector<mpilib::Link> &links) {
     }
 }
 
-mpilib::geo::Location Coordinator::update_location(const int rank) {
+geo::Location Coordinator::update_location(const int rank) {
     auto buffer = mpi::recv<std::vector<octet>>(rank, SET_LOCATION);
-    auto loc = mpilib::deserialise<mpilib::geo::Location>(buffer);
+    auto loc = mpilib::deserialise<geo::Location>(buffer);
 
     this->nodes[rank].loc = loc;
     //mpi::send(rank, this->lmc_node, UPDATE_LOCATION);

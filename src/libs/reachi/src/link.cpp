@@ -2,13 +2,13 @@
 #include <reachi/link.h>
 
 #include <mpilib/helpers.h>
-#include <mpilib/geomath.h>
+#include <geo/geo.h>
 #include <mpilib/ostr.h>
 #include <mpilib/link.h>
 
 reachi::Link::Link(uint64_t id, Node &node1, Node &node2) : nodes(std::make_pair(node1, node2)) {
     this->id = id;
-    this->distance = mpilib::geo::distance_between(node1.get_location(), node2.get_location());
+    this->distance = geo::distance_between(node1.get_location(), node2.get_location());
 }
 
 

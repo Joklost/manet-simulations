@@ -19,10 +19,10 @@ namespace reachi {
          * @return A vector of nodes (a graph)
          */
         ::std::vector<Node>
-        generate_nodes(unsigned long count, mpilib::geo::Location &upper, mpilib::geo::Location &lower);
+        generate_nodes(unsigned long count, geo::Location &upper, geo::Location &lower);
 
         ::std::vector<Node>
-        generate_cluster(mpilib::geo::Location &center, uint32_t begin, unsigned long count,
+        generate_cluster(geo::Location &center, uint32_t begin, unsigned long count,
                          double radius /* kilometer */);
 
         /**
@@ -32,8 +32,8 @@ namespace reachi {
          * @param rank The size of the network
          * @return A vector of nodes
          */
-        ::std::vector<reachi::Node> generate_line_topology(mpilib::geo::Location start, double distance, int size);
-        ::std::vector<reachi::Node> generate_ring_topology(mpilib::geo::Location start, double distance, double size);
+        ::std::vector<reachi::Node> generate_line_topology(geo::Location start, double distance, int size);
+        ::std::vector<reachi::Node> generate_ring_topology(geo::Location start, double distance, double size);
 
 
         /**

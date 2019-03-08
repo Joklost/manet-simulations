@@ -3,7 +3,7 @@
 #include <reachi/node.h>
 #include <mpilib/node.h>
 
-reachi::Node::Node(uint32_t id, mpilib::geo::Location location) : current_location(location) {
+reachi::Node::Node(uint32_t id, geo::Location location) : current_location(location) {
     this->id = id;
 }
 
@@ -11,7 +11,7 @@ uint32_t reachi::Node::get_id() const {
     return this->id;
 }
 
-const mpilib::geo::Location &reachi::Node::get_location() const {
+const geo::Location &reachi::Node::get_location() const {
     return this->current_location;
 }
 
@@ -51,7 +51,7 @@ void reachi::from_json(const json &j, reachi::Node &p) {
 
     p = {id, {lat, lon}};
 }
-void reachi::Node::update_location(mpilib::geo::Location &location, const int time) {
+void reachi::Node::update_location(geo::Location &location, const int time) {
     location.set_time(time);
     this->location_history.emplace_back(this->current_location);
     this->current_location = location;
