@@ -41,7 +41,7 @@ std::vector<reachi2::Link> reachi2::data::create_links(std::vector<reachi2::Node
             if (i == j)
                 continue;
 
-            Link l(link_id, nodes[i], nodes[j]);
+            reachi2::Link l(link_id, nodes[i], nodes[j]);
             if (l.distance < threshold or threshold <= 0.01) {
                 link_id++;
                 links.emplace_back(l);

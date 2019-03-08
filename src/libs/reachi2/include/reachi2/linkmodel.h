@@ -17,8 +17,6 @@ namespace reachi2 {
 
         void compute();
 
-        const double generate_fading_value(const reachi2::Link &link);
-
         double distance_pathloss(double distance) const;
 
         const double generate_gaussian_value(double mean, double std_deviation) const;
@@ -26,6 +24,8 @@ namespace reachi2 {
         Linkmodel(std::vector<reachi2::Node> &nodes, double threshold = 0.55);
 
         Linkmodel(std::vector<reachi2::Link> &links);
+
+        const std::unordered_map<int, double> &get_pep() const;
 
     private:
         std::unordered_map<int, std::vector<int>> neighbourhoods{};

@@ -29,7 +29,7 @@ endif()
 
 add_subdirectory(eigen)
 add_subdirectory(reachi)
-#add_subdirectory(reachi2)
+add_subdirectory(reachi2)
 
 add_subdirectory(linkaiders)
 
