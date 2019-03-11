@@ -15,7 +15,7 @@ extern "C" {
  * @param gpslog Filepath for a log of GPS coordinates for all nodes
  * @return The link model object
  */
-void *initialize(int num_nodes, int nchans, char *gpslog);
+void *initialize(int num_nodes, int nchans, const char *gpslog);
 
 /**
  * Deinitialize the link model.

@@ -36,7 +36,6 @@ namespace reachi {
         void move(int time, double distance /*kilometers */, double bearing /* degrees */);
 
         /* OPTICS */
-
         double get_reachability_distance() const;
 
         void set_reachability_distance(double reachability_distance);
@@ -49,11 +48,11 @@ namespace reachi {
 
         void set_processed(bool processed);
 
-    private:
         uint32_t id{};
-        geo::Location current_location;
         std::vector<geo::Location> location_history;
+        geo::Location current_location;
 
+    private:
         /* OPTICS */
         double reachability_distance{};
         double core_distance{};

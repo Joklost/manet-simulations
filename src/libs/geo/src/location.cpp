@@ -12,28 +12,7 @@ bool geo::Location::operator!=(const geo::Location &rhs) const {
     return !(rhs == *this);
 }
 
-bool geo::Location::operator<(const geo::Location &rhs) const {
-    if (latitude < rhs.get_latitude())
-        return true;
-    if (rhs.get_latitude() < latitude)
-        return false;
-    return longitude < rhs.get_longitude();
-}
-
-bool geo::Location::operator>(const geo::Location &rhs) const {
-    return rhs < *this;
-}
-
-bool geo::Location::operator<=(const geo::Location &rhs) const {
-    return !(rhs < *this);
-}
-
-bool geo::Location::operator>=(const geo::Location &rhs) const {
-    return !(*this < rhs);
-}
-
-geo::Location
-geo::random_location(const geo::Location &upper_bound, const geo::Location &lower_bound) {
+geo::Location geo::random_location(const geo::Location &upper_bound, const geo::Location &lower_bound) {
     auto lat_min = lower_bound.get_latitude();
     auto lat_max = upper_bound.get_latitude();
     std::random_device rd_lat;
@@ -88,10 +67,26 @@ void geo::Location::set_time(unsigned long new_time) {
 }
 
 geo::Location::Location(double latitude, double longitude) : latitude(latitude), longitude(longitude),
-                                                                     time(0) {}
+                                                             time(0) {}
 
 geo::Location::Location(unsigned long time, double latitude, double longitude) : time(time), latitude(latitude),
-                                                                                         longitude(longitude) {}
+                                                                                 longitude(longitude) {}
+
+bool geo::Location::operator<(const geo::Location &rhs) const {
+    return time < rhs.time;
+}
+
+bool geo::Location::operator>(const geo::Location &rhs) const {
+    return rhs < *this;
+}
+
+bool geo::Location::operator<=(const geo::Location &rhs) const {
+    return !(rhs < *this);
+}
+
+bool geo::Location::operator>=(const geo::Location &rhs) const {
+    return !(*this < rhs);
+}
 
 geo::Location::Location() = default;
 

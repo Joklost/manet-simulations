@@ -1,6 +1,6 @@
 project(linkaiders VERSION 1.0)
 
-add_library(linkaiders src/linkmodel.cpp)
+add_library(linkaiders src/linkmodel.cpp src/gpslog.h src/model.h src/gpslog.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
@@ -17,7 +17,7 @@ install(TARGETS linkaiders EXPORT LinkAidersLibraryConfig
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-target_link_libraries(linkaiders geo common)
+target_link_libraries(linkaiders geo common reachi)
 
 enable_testing()
 add_subdirectory(test)
