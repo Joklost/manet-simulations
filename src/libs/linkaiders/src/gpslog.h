@@ -4,8 +4,9 @@
 #include <unordered_map>
 
 #include <reachi/node.h>
+#include "model.h"
 
-std::unordered_map<unsigned long, reachi::Node> parse_gpsfile(const char *gpslog);
+linkaiders::NodeMap parse_gpsfile(const char *gpslog);
 
 
 #endif /* LINKAIDERS_GPSLOG_H */

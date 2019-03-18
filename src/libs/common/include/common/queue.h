@@ -3,7 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace mpilib {
+namespace common {
 
     template<
             class T,

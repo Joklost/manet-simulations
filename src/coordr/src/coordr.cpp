@@ -277,5 +277,4 @@ geo::Location Coordinator::update_location(const int rank) {
 }
 
 bool Coordinator::Action::is_within(const Coordinator::Action &action) const {
-    return this->start >= action.start && this->end <= action.end;
-}
+ }

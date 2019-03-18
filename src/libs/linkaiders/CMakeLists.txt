@@ -1,6 +1,6 @@
 project(linkaiders VERSION 1.0)
 
-add_library(linkaiders src/linkmodel.cpp src/gpslog.h src/model.h src/gpslog.cpp)
+add_library(linkaiders src/linkmodel.cpp src/gpslog.h src/model.h src/gpslog.cpp src/model.cpp)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build

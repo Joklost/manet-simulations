@@ -37,9 +37,9 @@ namespace reachi {
 
         double distance_pathloss(geo::Location to, geo::Location from);
 
-        double distance_pathloss(Link link);
+        double distance_pathloss(const Link &link);
 
-        double distance_pathloss(Optics::CLink link);
+        double distance_pathloss(const Optics::CLink &link);
 
         double autocorrelation(double angle);
 

@@ -39,8 +39,9 @@ bool is_connected(void *model, int x, int y, unsigned long timestamp);
  * @param id Node identifier
  * @param chn Channel identifier
  * @param timestamp Timestamp to start sending
+ * @param duration Duration to transmit in
  */
-void begin_send(void *model, int id, int chn, unsigned long timestamp);
+void begin_send(void *model, int id, int chn, unsigned long timestamp, unsigned long duration);
 
 /**
  * Notify the link model that a node stops sending on a specific channel.
@@ -57,8 +58,9 @@ void end_send(void *model, int id, int chn, unsigned long timestamp);
  * @param id Node identifier
  * @param chn Channel identifier
  * @param timestamp Timestamp to start listening
+ * @param duration Duration to listen in
  */
-void begin_listen(void *model, int id, int chn, unsigned long timestamp);
+void begin_listen(void *model, int id, int chn, unsigned long timestamp, unsigned long duration);
 
 /**
  * Returns node identifier of the other node if transmission was completed before timestamp.
@@ -66,7 +68,7 @@ void begin_listen(void *model, int id, int chn, unsigned long timestamp);
  * @param id Node identifier
  * @param chn Channel identifier
  * @param timestamp Timestamp to check for completion
- * @return Node identifier of receiving node.
+ * @return Node identifier of the other node.
  */
 int status(void *model, int id, int chn, unsigned long timestamp);
 
@@ -76,7 +78,7 @@ int status(void *model, int id, int chn, unsigned long timestamp);
  * @param id Node identifier
  * @param chn Channel identifier
  * @param timestamp Timestamp to stop listening
- * @return Node identifier of receiving node.
+ * @return Node identifier of the other node.
  */
 int end_listen(void *model, int id, int chn, unsigned long timestamp);
 

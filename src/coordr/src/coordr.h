@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 
+#include <common/queue.h>
 #include <mpilib/mpi.h>
-#include <mpilib/queue.h>
 #include <mpilib/link.h>
 #include <mpilib/node.h>
 
@@ -45,7 +45,7 @@ class Coordinator {
     }
 
     std::vector<Action> transmissions{};
-    mpilib::PriorityQueue<Action, std::vector<Action>, decltype(&cmp)> action_queue{cmp};
+    common::PriorityQueue<Action, std::vector<Action>, decltype(&cmp)> action_queue{cmp};
 
     /*  struct Action {
           unsigned long start{};

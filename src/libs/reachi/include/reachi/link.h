@@ -31,8 +31,8 @@ namespace reachi {
 
         bool operator>=(const Link &rhs) const;
 
-    private:
         double distance;
+    private:
         uint64_t id;
         ::std::pair<reachi::Node, reachi::Node> nodes;
 

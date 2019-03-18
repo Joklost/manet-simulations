@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 
+#include <common/queue.h>
 #include <mpilib/mpi.h>
-#include <mpilib/queue.h>
 #include <mpilib/node.h>
 #include <mpilib/link.h>
 
@@ -41,7 +41,7 @@ class LinkModelComputer {
 
     bool debug = false;
     bool work = true;
-    mpilib::Queue<Action> queue{};
+    common::Queue<Action> queue{};
 
     int world_size{};
     int world_rank{};

@@ -4,8 +4,8 @@
 
 #include "gpslog.h"
 
-std::unordered_map<unsigned long, reachi::Node> parse_gpsfile(const char *gpslog) {
-    std::unordered_map<unsigned long, reachi::Node> nodes{};
+linkaiders::NodeMap parse_gpsfile(const char *gpslog) {
+    linkaiders::NodeMap nodes{};
     std::ifstream logfile{gpslog};
 
     if (!logfile.is_open()) {
@@ -34,7 +34,8 @@ std::unordered_map<unsigned long, reachi::Node> parse_gpsfile(const char *gpslog
     logfile.close();
 
     for (auto &item : nodes) {
-        std::sort(item.second.location_history.begin(), item.second.location_history.end());
+        auto &node = item.second;
+        std::sort(node.location_history.begin(), node.location_history.end());
     }
 
     return nodes;

@@ -13,11 +13,11 @@ double reachi::math::distance_pathloss(const geo::Location to, const geo::Locati
     return distance_pathloss(distance_between(from, to) * KM);
 }
 
-double reachi::math::distance_pathloss(Link link) {
+double reachi::math::distance_pathloss(const Link &link) {
     return distance_pathloss(link.get_distance() * KM);
 }
 
-double reachi::math::distance_pathloss(Optics::CLink link) {
+double reachi::math::distance_pathloss(const Optics::CLink &link) {
     return distance_pathloss(link.get_distance() * KM);
 }
 
