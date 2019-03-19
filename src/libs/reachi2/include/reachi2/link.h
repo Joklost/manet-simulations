@@ -2,6 +2,7 @@
 #define MANETSIMS_LINK_H
 
 #include <geo/geo.h>
+#include <ostream>
 
 namespace reachi2 {
     class Node {
@@ -10,7 +11,7 @@ namespace reachi2 {
         geo::Location location;
 
         bool operator==(const Node &rhs) const {
-            return id == rhs.id;
+            return this->id == rhs.id;
         }
 
         bool operator!=(const Node &rhs) const {

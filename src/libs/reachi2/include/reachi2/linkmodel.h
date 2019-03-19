@@ -15,9 +15,19 @@ namespace reachi2 {
     public:
         void find_neighbourhood(const reachi2::Link &link);
 
-        void compute();
+        /**
+         * Compute the linkmodel at the current object state
+         */
+        long double compute(std::vector<double> cholesky);
 
-        double distance_pathloss(double distance) const;
+        /**
+         * Compute the distance dependent path loss
+         * @param distance Distance in meters
+         * @return path loss (l_d)
+         */
+        static double distance_pathloss(double distance);
+
+        const double compute_autocorrelation(double angle) const;
 
         const double generate_gaussian_value(double mean, double std_deviation) const;
 
@@ -32,6 +42,7 @@ namespace reachi2 {
         std::vector<reachi2::Link> links{};
         std::unordered_map<int, double> pep{};
         std::unordered_map<int, double> prev_rssi{};
+
     };
 }
 #endif //MANETSIMS_LINKMODEL_H

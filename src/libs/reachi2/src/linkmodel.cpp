@@ -8,6 +8,7 @@
 #include <reachi2/linkmodel.h>
 #include <reachi2/datagen.h>
 #include <reachi2/radiomodel.h>
+#include <iomanip>
 
 void reachi2::Linkmodel::find_neighbourhood(const reachi2::Link &link) {
     this->neighbourhoods[link.id].clear();
@@ -21,51 +22,71 @@ void reachi2::Linkmodel::find_neighbourhood(const reachi2::Link &link) {
     }
 }
 
-void reachi2::Linkmodel::compute() {
+long double reachi2::Linkmodel::compute(std::vector<double> cholesky) {
     this->pep.clear();
+    std::random_device rd{};
+    std::mt19937 gen{rd()};
+    std::normal_distribution<double> distribution{0.0, 1.0};
+
+    int count = 0;
+    long double total = 0.0;
+//    std::cout << "cholesky   fading     difference   neighbourhood size" << std::endl;
+//    std::cout << "cholesky   fading     rssi       pep    neighbourhood size" << std::endl;
+//    std::cout << "     cholesky     ||     new model      ||     difference     " << std::endl;
 
     for (const auto &link : this->links) {
-        auto l_d = distance_pathloss(link.distance * 1000);
-        auto rssi = TX_POWER - l_d;
-        auto pep = reachi2::radiomodel::pep(rssi, PACKET_SIZE);
-
-//        if (pep == 1) {
-        /*find_neighbourhood(link);
+        find_neighbourhood(link);
         double sum = 0.0;
-
+        auto auto_sum = 0.0;
         for (const auto &neighbour : this->neighbourhoods[link.id]) {
             auto angle = link.angle_between(this->links[neighbour]);
-            auto fading = pep * angle;
-            sum += fading;
-        }*/
+            auto autocorrelation = compute_autocorrelation(angle);
+            auto_sum += autocorrelation;
+        }
+        sum = std::sqrt(auto_sum * STANDARD_DEVIATION) + STANDARD_DEVIATION - std::pow(auto_sum, 4);
 
-//        rssi = TX_POWER - (l_d);
-        this->prev_rssi[link.id] = rssi;
-        this->pep[link.id] = pep;
-        std::cout
-        << "distance = " << link.distance
-        << ", l_d = " << l_d
-        << ", rssi = " << rssi
-        << ", pep = " << pep
-        << std::endl;
+        auto l_d = distance_pathloss(link.distance);
+        auto rssi_org = TX_POWER - (l_d + (-1 * cholesky[count++]));
+        auto pep_org = reachi2::radiomodel::pep(rssi_org, PACKET_SIZE);
 
-        /*} else {
-            this->prev_rssi[link.id] = rssi;
-            this->pep[link.id] = pep;
-        }*/
+        auto rssi_new = TX_POWER - (l_d + (-1 * sum));
+        auto pep_new = reachi2::radiomodel::pep(rssi_new, PACKET_SIZE);
+
+        /*std::cout
+        << std::left
+        << std::setw(13) << rssi_org
+        << "||     " << std::setw(15) << rssi_new
+        << "||     " << std::setw(16) << rssi_org - rssi_new
+        << std::endl;*/
+
+        total += std::abs(rssi_org - rssi_new);
+       /* std::cout
+                << std::left
+                << std::setw(11) << cholesky[count]
+                << std::setw(11) << sum
+                << std::setw(13) << cholesky[count++] - sum
+//                << std::setw(11) << rssi
+//                << std::setw(7) << pep
+                << this->neighbourhoods[link.id].size() << std::endl;*/
     }
+    return total;
+}
+
+const double reachi2::Linkmodel::compute_autocorrelation(const double angle) const {
+    return 0.595 * std::exp(-0.064 * angle) + 0.092;
 }
 
 reachi2::Linkmodel::Linkmodel(std::vector<reachi2::Link> &links) {
     this->links = links;
 }
 
-reachi2::Linkmodel::Linkmodel(std::vector<reachi2::Node> &nodes, const double threshold) {
+reachi2::Linkmodel::Linkmodel(std::vector<reachi2::Node> &nodes,
+                              const double threshold) {
     this->links = reachi2::data::create_links(nodes, threshold);
 }
 
-double reachi2::Linkmodel::distance_pathloss(const double distance) const {
-    return (10 * PATHLOSS_EXPONENT) * std::log10(distance) - PATHLOSS_CONSTANT_OFFSET;
+double reachi2::Linkmodel::distance_pathloss(const double distance) {
+    return (10 * PATHLOSS_EXPONENT) * std::log10(distance) + PATHLOSS_CONSTANT_OFFSET;
 }
 
 const double reachi2::Linkmodel::generate_gaussian_value(double mean, double std_deviation) const {
