@@ -13,3 +13,6 @@
 [submodule "src/libs/eigen-git-mirror"]
 	path = src/libs/eigen
 	url = https://github.com/eigenteam/eigen-git-mirror.git
+[submodule "src/libs/lm"]
+	path = src/libs/lm
+	url = git@github.com:Joklost/lm.git

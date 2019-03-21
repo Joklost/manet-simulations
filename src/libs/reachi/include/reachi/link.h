@@ -11,6 +11,7 @@ namespace reachi {
 
     class Link {
     public:
+        Link() = default;
         Link(uint64_t id, reachi::Node &node1, reachi::Node &node2);
 
         const ::std::pair<reachi::Node, reachi::Node> &get_nodes() const;
@@ -31,9 +32,9 @@ namespace reachi {
 
         bool operator>=(const Link &rhs) const;
 
-        double distance;
+        double distance{};
     private:
-        uint64_t id;
+        uint64_t id{};
         ::std::pair<reachi::Node, reachi::Node> nodes;
 
     };

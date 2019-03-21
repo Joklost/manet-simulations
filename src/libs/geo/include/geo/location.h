@@ -12,7 +12,7 @@ namespace geo {
 
         Location(double latitude, double longitude);
 
-        Location(unsigned long time, double latitude, double longitude);
+        Location(double time, double latitude, double longitude);
 
         bool operator==(const Location &rhs) const;
 
@@ -32,18 +32,18 @@ namespace geo {
             return os;
         }
 
-        void move(unsigned long time, double distance /*kilometers */, double bearing /* degrees */);
+        void move(double time, double distance /*kilometers */, double bearing /* degrees */);
 
         double get_latitude() const;
 
         double get_longitude() const;
 
-        unsigned long get_time() const;
+        double get_time() const;
 
-        void set_time(unsigned long time);
+        void set_time(double time);
 
     private:
-        unsigned long time{};
+        double time{};
         double latitude{};
         double longitude{};
     };
