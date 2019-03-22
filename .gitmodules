@@ -16,3 +16,6 @@
 [submodule "src/libs/lm"]
 	path = src/libs/lm
 	url = git@github.com:Joklost/lm.git
+[submodule "src/libs/geo"]
+	path = src/libs/geo
+	url = git@github.com:Joklost/geo.git
