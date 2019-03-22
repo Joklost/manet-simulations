@@ -9,8 +9,8 @@
 #include <mpilib/node.h>
 #include <mpilib/link.h>
 
-#include <reachi/node.h>
-#include <reachi/link.h>
+#include <sims/node.h>
+#include <sims/link.h>
 
 #ifdef INSTALL_HTTP
 #include <http/httpclient.h>
@@ -80,14 +80,14 @@ public:
 };
 
 #ifdef INSTALL_HTTP
-namespace reachi {
-    void to_json(json &j, const reachi::Node &p);
+namespace sims {
+    void to_json(json &j, const sims::Node &p);
 
-    void from_json(const json &j, reachi::Node &p);
+    void from_json(const json &j, sims::Node &p);
 
-    void to_json(json &j, const reachi::Link &p);
+    void to_json(json &j, const sims::Link &p);
 
-    void from_json(const json &j, reachi::Link &p);
+    void from_json(const json &j, sims::Link &p);
 }
 #endif /* INSTALL_HTTP */
 

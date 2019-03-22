@@ -2,7 +2,7 @@
 
 #include <common/equality.h>
 #include <geo/geo.h>
-#include <reachi/radiomodel.h>
+#include <sims/radiomodel.h>
 
 #include "coordr.h"
 
@@ -152,7 +152,7 @@ void Coordinator::run() {
                     interference.push_back(TX_POWER - interfering_pathloss);
                 }
 
-                auto pep = reachi::radiomodel::pep(rssi, tx.packets.back().size(), interference);
+                auto pep = sims::radiomodel::pep(rssi, tx.packets.back().size(), interference);
                 std::bernoulli_distribution d(1.0 - pep);
                 auto should_receive = d(gen);
 
@@ -160,11 +160,11 @@ void Coordinator::run() {
                 if (this->debug) {
                     auto interfering_power = 0.0;
                     for (auto &RSSI_interference_dB : interference) {
-                        interfering_power += reachi::radiomodel::linearize(RSSI_interference_dB);
+                        interfering_power += sims::radiomodel::linearize(RSSI_interference_dB);
                     }
 
                     if (!common::is_zero(interfering_power)) {
-                        interfering_power = reachi::radiomodel::logarithmicize(interfering_power);
+                        interfering_power = sims::radiomodel::logarithmicize(interfering_power);
                     }
 
                     this->c->debug("{}(src: {}, dst: {}, rssi: {} dBm, pep: {}, p_i: {} dBm, p_ic: {})",

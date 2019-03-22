@@ -1,8 +1,8 @@
 
 #include <ostream>
 
-#include <reachi/linkmodel.h>
-#include <reachi/datagen.h>
+#include <sims/linkmodel.h>
+#include <sims/datagen.h>
 
 #include <mpilib/node.h>
 
@@ -155,7 +155,7 @@ void LinkModelComputer::compute() {
 }
 
 Action LinkModelComputer::compute_link_model() {
-    reachi::Optics optics{};
+    sims::Optics optics{};
 
     auto eps = 0.01;
     auto minpts = 2;
@@ -163,14 +163,14 @@ Action LinkModelComputer::compute_link_model() {
     auto link_threshold = 750_m;
 
     auto time = 0.0, time_delta = 0.0;
-    std::vector<reachi::Node> model_nodes{};
+    std::vector<sims::Node> model_nodes{};
     for (auto &node : this->nodes) {
         model_nodes.emplace_back(node.second.rank, node.second.loc);
     }
 
 #ifdef INSTALL_HTTP
     if (!this->uuid.empty()) {
-        auto node_links = reachi::data::create_link_vector(model_nodes, link_threshold);
+        auto node_links = sims::data::create_link_vector(model_nodes, link_threshold);
         json j_nodes = model_nodes;
         json j_links = node_links;
 
@@ -182,12 +182,12 @@ Action LinkModelComputer::compute_link_model() {
 
     auto ordering = optics.compute_ordering(model_nodes, eps, minpts);
     auto clusters = optics.cluster(ordering);
-    auto links = reachi::data::create_link_vector(clusters, link_threshold);
+    auto links = sims::data::create_link_vector(clusters, link_threshold);
 
     this->c->debug("compute_link_model(clusters={}, links={})", clusters.size(), links.size());
 
     auto start = std::chrono::steady_clock::now();
-    auto lm = reachi::linkmodel::compute(links);
+    auto lm = sims::linkmodel::compute(links);
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
     this->c->debug("compute_done(execution={})", duration.count());
 
@@ -217,13 +217,13 @@ Action LinkModelComputer::compute_link_model() {
 }
 
 #ifdef INSTALL_HTTP
-void reachi::to_json(json &j, const reachi::Node &p) {
+void sims::to_json(json &j, const sims::Node &p) {
     j = json{{"id",  p.get_id()},
              {"lat", p.get_location().get_latitude()},
              {"lon", p.get_location().get_longitude()}};
 }
 
-void reachi::from_json(const json &j, reachi::Node &p) {
+void sims::from_json(const json &j, sims::Node &p) {
     auto id = j.at("id").get<uint32_t>();
     auto lat = j.at("lat").get<double>();
     auto lon = j.at("lon").get<double>();
@@ -231,13 +231,13 @@ void reachi::from_json(const json &j, reachi::Node &p) {
     p = {id, {lat, lon}};
 }
 
-void reachi::to_json(json &j, const reachi::Link &p) {
+void sims::to_json(json &j, const sims::Link &p) {
     j = json{{"id", p.get_id()},
              {"first", p.get_nodes().first.get_id()},
              {"second", p.get_nodes().second.get_id()}};
 }
 
-void reachi::from_json(const json &j, reachi::Link &p) {
+void sims::from_json(const json &j, sims::Link &p) {
 
 }
 #endif /* INSTALL_HTTP */
