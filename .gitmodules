@@ -19,3 +19,6 @@
 [submodule "src/libs/geo"]
 	path = src/libs/geo
 	url = git@github.com:Joklost/geo.git
+[submodule "src/libs/mpilib"]
+	path = src/libs/mpilib
+	url = git@github.com:Joklost/mpilib.git
