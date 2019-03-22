@@ -1,0 +1,13 @@
+
+
+.error {
+    background-color: red;
+    color:white;
+    font-weight:bold;
+}
+
+#menu {
+    padding:20px;
+    height:300px;
+    border: 1px solid black;
+}

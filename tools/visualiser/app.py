@@ -1,6 +1,8 @@
 import os
 import uuid as uuids
 from typing import Dict, Union
+import json
+from backend import engine
 
 import flask
 import plotly
@@ -60,6 +62,16 @@ def page_not_found(e):
 def index():
     return flask.redirect('/vis/')
 
+
+@app.route('/animated/')
+def simulate():
+    return flask.render_template('animated.html')
+
+@app.route('/execute/', methods=['POST'])
+def execute():
+    recv = flask.request.form
+    result = engine.execute(recv)
+    return json.dump(result)
 
 @app.route('/vis/')
 def hello_world():
