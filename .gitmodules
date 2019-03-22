@@ -22,3 +22,6 @@
 [submodule "src/libs/mpilib"]
 	path = src/libs/mpilib
 	url = git@github.com:Joklost/mpilib.git
+[submodule "src/libs/common"]
+	path = src/libs/common
+	url = git@github.com:Joklost/common.git
