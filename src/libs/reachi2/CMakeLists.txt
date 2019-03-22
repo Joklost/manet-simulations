@@ -8,7 +8,7 @@ add_library(reachi2 src/linkmodel.cpp src/datagen.cpp src/radiomodel.cpp)
 target_include_directories(reachi2 PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        PRIVATE src test)
+        PRIVATE src test linkmodel_verification)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
 install(TARGETS reachi2 EXPORT Reachi2LibraryConfig
@@ -21,3 +21,4 @@ target_link_libraries(reachi2 geo eigen)
 enable_testing()
 
 add_subdirectory(test)
+add_subdirectory(linkmodel_verification)
