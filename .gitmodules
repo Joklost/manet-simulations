@@ -25,3 +25,6 @@
 [submodule "src/libs/common"]
 	path = src/libs/common
 	url = git@github.com:Joklost/common.git
+[submodule "src/libs/http"]
+	path = src/libs/http
+	url = git@github.com:Joklost/http.git
