@@ -1,13 +1,12 @@
-
-#add_subdirectory(common)
-#add_subdirectory(geo)
+add_subdirectory(common)
+add_subdirectory(geo)
 
 if(INSTALL_HTTP)
     add_subdirectory(http)
 endif()
 
 add_subdirectory(sims)
-#add_subdirectory(reachi2)
+add_subdirectory(sims2)
 
 add_subdirectory(lm)
 
