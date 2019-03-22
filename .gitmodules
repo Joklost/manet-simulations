@@ -16,3 +16,6 @@
 [submodule "src/libs/sims"]
 	path = src/libs/sims
 	url = git@github.com:Joklost/sims.git
+[submodule "src/libs/sims2"]
+	path = src/libs/sims2
+	url = git@github.com:Joklost/sims2.git
