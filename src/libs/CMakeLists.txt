@@ -7,7 +7,5 @@ endif()
 
 add_subdirectory(sims)
 add_subdirectory(sims2)
-
 add_subdirectory(lm)
-
 add_subdirectory(mpilib)
