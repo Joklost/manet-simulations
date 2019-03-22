@@ -16,5 +16,4 @@ add_subdirectory(reachi2)
 
 add_subdirectory(lm)
 
-add_subdirectory(spdlog)
 add_subdirectory(mpilib)
