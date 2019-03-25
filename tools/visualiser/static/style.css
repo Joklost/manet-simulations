@@ -8,6 +8,22 @@
 
 #menu {
     padding:20px;
-    height:300px;
+    height:400px;
     border: 1px solid black;
+}
+
+#control {
+    position: relative;
+}
+
+#visualization {
+    position: relative;
+}
+
+#speed_slider {
+    width: 100%;
+}
+
+#time_slider {
+    width: 100%;
 }

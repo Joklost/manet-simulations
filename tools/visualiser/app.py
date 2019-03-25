@@ -67,11 +67,14 @@ def index():
 def simulate():
     return flask.render_template('animated.html')
 
+@app.route('/models/', methods=['GET'])
+def models():
+    return json.dumps(engine.list_models())
+
 @app.route('/execute/', methods=['POST'])
 def execute():
-    recv = flask.request.form
-    result = engine.execute(recv)
-    return json.dump(result)
+    result = engine.execute(flask.request.form, flask.request.files)
+    return json.dumps(result)
 
 @app.route('/vis/')
 def hello_world():
