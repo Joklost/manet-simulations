@@ -73,7 +73,7 @@ def models():
 
 @app.route('/execute/', methods=['POST'])
 def execute():
-    result = engine.execute(flask.request.form, flask.request.files)
+    result = engine.execute(json.loads(flask.request.data))
     return json.dumps(result)
 
 @app.route('/vis/')

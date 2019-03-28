@@ -3,7 +3,7 @@ import math
 
 
 # validate data and proxy to real functions
-def execute(data, files):
+def execute(data):
     models = list_models()['models']
     if 'type' not in data:
         return {'error':'No type recieved'}
@@ -38,15 +38,15 @@ def execute(data, files):
         else:
             return {'error': "No topology received"}
     if data['type'] == 'gps':
-        if 'gps_data' not in files:
+        if 'gps_data' not in data:
             return {'error': "No GPS-log"}
-        raw = files['gps_data'].read().decode().splitlines()
+        raw = data['gps_data'].splitlines()
         parsed = []
         for i in range(len(raw)):
 
             entry = raw[i].split(",")
             if len(entry) < 4:
-                return file_error(i, data['gps_data'].filename, 'less than four entries')
+                return file_error(i, 'less than four entries')
             id = 0
             lat = 0
             lng = 0
@@ -54,27 +54,27 @@ def execute(data, files):
             try:
                 id = int(entry[0])
             except Exception:
-                return file_error(i, data['gps_data'].filename, 'entry 0 is not an id')
+                return file_error(i, 'entry 0 is not an id')
             if id < 0:
-                return file_error(i, data['gps_data'].filename, 'entry 0 is not an id')
+                return file_error(i, 'entry 0 is not an id')
             try:
                 lat = float(entry[1])
             except Exception:
-                return file_error(i, data['gps_data'].filename, 'entry 0 is not a latitude')
+                return file_error(i, 'entry 0 is not a latitude')
             if lat < -90 or lat > 90:
-                return file_error(i, data['gps_data'].filename, 'entry 0 is not a latitude')
+                return file_error(i, 'entry 0 is not a latitude')
             try:
                 lng = float(entry[2])
             except Exception:
-                return file_error(i, data['gps_data'].filename, 'entry 0 is not a latitude')
+                return file_error(i, 'entry 0 is not a latitude')
             if lng < -180 or lng > 180:
-                return file_error(i, data['gps_data'].filename, 'entry 0 is not a latitude')
+                return file_error(i, 'entry 0 is not a latitude')
             try:
                 ts = float(entry[3])
             except Exception:
-                return file_error(i, data['gps_data'].filename, 'entry 3 is not a timestamp')
+                return file_error(i, 'entry 3 is not a timestamp')
             if ts < 0:
-                return file_error(i, data['gps_data'].filename, 'entry 3 is not a timestamp')
+                return file_error(i, 'entry 3 is not a timestamp')
             parsed.append((id, lat, lng, ts))
         fdur = 0
         tdur = -1
@@ -93,8 +93,8 @@ def execute(data, files):
     return {'error': "Unknown type or topology"}
 
 
-def file_error(filename, line, message):
-    return {'error': 'Line ' + str(line) + ' of \"' + filename + '\" - ' + message}
+def file_error(line, message):
+    return {'error': 'Line ' + str(line) + ' - ' + message}
 
 
 def list_models():

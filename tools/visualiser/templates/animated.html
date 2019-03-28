@@ -3,59 +3,102 @@
     <head>
         <meta charset="UTF-8">
         <title>Simulation Animator</title>
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-                integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-        crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.16/p5.min.js" type="text/javascript"></script>
+        <script src="{{url_for('static', filename='jquery-3.3.1.min.js')}}"></script>
+        <script src="{{url_for('static', filename='p5.min.js')}}" type="text/javascript"></script>
         <script src="{{url_for('static', filename='mappa.js')}}" type="text/javascript"></script>
+        <script src="{{url_for('static', filename='codemirror.js')}}" type="text/javascript"></script>
         <script src="{{url_for('static', filename='logic.js')}}" type="text/javascript"></script>
         <link rel="stylesheet" type="text/css"  href="{{url_for('static', filename='style.css')}}">
+        <link rel="stylesheet" type="text/css"  href="{{url_for('static', filename='codemirror.css')}}">
+        <link rel="stylesheet" type="text/css"  href="{{url_for('static', filename='darcula.css')}}">
     </head>
     <body>
-
-        <div id="menu">
-            <form id="settings"  enctype="multipart/form-data">
-                <p>Select Simulation-type
-                    <select name="type" id="type">
-                        <option selected="selected" value="static">Grid topology</option>
-                        <option value="gps">GPS-based topology</option>
-                        <option value="load">Saved simulation</option>
-                    </select>
-                </p>
-                <p>
-                    Model
-                    <select name="model" id="model"></select>
-                </p>
-                <div id="content">
-                    <div id="static_topology" class="settings">
-                        <p>Topology: <select name="topology" id="topology"><option selected="selected" value="grid" >Grid</option></select></p>
-                        <p>Number of nodes: <input type='text' name='number_of_nodes' value='64' /></p>
-                        <p>Initialization duration of nodes: <input type='text' name='node_init_time' value='10000' /></p>
-                        <p>Duration: <input type='text' name='duration' value='100000' /></p>
-                    </div>
-                    <div id="gps_topology" class="settings">
-                        <p>GPS data file (CSV in id,lat,lon,ms)-style.
-                        <input type="file" name="gps_data"/>
-                        </p>
-                        <p>From: <input type='text' name='from_duration' /></p>
-                        <p>To: <input type='text' name='to_duration' /></p>
-                    </div>
-
-                </div>
-                <div id="error" class="settings"></div>
-                <input type=submit value='Run'/>
-            </form>
-        </div>
-        <div id="control">
-            <p>Speed: <span id="speed_val"></span><br/><input id="speed_slider" type="range" /></p>
-            <p>Time: <span id="time_val"></span><br/><input id="time_slider" type="range" /></p>
-            <button name="Play" id="play">Play</button>
-            <button name="Pause" id="pause">Pause</button>
-            <button name="Stop" id="stop">Stop</button>
-        </div>
         <div id="visualization">
 
         </div>
+        <div id="menu">
+            <div class="top_menu">
+                <span>Workspace</span>
+                <ul class="dropdown-menu">
+                    <li><a href="#" onclick="load_all()">Load All</a><input type="file" id="settings_file" style="display:none;"></li>
+                    <li><a href="#" onclick="save_all()">Save All</a></li>
+                </ul>
+            </div>
+            <div class="top_menu">
+                <span>Simulation</span>
+                <ul class="dropdown-menu">
+                    <li><a href="#" onclick="save_simulation()">Save Simulation</a></li>                        
+                    <li><a href="#" onclick="load_simulation()">Load Simulation</a><input type="file" id="simulation_file" style="display:none;"></li>                        
+                    <li><a href="#" onclick="update_settings('gps')">Load GPS-based topology</a></li>
+                    <li><a href="#" onclick="update_settings('static')">New Grid topology</a></li>
+                </ul>
+            </div>
+            <div class="top_menu">
+                <span>Visualization</span>
+                <ul class="dropdown-menu">
+                    <li><a href="#" onclick="load_style()">Load</a><input type="file" id="style_file" style="display:none;"></li>
+                    <li><a href="#" onclick="save_style()">Save</a></li>
+                    <li><a href="#" onclick="update_style('edge_style')">Edge Display</a></li>
+                    <li><a href="#" onclick="update_style('edge_extrapolation')">Edge Extrapolation</a></li>
+                    <li><a href="#" onclick="update_style('node_style')">Node Display</a></li>
+                    <li><a href="#" onclick="update_style('node_extrapolation')">Node Extrapolation</a></li>
+                </ul>
+            </div>
+            <div class="top_menu">
+                <span><a href="#" onclick="run()">Run!</a></span>
+            </div>
+            <button class="ctrl" name="Play" id="play">Play</button>
+            <button class="ctrl" name="Pause" id="pause">Pause</button>
+            <button class="ctrl" name="Stop" id="stop">Stop</button>
+        </div>
+        <div id="control">
+            <p><span class='box'>Speed: <span id="speed_val"></span></span><br/><input class="slider" id="speed_slider" type="range" /></p>
+            <p><span class='box'>Time: <span id="time_val"></span></span><br/><input class="slider" id="time_slider" type="range" /></p>
+        </div>
+        <div id="settings">
+            <div class='shade'></div>
+            <div class='bg'>
+                <form  enctype="multipart/form-data" method="post">
+                    <input type="hidden" name="type" id="type" />
+                    <p>
+                        Model
+                        <select name="model" id="model"></select>
+                    </p>
+                    <div id="content">
+                        <div id="static_topology" class="settings">
+                            <p>Topology: <select name="topology" id="topology"><option selected="selected" value="grid" >Grid</option></select></p>
+                            <p>Number of nodes: <input type='text' name='number_of_nodes' value='64' /></p>
+                            <p>Initialization duration of nodes: <input type='text' name='node_init_time' value='10000' /></p>
+                            <p>Duration: <input type='text' name='duration' value='100000' /></p>
+                        </div>
+                        <div id="gps_topology" class="settings">
+                            <p>GPS data file (CSV in id,lat,lon,ms)-style.
+                                <input type="file" name="gps_data"/>
+                            </p>
+                            <p>From: <input type='text' name='from_duration' /></p>
+                            <p>To: <input type='text' name='to_duration' /></p>
+                        </div>
+                    </div>
+                    <div id="error" class="settings"></div>
+                    <input id='run' type=submit value='Run'/>
+                </form>
+            </div>
 
+        </div>
+        <div id="style_input">
+            <div class='shade'></div>
+            <div class='bg'>
+                <div id="node_extrapolation" class="style">function signature:(pre, post, delta)
+                </div>
+                <div id="edge_extrapolation" class="style">function signature:(pre, post, delta)
+                </div>
+                <div id="node_style" class="style">function signature:(canvas, node, point)
+                </div>
+                <div id="edge_style" class="style">function signature:(canvas, edge, from, to, from_point, to_point)
+                </div>
+                <textarea id="style_textarea"></textarea>
+                <input id="apply" type="submit" value='Apply'/>
+            </div>
+        </div>
     </body>
 </html>
