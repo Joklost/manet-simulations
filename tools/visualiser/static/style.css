@@ -44,6 +44,17 @@
     float:left;
 }
 
+.top_menu li a {
+    height: 100%;
+    width:100%;
+    display:block;
+    padding: 5px;
+}
+
+.top_menu li a:hover {
+    background-color: green;
+}
+
 #menu ul {
     position: absolute;
     height: 0px;
@@ -56,9 +67,10 @@
 }
 
 #menu ul li {
+    overflow:hidden;
     display: block;
     font-weight: bold;
-    padding: 5px;
+    padding: 0px;
     width:max-content;
     border:1px solid black;
     background-color:white;

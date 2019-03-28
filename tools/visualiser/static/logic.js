@@ -222,6 +222,13 @@ $(document).ready(function () {
     });
     $(".top_menu").hover(function () {
         $("ul", this).slideDown(100);
+            var width = $(this).width();
+            $('li', this).each(function(){
+               width = Math.max($(this).width(), width); 
+            });
+            $('li', this).each(function(){
+               $(this).width(width); 
+            });
     }, function () {
         $("ul", this).stop().slideUp(100);
     });
