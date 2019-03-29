@@ -6,11 +6,12 @@ import math
 def execute(data):
     models = list_models()['models']
     if 'type' not in data:
-        return {'error':'No type recieved'}
-    if 'model' not in data:
-        return {'error': 'No Model received'}
-    if data['model'] not in models:
-        return {'error': 'Model not available: ' + data['model'] + " use one of " + str(models)}
+        return {'error': 'No type recieved'}
+    if data['type'] != 'log':
+        if 'model' not in data:
+            return {'error': 'No Model received'}
+        if data['model'] not in models:
+            return {'error': 'Model not available: ' + data['model'] + " use one of " + str(models)}
     if data['type'] == 'static':
         if 'topology' in data:
             if data['topology'] == 'grid':
@@ -37,45 +38,17 @@ def execute(data):
                 return {'error': 'Unknown topology'}
         else:
             return {'error': "No topology received"}
-    if data['type'] == 'gps':
+
+    (error, parsed) = (None, None)
+    if data['type'] == 'gps' or data['type'] == 'log':
         if 'gps_data' not in data:
             return {'error': "No GPS-log"}
-        raw = data['gps_data'].splitlines()
-        parsed = []
-        for i in range(len(raw)):
-
-            entry = raw[i].split(",")
-            if len(entry) < 4:
-                return file_error(i, 'less than four entries')
-            id = 0
-            lat = 0
-            lng = 0
-            ts = 0
-            try:
-                id = int(entry[0])
-            except Exception:
-                return file_error(i, 'entry 0 is not an id')
-            if id < 0:
-                return file_error(i, 'entry 0 is not an id')
-            try:
-                lat = float(entry[1])
-            except Exception:
-                return file_error(i, 'entry 0 is not a latitude')
-            if lat < -90 or lat > 90:
-                return file_error(i, 'entry 0 is not a latitude')
-            try:
-                lng = float(entry[2])
-            except Exception:
-                return file_error(i, 'entry 0 is not a latitude')
-            if lng < -180 or lng > 180:
-                return file_error(i, 'entry 0 is not a latitude')
-            try:
-                ts = float(entry[3])
-            except Exception:
-                return file_error(i, 'entry 3 is not a timestamp')
-            if ts < 0:
-                return file_error(i, 'entry 3 is not a timestamp')
-            parsed.append((id, lat, lng, ts))
+        (error, parsed) = parse_gps(data['gps_data'])
+        if error is not None:
+            return error
+    if data['type'] == 'log':
+        return run_log(0, -1, parsed)
+    if data['type'] == 'gps':
         fdur = 0
         tdur = -1
         if 'from_duration' in data and len(data['from_duration'].strip()) > 0:
@@ -91,6 +64,46 @@ def execute(data):
         return run_gps(fdur, tdur, parsed)
 
     return {'error': "Unknown type or topology"}
+
+
+def parse_gps(data):
+    raw = data.splitlines()
+    parsed = []
+    for i in range(len(raw)):
+
+        entry = raw[i].split(",")
+        if len(entry) < 4:
+            return (file_error(i, 'less than four entries'), None)
+        id = 0
+        lat = 0
+        lng = 0
+        ts = 0
+        try:
+            id = int(entry[0])
+        except Exception:
+            return (file_error(i, 'entry 0 is not an id'), None)
+        if id < 0:
+            return (file_error(i, 'entry 0 is not an id'), None)
+        try:
+            lat = float(entry[1])
+        except Exception:
+            return (file_error(i, 'entry 0 is not a latitude'), None)
+        if lat < -90 or lat > 90:
+            return (file_error(i, 'entry 0 is not a latitude'), None)
+        try:
+            lng = float(entry[2])
+        except Exception:
+            return (file_error(i, 'entry 0 is not a latitude'), None)
+        if lng < -180 or lng > 180:
+            return (file_error(i, 'entry 0 is not a latitude'), None)
+        try:
+            ts = float(entry[3])
+        except Exception:
+            return (file_error(i, 'entry 3 is not a timestamp'), None)
+        if ts < 0:
+            return (file_error(i, 'entry 3 is not a timestamp'), None)
+        parsed.append((id, lat, lng, ts))
+    return (None, parsed)
 
 
 def file_error(line, message):
@@ -118,10 +131,14 @@ def run_static_grid(num_nodes, init_time, duration):
     if init_time >= duration:
         return {'error': 'Expected duration to be larger than init_time'}
 
-    return {}
-
+    return {'error', 'Not yet implemented'}
 
 def run_gps(fdur, tdur, data):
+    if tdur is not -1 and tdur <= fdur:
+        return {'error': 'From duration should be smaller than to duration (' + str(fdur) + ", " + str(tdur) + ")"}
+    return {'error', 'Not yet implemented'}
+
+def run_log(fdur, tdur, data):
     if tdur is not -1 and tdur <= fdur:
         return {'error': 'From duration should be smaller than to duration (' + str(fdur) + ", " + str(tdur) + ")"}
 

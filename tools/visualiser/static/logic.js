@@ -278,6 +278,15 @@ $(document).ready(function () {
             show_simulation(data);
         });
     });
+    $("#gps_log").change(function () {
+        load_file(this, function (e) {
+            var lines = e.target.result;
+            // this could be done in pure javascript, no need to call backend, really.
+            settings.simulation_type.gps_data = e.target.result;
+            settings.simulation_type.type = "log";
+            execution_handler();
+        });
+    });
 });
 
 function load_file(element, handler)
@@ -538,6 +547,11 @@ function save_simulation()
 function load_simulation()
 {
     $("#simulation_file").click();
+}
+
+function show_gps()
+{
+    $("#gps_log").click();
 }
 
 // stolen from https://stackoverflow.com/questions/13405129/javascript-create-and-save-file
