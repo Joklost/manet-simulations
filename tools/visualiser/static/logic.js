@@ -1,6 +1,6 @@
 
 
-const mappa = new Mappa('Leaflet');
+const mappa = new Mappa('Mapbox', 'pk.eyJ1IjoicGV0ZXJnam9lbCIsImEiOiJjajNhY2hjb2owMDVhMzJud2o0bTJ5YjlvIn0.cYd9pq3oAEDLL9trzPBvRA');
 let map_canvas;
 let map;
 let glob_time = 0;
@@ -31,13 +31,12 @@ let settings = {
 let style_mode = "";
 let code_mirror;
 
-
 const options = {
     lat: 0,
     lng: 0,
     zoom: 4,
-    style: "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-}
+    style: 'mapbox.light'
+};
 
 $(document).ready(function () {
     // listen for changes
