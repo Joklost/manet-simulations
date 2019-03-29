@@ -11,11 +11,12 @@ let settings = {
     "style": {
         "node_style":
                 "canvas.strokeWeight(1);\n" +
-                "canvas.stroke(0, 0, 0);\n",
+                "canvas.stroke(0, 0, 0);\n" +
+                "canvas.fill('rgba(255,255,255, 1)');",
         "node_extrapolation": "",
         "edge_style": "var dist = map.map.distance(from, to);\n" +
                 "canvas.strokeWeight(3);\n" +
-                "if(dist < 200)\n" +
+                "if(dist < 500)\n" +
                 "{\n" +
                 "    canvas.stroke(255, 0, 0,255);\n" +
                 "}\n" +
@@ -109,9 +110,21 @@ $(document).ready(function () {
                     for (var eid in edges)
                     {
                         const odata = node_data(edges[eid].dest, glob_time);
-                        var odot = map.latLngToPixel(odata);
+                        var odot = map.latLngToPixel(odata);                        
+                        p.noFill();
+                        p.noStroke();
                         _show_edge(p, edges[eid], data, odata, dot, odot);
-                        p.line(dot.x, dot.y, odot.x, odot.y);
+                        var length = Math.sqrt(Math.pow(dot.x - odot.x, 2) + Math.pow(dot.y - odot.y, 2));
+                        var dy = ((dot.y-odot.y)/length);
+                        var dx = ((dot.x-odot.x)/length);
+                        //p.curve(dot.x-10, dot.y-10, dot.x, dot.y, odot.x, odot.y ,odot.x+10, odot.y+10);
+                        var midx = (odot.x + dot.x)/2 + dy*Math.min(10, length/2);
+                        var midy = (odot.y + dot.y)/2 + dx*Math.min(10, length/2);                        
+                        p.line(dot.x, dot.y, midx + dx, midy);
+                        p.line(midx + dx, midy, odot.x, odot.y);
+                        dx *= 3;
+                        dy *= 3;
+                        p.triangle(midx-dx, midy-dy, midx + dx + dy, midy + dy + dx, midx + dx - dy, midy + dy - dx);
                         // add some top here!
                     }
                 }
@@ -125,8 +138,11 @@ $(document).ready(function () {
                         continue;
                     some = true;
                     const dot = map.latLngToPixel(data);
+                    p.noFill();
+                    p.noStroke();
                     _show_node(p, data, dot);
                     p.ellipse(dot.x, dot.y, diam, diam);
+                    p.fill('rgba(0,0,0,1)')
                     p.text(id, dot.x - (diam / 3), dot.y + (diam / 4));
                 }
 
