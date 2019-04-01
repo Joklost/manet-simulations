@@ -336,3 +336,5 @@ reports/p10/.vscode/*
 
 *.png
 fig*.html
+
+src/logs/*/*

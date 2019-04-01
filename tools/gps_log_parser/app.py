@@ -47,103 +47,6 @@ def make_plots():
     plotly.offline.plot(fig, filename='plots/model.html')
 
 
-def parse_test_data_to_json(file: str):
-    fn_parsed = f'parsed.{file}'
-    with open(file, 'r') as old_f:
-        with open(fn_parsed, 'w') as new_f:
-            for line in old_f:
-                new_f.writelines(f'{line[:-2]}\n')
-
-    data = pd.read_csv(fn_parsed, sep=';', decimal=',')
-    out = {}
-
-    unique_timestamps = data['Time'].unique()
-    for node in data['ID'].unique():
-        df = data[data['ID'] == node]
-        df.drop(df[(df['Latitude'] == 0.0) | (df['Longitude'] == 0.0)].index, inplace=True)
-        out[f'{node}'] = []
-
-        for _, e in df.iterrows():
-            node_data = {
-                'time': e['Time'],
-                'lat': e['Latitude'],
-                'lon': e['Longitude'],
-                'rssi': {e[f'N{i}_ID']: {'rssi': e[f'N{i}_RSSI'], 'distance': e[f'N{i}_distance']} for i in range(1, 12)
-                         if not math.isnan(e[f'N{i}_ID'])}
-            }
-            out[f'{node}'].append(node_data)
-    # for time in data['Time'].unique():
-    #     out[f'{time}'] = []
-    #     df_at_t = data[data['Time'] == time]
-    #     for _, e in df_at_t.iterrows():
-    #         out[f'{time}'].append({
-    #             'id': e['ID'],
-    #             'lat': e['Latitude'],
-    #             'lon': e['Longitude'],
-    #             'rssi': {}
-    #         })
-    #         size = len(out[f'{time}'])
-    #
-    #         for i in range(1, 12):
-    #             node_id = e[f'N{i}_ID']
-    #             if math.isnan(node_id):
-    #                 continue
-    #
-    #             out[f'{time}'][size - 1]['rssi'][node_id] = {
-    #                 'rssi': e[f'N{i}_RSSI'],
-    #                 'distance': e[f'N{i}_distance']
-    #             }
-
-    f_name, _ = os.path.splitext(file)
-    with open(f'{f_name}.json', 'w') as json_f:
-        json.dump(out, json_f)
-
-
-def parse_test_data_to_plots(file: str):
-    with open(file, 'r') as fp:
-        data = json.load(fp)
-
-    curr_max = 0
-    best_timestamp = ''
-    for i, e in data.items():
-        has_gps = True
-        for node in e:
-            if node['lat'] == 0.0 or node['lon'] == 0.0:
-                has_gps = False
-
-        if has_gps:
-            sum = 0
-            for node in e:
-                sum += len(node['rssi'])
-
-            if sum > curr_max:
-                curr_max = sum
-                best_timestamp = i
-
-    nodes = data[best_timestamp]
-    print(json.dumps(nodes))
-
-
-def gen_nodes(time):
-    out = []
-    with open('data.json', 'r') as f:
-        data = json.load(f)
-
-    for i, e in data.items():
-        for d in e:
-            if d['time'] == time:
-                out.append({
-                    'node_id': i,
-                    'lat': d['lat'],
-                    'lon': d['lon']
-                })
-
-    with open('data/nodes', 'w') as f:
-        f.writelines('# node id; latitude; longitude')
-        for node in out:
-            f.writelines(f'{node["node_id"]};{node["lat"]};{node["lon"]}\n')
-
-
 if __name__ == '__main__':
     logs_path = '../../src/logs'
     logview_path = f'{logs_path}/logview'
@@ -161,41 +64,54 @@ if __name__ == '__main__':
                 for line in f:
                     ff.writelines(f'{line[:-2]}\n')
 
+    cols_ordering = ['ID', 'Latitude', 'Longitude', 'Time', 'N0_ID', 'N0_RSSI', 'N1_ID', 'N1_RSSI'
+        , 'N2_ID', 'N2_RSSI', 'N3_ID', 'N3_RSSI', 'N4_ID',
+                     'N4_RSSI', 'N5_ID', 'N5_RSSI', 'N6_ID', 'N6_RSSI',
+                     'N7_ID', 'N7_RSSI', 'N8_ID', 'N8_RSSI', 'N9_ID', 'N9_RSSI',
+                     'N10_ID', 'N10_RSSI', 'N11_ID', 'N11_RSSI']
+
     for log in [i for i in os.listdir(logview_path) if i.startswith('fixed_')]:
         with open(f'{logview_path}/{log}', 'r') as f:
             df = pd.read_csv(f, sep=';', decimal=',')
 
-        out_df = df
+        out_df = df.drop(
+            columns=['UID', 'N0_distance', 'N1_distance', 'N2_distance', 'N3_distance', 'N4_distance', 'N5_distance',
+                     'N6_distance', 'N7_distance', 'N8_distance', 'N9_distance', 'N10_distance', 'N11_distance'])
+        out_df = out_df[cols_ordering]
+
+        # fix Timestamp
         min_time = df['Time'].min()
-
         for i, e in out_df.iterrows():
-            out_df.iloc[i].replace({'Time': e['Time'] - min_time}, inplace=True)
+            out_df.at[i, 'Time'] = e['Time'] - min_time
 
-        print(out_df['Time'])
+        # fix RSSI
+        for i, e in df.iterrows():
+            time = e['Time']
+            curr_row_id = e['ID']
+            for id_count in range(0, 12):
+                curr_col_id = f'N{id_count}_ID'
+                if math.isnan(e[curr_col_id]):
+                    continue
 
-        # for time in df['Time'].unique():
-        #     time_sorted = df[df['Time'] == time]
-            # for i, e in time_sorted.iterrows():
+                rssi_sum = e[f'N{id_count}_RSSI']
+                match = df.loc[(df['Time'] == time) & (df['ID'] == e[curr_col_id])]
+                if not match.empty:
+                    index = df.loc[(df['Time'] == time) & (df['ID'] == e[curr_col_id])].index[0] - 1
+                    rssi_sum += match[f'N{id_count}_RSSI']
+                    rssi_sum = rssi_sum / 2
+                    out_df.at[index, f'N{id_count}_RSSI'] = rssi_sum
 
+                out_df.at[i, f'N{id_count}_RSSI'] = rssi_sum
 
+        out_df = out_df.astype({'Time': float})
 
-
-
-
-# make_plots()
-# parse_test_data_to_json('data.csv')
-# gen_nodes(1510737860)
-# with open('data/measured', 'w') as f:
-#     with open('data.json', 'r') as fp:
-#         data = json.load(fp)
-#
-#     out = []
-#     for i, e in data.items():
-#         for d in e:
-#             if d['time'] == 1510737860:
-#                 TODO: NO! skal finde for hvert link ikke node
-# out.append({
-#     'node_id': i,
-#     'rssi': d['rssi']
-# })
-# parse_test_data_to_plots('data.json')
+        with open(f'{parsed_path}/{log[6:]}', 'w') as f:
+            for i, e in out_df.iterrows():
+                text = ''
+                for col_name in cols_ordering:
+                    if not math.isnan(e[col_name]):
+                        if 'ID' in col_name:
+                            text += f'{int(out_df.at[i, col_name])},'
+                        else:
+                            text += f'{out_df.at[i, col_name]},'
+                f.writelines(f'{text[:-1]}\n')
