@@ -102,10 +102,10 @@ $(document).ready(function () {
                     glob_time = parseFloat($("#time_slider").val());
                 } else if (p.keyIsDown(p.LEFT_ARROW))
                 {
-                    glob_time -= (speed / p.frameRate());
+                    glob_time -= (speed / p.frameRate())*10;
                 } else if (p.keyIsDown(p.RIGHT_ARROW))
                 {
-                    glob_time += (speed / p.frameRate());
+                    glob_time += (speed / p.frameRate())*10;
                 }
                 $("#time_val").html(glob_time);
                 $("#speed_val").html("x " + speed);
