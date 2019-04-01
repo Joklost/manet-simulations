@@ -50,3 +50,5 @@ add_subdirectory(libs)
 add_subdirectory(coordr)
 add_subdirectory(lmc)
 add_subdirectory(alohanet)
+
+add_subdirectory(loggenerator)
