@@ -316,8 +316,8 @@ $(document).ready(function () {
     });
     $("#gps_log").change(function () {
         load_file(this, function (e) {
-            var lines = e.target.result;
             // this could be done in pure javascript, no need to call backend, really.
+            settings.simulation_type = {}
             settings.simulation_type.gps_data = e.target.result;
             settings.simulation_type.type = "log";
             execution_handler();
