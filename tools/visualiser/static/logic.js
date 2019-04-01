@@ -125,7 +125,7 @@ $(document).ready(function () {
                         var odot = map.latLngToPixel(odata);       
                         p.noFill();
                         p.noStroke();
-                        if (edge.status == 0)
+                        if (edge.hasOwnProperty("status") && edge.status == 0)
                             continue;
                         _show_edge(p, edge, data, odata, dot, odot);                        
                         var length = Math.sqrt(Math.pow(dot.x - odot.x, 2) + Math.pow(dot.y - odot.y, 2));
@@ -153,7 +153,7 @@ $(document).ready(function () {
                     const data = node_data(id, glob_time);
                     if (data === null)
                         continue;
-                    if (data.mode == 0)
+                    if (data.hasOwnProperty("mode") && data.mode == 0)
                         continue;
                     const dot = map.latLngToPixel(data);
                     p.noFill();
@@ -488,6 +488,8 @@ function handle_error(message)
 }
 function execution_handler()
 {
+    $("#wait").show(200);
+    $("#pause").click();
     $.ajax({
         url: "/execute/",
         type: "POST",
@@ -495,6 +497,7 @@ function execution_handler()
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         success: function (data, textStatus, jqXHR) {
+            $("#wait").hide(200);
             if (data === null)
             {
                 handle_error("An unknown response from the server");
@@ -505,6 +508,14 @@ function execution_handler()
             {
                 show_simulation(data);
             }
+        },
+        error: function(jqXHR, status, errorThrown)
+        {
+            $("#wait").hide(200);
+            handle_error(status);
+            console.log(status);
+            console.log(errorThrown);
+            console.log(jqXHR);
         }
     });
 }
