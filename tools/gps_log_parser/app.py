@@ -109,9 +109,12 @@ if __name__ == '__main__':
             for i, e in out_df.iterrows():
                 text = ''
                 for col_name in cols_ordering:
-                    if not math.isnan(e[col_name]):
-                        if 'ID' in col_name:
-                            text += f'{int(out_df.at[i, col_name])},'
-                        else:
-                            text += f'{out_df.at[i, col_name]},'
+                    try:
+                        if not math.isnan(out_df.at[i, col_name]):
+                            if 'ID' in col_name:
+                                text += f'{int(out_df.at[i, col_name])},'
+                            else:
+                                text += f'{out_df.at[i, col_name]},'
+                    except:
+                        text += f'{out_df.at[i, col_name]},'
                 f.writelines(f'{text[:-1]}\n')
