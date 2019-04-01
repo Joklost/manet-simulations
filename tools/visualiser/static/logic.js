@@ -10,20 +10,31 @@ let pause = true;
 let settings = {
     "style": {
         "node_style":
-                "canvas.strokeWeight(1);\n" +
-                "canvas.stroke(0, 0, 0);\n" +
-                "canvas.fill('rgba(255,255,255, 1)');",
+                "if(node.mode>0){\n"+
+                "   canvas.strokeWeight(1);\n" +
+                "   canvas.stroke(0, 0, 0);\n" +
+                "   canvas.fill('rgba(255,255,255, 1)');\n"+
+                "} else { \n" +
+                "   canvas.noFill(); canvas.noStroke();\n"+
+                "}\n"
+        ,
         "node_extrapolation": "",
-        "edge_style": "var dist = map.map.distance(from, to);\n" +
-                "canvas.strokeWeight(3);\n" +
-                "if(dist < 500)\n" +
-                "{\n" +
-                "    canvas.stroke(255, 0, 0,255);\n" +
-                "}\n" +
-                "else\n" +
-                "{\n" +
-                "    canvas.stroke(0,0,0,0);\n" +
-                "}\n",
+        "edge_style": 
+                "if(edge.status>0){\n" +
+                "   var dist = map.map.distance(from, to);\n" +
+                "   canvas.strokeWeight(3);\n" +
+                "   if(dist < 500)\n" +
+                "   {\n" +
+                "       canvas.stroke(255, 0, 0,255);\n" +
+                "   }\n" +
+                "   else\n" +
+                "   {\n" +
+                "        canvas.stroke(0,0,0,0);\n" +
+                "   }\n" +
+                "} else { \n" +
+                "   canvas.noFill(); canvas.noStroke();\n"+
+                "}\n"
+        ,
         "edge_extrapolation": "",
     },
     "simulation_type": {},
@@ -36,6 +47,7 @@ const options = {
     lat: 0,
     lng: 0,
     zoom: 4,
+    keyboard: false,
     style: 'mapbox.light'
 };
 
@@ -83,7 +95,6 @@ $(document).ready(function () {
                     speed = 1 + Math.abs(speed);
                 if (!time_slider_active && !pause)
                 {
-
                     glob_time = glob_time + ((1000 / p.frameRate()) * speed);
                     $("#time_slider").val(glob_time);
                 } else if (time_slider_active)
@@ -109,46 +120,56 @@ $(document).ready(function () {
                     var edges = node_edges(id, glob_time);
                     for (var eid in edges)
                     {
-                        const odata = node_data(edges[eid].dest, glob_time);
-                        var odot = map.latLngToPixel(odata);                        
+                        var edge = edges[eid];
+                        const odata = node_data(edge.dest, glob_time);
+                        var odot = map.latLngToPixel(odata);       
                         p.noFill();
                         p.noStroke();
-                        _show_edge(p, edges[eid], data, odata, dot, odot);
+                        if (edge.status == 0)
+                            continue;
+                        _show_edge(p, edge, data, odata, dot, odot);                        
                         var length = Math.sqrt(Math.pow(dot.x - odot.x, 2) + Math.pow(dot.y - odot.y, 2));
                         var dy = ((dot.y-odot.y)/length);
                         var dx = ((dot.x-odot.x)/length);
+                        var rad = Math.abs(dx) < Math.abs(dy) ? Math.asin(dy) : Math.acos(dx);
+                        var cs = Math.cos(rad + Math.PI/2);
+                        var ss = Math.sin(rad + Math.PI/2);
                         //p.curve(dot.x-10, dot.y-10, dot.x, dot.y, odot.x, odot.y ,odot.x+10, odot.y+10);
-                        var midx = (odot.x + dot.x)/2 + dy*Math.min(10, length/2);
-                        var midy = (odot.y + dot.y)/2 + dx*Math.min(10, length/2);                        
-                        p.line(dot.x, dot.y, midx + dx, midy);
-                        p.line(midx + dx, midy, odot.x, odot.y);
-                        dx *= 3;
-                        dy *= 3;
-                        p.triangle(midx-dx, midy-dy, midx + dx + dy, midy + dy + dx, midx + dx - dy, midy + dy - dx);
+                        var midx = (odot.x + dot.x)/2 - cs*Math.min(10, length/2);
+                        var midy = (odot.y + dot.y)/2 - ss*Math.min(10, length/2);
+                        p.line(dot.x, dot.y, midx, midy);
+                        p.line(midx, midy, odot.x, odot.y);
+                        ss *= 5;
+                        cs *= 5;
+                        dx *= 5;
+                        dy *= 5;
+                        p.triangle(midx-dx, midy-dy, midx + cs, midy + ss, midx - cs, midy - ss);
                         // add some top here!
                     }
                 }
-
-                var some = false;
 
                 for (var id in current_data.nodes)
                 {
                     const data = node_data(id, glob_time);
                     if (data === null)
                         continue;
-                    some = true;
+                    if (data.mode == 0)
+                        continue;
                     const dot = map.latLngToPixel(data);
                     p.noFill();
                     p.noStroke();
                     _show_node(p, data, dot);
                     p.ellipse(dot.x, dot.y, diam, diam);
-                    p.fill('rgba(0,0,0,1)')
+                    p.fill(0,0,0);
+                    p.stroke(0,0,0);
+                    p.strokeWeight(1);
                     p.text(id, dot.x - (diam / 3), dot.y + (diam / 4));
                 }
 
-                if (!some)
+                if (glob_time >= current_data.last_time)
                 {
-                    $("#pause").click();
+                    $("#stop").click();
+                    $("#play").click();
                 }
             }
         };
@@ -420,6 +441,7 @@ function update_settings(value)
         return;
     }
     $("#settings").show(200);
+    $("#settings form").prop("onclick", null).off("click");
     $("#settings form").submit(function (e) {
         e.preventDefault();
         settings.simulation_type = {};
@@ -442,6 +464,7 @@ function update_settings(value)
             settings.simulation_type.number_of_nodes = $($("#static_topology [name=number_of_nodes]")[0]).val();
             settings.simulation_type.node_init_time = $($("#static_topology [name=node_init_time]")[0]).val();
             settings.simulation_type.duration = $($("#static_topology [name=duration]")[0]).val();
+            execution_handler();
             $("#settings").hide(200);
         }
     });

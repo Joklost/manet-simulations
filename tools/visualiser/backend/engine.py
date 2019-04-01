@@ -1,5 +1,9 @@
 import glob
+from subprocess import Popen, PIPE, STDOUT
+import os
+from backend.smc2py import parseEngineStdout
 import math
+import copy
 
 
 # validate data and proxy to real functions
@@ -31,7 +35,7 @@ def execute(data):
                         dur = int(data['duration'])
                     except Exception:
                         {'error': "duration is not a number"}
-                    return run_static_grid(nn, it, dur)
+                    return run_static_grid(data['model'], nn, it, dur)
                 else:
                     return {'error': 'Missing arguments for simulation'}
             else:
@@ -109,18 +113,23 @@ def parse_gps(data):
 def file_error(line, message):
     return {'error': 'Line ' + str(line) + ' - ' + message}
 
-
+model_folder = "backend/models/"
 def list_models():
     res = []
-    folder = "backend/models/"
+
     postfix = ".xml"
-    for file in glob.glob(folder + "/*" + postfix):
+    for file in glob.glob(model_folder + "/*" + postfix):
         model = str(file)
-        res.append(model[len(folder): - len(postfix)])
+        res.append(model[len(model_folder): - len(postfix)])
     return {"models": res}
 
+def get_id(data, first):
+    last = first
+    while data[last] != ']':
+        last += 1
+    return (data[first: last], last)
 
-def run_static_grid(num_nodes, init_time, duration):
+def run_static_grid(model, num_nodes, init_time, duration):
     if num_nodes <= 0:
         return {'error': 'Expected at least one node'}
     if num_nodes >= 10000:
@@ -130,8 +139,103 @@ def run_static_grid(num_nodes, init_time, duration):
         return {'error': 'Expected at least some init time'}
     if init_time >= duration:
         return {'error': 'Expected duration to be larger than init_time'}
+    path = model_folder + "/" + model + ".xml"
+    if not os.path.isfile(path):
+        return {'error': 'Could not find ' + str(path)}
+    p = Popen(['verifyta', "-W", "-s", path], stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
+    lines = str(duration) + " " + str(num_nodes) + " "
 
-    return {'error', 'Not yet implemented'}
+    for n in range(num_nodes):
+        lines += str(0) + " "
+        lines += str(init_time) + " "
+        lines += str(duration) + " "
+    (stdout, stderr) = p.communicate(input=lines)
+    data = parseEngineStdout(stdout)
+    minlat = 57.013219
+    minlng = 9.991016
+    maxlat = 57.017997
+    maxlng = 10.001937
+    nodes = {}
+    square = int(math.sqrt(num_nodes))
+    dlat = (maxlat - minlat)/square
+    dlon = (maxlng - minlng) / square
+    maxlat = minlat
+    maxlng = minlng
+    for i in range(num_nodes):
+        lat = minlat + int(i / square) * dlat
+        lng = minlng + int(i % square) * dlon
+        maxlat = max(maxlat, lat)
+        maxlng = max(maxlng, lng)
+
+    fields = data[0].variables()
+    no = 0
+    edges = {}
+    for field in fields:
+        raw = data[0].raw(no)
+        if field[7] == 'N': #OUTPUT_NODES[
+            (id,last) = get_id(field, 12)
+            lat = minlat + int(int(id) / square) * dlat
+            lng = minlng + int(int(id) % square) * dlon
+            maxlat = max(maxlat, lat)
+            maxlng = max(maxlng, lng)
+            field = field[last+2:]
+            if id not in nodes:
+                nodes[id] = []
+            num = 0
+            lastval = 0
+            for (ts, val) in raw:
+                while num < len(nodes[id]) and nodes[id][num]['timestamp'] < ts:
+                    if num is not 0:
+                        nodes[id][num][field] = lastval
+                    num += 1
+                lastval = val
+                if num == len(nodes[id]) and num == 0:
+                    nodes[id].append({'lat': lat, 'lng': lng, 'timestamp': ts, field: val})
+                elif num < len(nodes[id]) and nodes[id][num]['timestamp'] == ts:
+                    nodes[id][num][field] = val
+                else:
+                    nodes[id].insert(num, copy.deepcopy(nodes[id][num - 1]))
+                    nodes[id][num][field] = val
+                    nodes[id][num]['timestamp'] = ts
+        elif field[7] == 'E': #OUTPUT_EDGE[
+            (id, last) = get_id(field, 12)
+            (oid, last) = get_id(field, last + 2)
+            if id == oid:
+                no += 1
+                continue
+            field = field[last+2:]
+            if id not in edges:
+                edges[id] = {}
+            if oid not in edges[id]:
+                edges[id][oid] = []
+            num = 0
+            lastval = 0
+            for (ts, val) in raw:
+                while num < len(edges[id][oid]) and edges[id][oid][num]['timestamp'] < ts:
+                    if num is not 0:
+                        edges[id][oid][num][field] = lastval
+                    num += 1
+                lastval = val
+                if num == len(edges[id][oid]) and num == 0:
+                    edges[id][oid].append({'timestamp': ts, field: val, 'dest': int(oid)})
+                elif num < len(edges[id][oid]) and edges[id][oid][num]['timestamp'] == ts:
+                    edges[id][oid][num][field] = val
+                else:
+                    edges[id][oid].insert(num, copy.deepcopy(edges[id][oid][num - 1]))
+                    edges[id][oid][num][field] = val
+                    edges[id][oid][num]['timestamp'] = ts
+        no += 1
+    for n in nodes:
+        if nodes[n][-1]['timestamp'] != duration:
+            nodes[n].append(copy.deepcopy(nodes[n][-1]))
+            nodes[n][-1]['timestamp'] = duration
+    for n in edges:
+        for n2 in edges[n]:
+            if edges[n][n2][-1]['timestamp'] != duration:
+                edges[n][n2].append(copy.deepcopy(edges[n][n2][-1]))
+                edges[n][n2][-1]['timestamp'] = duration
+    return {'nodes': nodes, 'edges': edges, 'min_lat': minlat, 'max_lat': maxlat, 'min_lng': minlng, 'max_lng': maxlng,
+            'first_time': 0, 'last_time': duration}
 
 def run_gps(fdur, tdur, data):
     if tdur is not -1 and tdur <= fdur:
