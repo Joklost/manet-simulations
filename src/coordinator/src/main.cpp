@@ -1,4 +1,4 @@
-#include "coordr.h"
+#include "coordinator.h"
 
 #include <iostream>
 

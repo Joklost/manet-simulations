@@ -58,7 +58,7 @@ void LinkModelComputer::recv() {
 
         if (status.tag == DIE) {
             mpi::recv<int>(status.source, status.tag);
-            this->c->debug("die(source={}, tag={})", status.source, status.tag);
+            this->c->debug("die()");
             this->queue.push({poison_t});
             break;
         }

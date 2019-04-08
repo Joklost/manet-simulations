@@ -1,6 +1,7 @@
-#ifndef MANETSIMS_COORDR_H
-#define MANETSIMS_COORDR_H
+#ifndef MANETSIMS_COORDINATOR_H
+#define MANETSIMS_COORDINATOR_H
 
+#include <random>
 #include <vector>
 #include <map>
 
@@ -9,13 +10,13 @@
 #include <mpilib/link.h>
 #include <mpilib/node.h>
 
+const int CSUCCESS = 0;
+const int CERROR = -1;
 
 class Coordinator {
     enum Type {
-        Listen, Transmission, NoOp, Inform
+        Listen, Transmission, Sleep, Inform
     };
-
-    class Action;
 
     /* Debug */
     bool debug = false;
@@ -27,6 +28,16 @@ class Coordinator {
     int world_rank{};
     int name_len{};
     char processor_name[MPI_MAX_PROCESSOR_NAME]{};
+    int dead_nodes{};
+
+    struct Packet {
+        unsigned long time{0ul};
+        std::vector<octet> data{};
+
+        bool operator==(const Packet &rhs) const;
+
+        bool operator!=(const Packet &rhs) const;
+    };
 
     /* Model */
     struct Action {
@@ -35,41 +46,19 @@ class Coordinator {
         unsigned long start{};
         unsigned long end{};
 
-        std::vector<std::vector<octet>> packets{};
+        Packet packet{};
 
         bool is_within(const Action &action) const;
     };
 
-    static bool cmp(const Action &left, const Action &right) {
+    static bool action_cmp(const Action &left, const Action &right) {
         return left.end > right.end;
+        /* TODO: order by type i < s < t < l. */
     }
 
-    std::vector<Action> transmissions{};
-    common::PriorityQueue<Action, std::vector<Action>, decltype(&cmp)> action_queue{cmp};
+    std::map<int, std::vector<Action> > transmissions{};
+    common::PriorityQueue<Action, std::vector<Action>, decltype(&action_cmp)> action_queue{action_cmp};
 
-    /*  struct Action {
-          unsigned long start{};
-          unsigned long end{};
-          int rank{};
-
-      };
-  */
-    /*struct Transmission;
-
-    struct Listen : Action {
-        bool processed{};
-        std::vector<Transmission> transmissions{};
-    };
-
-    struct Transmission : Action {
-        std::vector<octet> data;
-
-        bool is_within(Listen &listen);
-    };
-
-    std::vector<Transmission> transmit_actions{};
-    std::vector<Listen> listen_actions{};
-*/
     std::map<int, mpilib::Node> nodes{};
     std::vector<std::vector<double>> link_model;
 
@@ -89,7 +78,10 @@ class Coordinator {
     geo::Location update_location(int rank);
 
     void set_linkmodel(std::vector<mpilib::Link> &links);
-    //bool has_link(Listen &rx, Transmission &tx);
+
+    int process_message(const mpi::Status &status);
+
+    void process_queue(std::mt19937 &gen);
 
 public:
     explicit Coordinator(bool debug) : debug(debug) {}
@@ -101,4 +93,4 @@ public:
 };
 
 
-#endif //MANETSIMS_COORDR_H
+#endif /* MANETSIMS_COORDINATOR_H */

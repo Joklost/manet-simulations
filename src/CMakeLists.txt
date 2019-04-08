@@ -47,7 +47,8 @@ find_package(MPI REQUIRED)
 add_subdirectory(libs)
 
 # Add executables
-add_subdirectory(coordr)
+add_subdirectory(coordinator)
+#add_subdirectory(coordr)
 add_subdirectory(lmc)
 add_subdirectory(alohanet)
 

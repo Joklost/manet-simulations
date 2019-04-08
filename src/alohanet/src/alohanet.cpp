@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     std::random_device rd{};
     std::mt19937 eng{rd()};
 
-    std::uniform_int_distribution<unsigned long> dist{0ul, 32};
+    std::uniform_int_distribution<unsigned long> dist{0ul, 4};
 
     Packet secret{};
 
@@ -83,10 +83,9 @@ int main(int argc, char *argv[]) {
                 if (secret.rank != 0ul) {
                     hardware::sleep(slot_length);
                 } else {
-                    auto packets = hardware::listen(slot_length);
-
-                    if (!packets.empty()) {
-                        secret = mpilib::deserialise<Packet>(packets.front());
+                    auto packet = hardware::listen(slot_length);
+                    if (!packet.empty()) {
+                        secret = mpilib::deserialise<Packet>(packet);
                     }
                 }
 
