@@ -4,88 +4,78 @@
     \SetKwFunction{FCoordinator}{Coordinator}
     \SetKwProg{Fn}{procedure}{}{}
 
-    \tcp{Tuples are accessed by dot notation}
-    Message = (type, source, localtime, duration, data)\;
-    Action = (type, source, start, end, packets)\;
+    % \tcp{Tuples are accessed by dot notation}
+    Action = (type, source, start, end, packet)\;
     \;
 
     \Fn{\FCoordinator{}}{
-        transmissions $\leftarrow$ empty Transmission list\;
-        listens $\leftarrow$ priority queue \tcp{listen actions are ordered by end time}
-        nodes $\leftarrow$ map containing localtime of all nodes with id as key\;
-
+        waiting $\leftarrow$ priority queue of Action objects, ordered by end, transmit before listen\;
+        transmissions $\leftarrow$ empty list of Action objects\;
         \;
         
         \Repeat{\textit{protocol terminates}}{
-            m $\leftarrow$ \Await Message \From any node\; \label{line:action-await}
-            nodes(m.source).localtime $\leftarrow$ m.localtime + m.duration \tcp{This takes care of sleep/inform}
-            coordinatortime $\leftarrow \min_{\text{n} \in \text{nodes}}$(n.localtime)\; \label{line:controllertime}
-            \;
-
-            \If{m.type = transmit}{ \label{line:action-transmit}
-                t $\leftarrow$ (transmit, m.source, m.localtime, m.localtime $+$ m.duration, m.data)\;
-                \Append t \KwTo transmissions\;
+            m $\leftarrow$ \KwAwait Action \KwFrom any node\; \label{line:action-await}
+            \KwEnqueue m \KwTo waiting\;
+            \If{m.type = transmit}{ \label{line:message-transmit}
+                \KwAppend m \KwTo transmissions\;
             }
-
-            \ElseIf{m.type = listen}{ \label{line:action-listen}
-                l $\leftarrow$ (listen, m.source, m.localtime, m.localtime $+$ m.duration )\;
-                \Enqueue l \KwTo listens\;
-            }
+            % \tcp{sleep and inform actions are implicitly handled}
             \;
-            \While{listens is not empty}{
-                l $\leftarrow$ \Head listens\;
-                \If{l.end > coordinatortime}{
-                    \Break\;
-                }
+            \While{each node has at least one Action in waiting}{
+                a $\leftarrow$ \KwDequeue Action \KwFrom waiting\;
 
-                \Dequeue l \From listens\;
-                packets $\leftarrow$ empty Packet list\;
-            
-                \ForEach{t $\in$ transmissions}{
-                    \If{\texttt{ShouldReceive}(l, t, transmissions, |t.data|)}{
-                        \Append t.data \To packets\;
+                \If{a.type = transmit}{ \label{line:action-transmit}
+                    interferers $\leftarrow$ empty list of node identifiers\;
+                    \ForEach{t $\in$ transmissions \KwWhere t $\neq$ a}{
+                        \If{a.end $\leq$ t.start \KwAnd a.start $\geq$ t.end}{
+                            \tcp{Transmissions intersect}
+                            \KwAppend t.source \KwTo interferers\;
+                        }
+                    }
+
+                    \ForEach{l $\in$ waiting \KwWhere l.type = listen}{
+                        \If{a.start $\geq$ l.start \KwAnd a.end $\leq$ l.end}{
+                            probability $\leftarrow$ $P_p$(l.source, a.source, interferers, |a.packet|)\;
+                            should-receive $\leftarrow$ randomly choose based on probability\;
+                            \If{should-receive}{
+                                l.end = a.end\;
+                                l.packet = a.packet\;
+                            }
+                        }
                     }
                 }
 
-                \Send $|$packets$|$ \To l.source\; \label{line:sendcount}
-                \ForEach{p $\in$ packets}{ \label{line:sendpackets}
-                    \Send p \To l.source\;
-                } 
-            }
-            \;
-            \ForEach{t $\in$ transmissions}{
-                \If{t.end < coordinatortime}{
-                    \Remove t \From transmissions\;
+                \ElseIf{a.type = listen}{ \label{line:action-listen}
+                    \KwSend a.end \KwTo a.source\;
+                    \KwSend a.packet \KwTo a.source\;
                 }
             }
+
+            \tcp{TODO: Perform cleanup of no longer relevant transmissions}
         }
     }
     \caption{The \texttt{Coordinator} procedure.}
     \label{algo:mpicoordinator}
 \end{algorithm}
 
-\begin{algorithm}[ht]
-    \DontPrintSemicolon
-    \KwResult{True if the transmission should be received.}
-    \SetKwFunction{FShouldReceive}{ShouldReceive}
-    \SetKwProg{Fn}{Function}{}{}
+%  \begin{algorithm}[ht]
+%      \DontPrintSemicolon
+%      \KwResult{True if the transmission should be received.}
+%      \SetKwFunction{FShouldReceive}{ShouldReceive}
+%      \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FShouldReceive{l, t, transmissions, packetsize}}{
-        n$_r \leftarrow$ l.id\;
-        n$_t \leftarrow$ t.id\;
-        nodes$_t \leftarrow$ empty Transmission list\;
+%      \Fn{\FShouldReceive{l, t, interferers, packetsize}}{
+%         %  n$_r \leftarrow$ l.id\;
+%         %  n$_t \leftarrow$ t.id\;
+%         %  \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
+%         %      \If{t.end $>$ t$^\prime$.start \KwAnd t.start $<$ t$^\prime$.end}{
+%         %          \KwAppend t$^\prime$ \KwTo nodes$_t$\;
+%         %      }
+%         %  }
 
-        \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
-            \If{t.end $>$ t$^\prime$.start \And t.start $<$ t$^\prime$.end}{
-                \Append t$^\prime$ \To nodes$_t$\;
-            }
-        }
+  
+%      }
 
-        probability $\leftarrow$ $P_p(\text{n}_r, \text{m}_t, \text{nodes}_t, \text{packetsize})$\;
-        should-receive $\leftarrow$ randomly choose based on probability\;
-        \KwRet should-receive\;
-    }
-
-    \caption{The \texttt{ShouldReceive} Function.}
-    \label{algo:controllershouldreceive}
-\end{algorithm}
+%      \caption{The \texttt{ShouldReceive} Function.}
+%      \label{algo:controllershouldreceive}
+%  \end{algorithm}
