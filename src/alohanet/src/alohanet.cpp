@@ -45,24 +45,19 @@ std::string format_duration(std::chrono::microseconds us) {
 int main(int argc, char *argv[]) {
     auto debug = argc > 1 && std::string{"--debug"} == std::string{argv[1]};
 
-    geo::Location l1{57.0121621, 9.990679};
-    auto l2 = geo::square(l1, 1.5_km);
-    auto l = geo::random_location(l1, l2);
-    hardware::init(l1, false, debug);
+    hardware::init(debug);
     auto id = hardware::get_id();
+    auto rank = hardware::get_world_rank();
     //auto l = geo::move_location(l1, 500_m * id, 90);
-
-    hardware::handshake(l);
     auto &console = hardware::logger;
     auto slots = hardware::get_world_size();
     std::random_device rd{};
     std::mt19937 eng{rd()};
 
-    std::uniform_int_distribution<unsigned long> dist{0ul, 4};
-
+    std::uniform_int_distribution<unsigned long> dist{0ul, slots};
     Packet secret{};
 
-    if (id == 1ul) {
+    if (rank == 1ul) {
         secret = Packet{id, 0x42};
     }
 
