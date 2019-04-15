@@ -51,5 +51,6 @@ add_subdirectory(coordinator)
 #add_subdirectory(coordr)
 add_subdirectory(lmc)
 add_subdirectory(alohanet)
+add_subdirectory(lmheuristics)
 
 add_subdirectory(loggenerator)

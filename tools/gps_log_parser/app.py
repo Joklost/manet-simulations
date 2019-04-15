@@ -96,9 +96,9 @@ if __name__ == '__main__':
                 rssi_sum = e[f'N{id_count}_RSSI']
                 match = df.loc[(df['Time'] == time) & (df['ID'] == e[curr_col_id])]
                 if not match.empty:
-                    index = df.loc[(df['Time'] == time) & (df['ID'] == e[curr_col_id])].index[0] - 1
                     rssi_sum += match[f'N{id_count}_RSSI']
                     rssi_sum = rssi_sum / 2
+                    index = df.loc[(df['Time'] == time) & (df['ID'] == e[curr_col_id])].index[0] - 1
                     out_df.at[index, f'N{id_count}_RSSI'] = rssi_sum
 
                 out_df.at[i, f'N{id_count}_RSSI'] = rssi_sum
