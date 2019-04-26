@@ -9,17 +9,22 @@
 #include <common/equality.h>
 #include <mpilib/mpi.h>
 
-#include "node.h"
-#include "action.h"
-#include "topology.h"
+#include "models/node.h"
+#include "models/action.h"
+#include "models/topology.h"
+#include "models/statistics.h"
 
 const int CSUCCESS = 0;
 const int CERROR = -1;
+const double TIME_GAP = 20000.0;
 
 class Coordinator {
     /* Debug */
     bool debug = false;
+    bool plots = false;
     std::shared_ptr<spdlog::logger> c;
+
+    Statistics stats{};
 
     /* MPI */
     unsigned long world_size{};
@@ -29,8 +34,10 @@ class Coordinator {
     /* Model */
     unsigned long dead_nodes{};
     std::map<unsigned long, Node> nodes{};
+    std::vector<Node> nodelist{};
     std::map<double, Topology, common::is_less<double>> topologies{};
-    std::map<unsigned long, std::vector<Action>> transmissions{};
+    std::vector<Action> transmissions{};
+//    std::map<unsigned long, std::vector<Action>> transmissions{};
     common::PriorityQueue<Action, std::vector<Action>, decltype(&compare_actions)> action_queue{compare_actions};
 
     /* Helpers */
@@ -40,12 +47,13 @@ class Coordinator {
 
     void process_actions(std::mt19937 &gen);
 
-public:
-    Coordinator(const char *logpath, bool debug);
+    Topology &get_topology(unsigned long time);
 
-    /**
-     * Run the Coordinator.
-     */
+    Topology &get_topology(double time);
+
+public:
+    explicit Coordinator(const char *logpath, bool debug = false, bool plots = false);
+
     void run();
 };
 

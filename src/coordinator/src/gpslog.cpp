@@ -5,13 +5,15 @@
 
 #include "gpslog.h"
 
-std::map<unsigned long, Node> load_log(const char *logpath) {
+std::pair<double, std::vector<Node>> load_log(const char *logpath) {
     std::map<unsigned long, Node> nodes{};
     std::ifstream logfile{logpath};
 
     if (!logfile.is_open()) {
         throw std::runtime_error("failed to open gpslog file");
     }
+
+    double greatest_time{};
 
     while (logfile.good()) {
         std::string line;
@@ -27,26 +29,37 @@ std::map<unsigned long, Node> load_log(const char *logpath) {
         auto lon = std::stod(tokens.fpop());
         auto time = std::stod(tokens.fpop());
 
+        if (time > greatest_time) {
+            greatest_time = time;
+        }
+
         auto &node = nodes[id]; /* operator[] implicitly constructs new object */
         node.id = id;
-        node.location_history.emplace_back(time, lat, lon);
-        auto &location = node.location_history.back();
+        auto &location = node.locations[time];
+        location.time = time;
+        location.latitude = lat;
+        location.longitude = lon;
 
         while (!tokens.empty()) {
             auto neighbour_id = std::stoul(tokens.fpop());
             auto rssi = std::stod(tokens.fpop());
-            location.connections[neighbour_id] = rssi;
+            location.links[neighbour_id] = rssi;
         }
-
     }
 
     logfile.close();
+    std::vector<Node> nodelist{};
+    nodelist.reserve(nodes.size());
 
-    for (auto &item : nodes) {
-        auto &node = item.second;
-        std::sort(node.location_history.begin(), node.location_history.end());
+
+    auto i = 1ul;
+    for (auto &id_node_pair : nodes) {
+        auto &node = id_node_pair.second;
+        node.rank = i;
+        nodelist.push_back(id_node_pair.second);
+        i += 1ul;
     }
 
-    return nodes;
+    return {greatest_time, nodelist};
 }
 

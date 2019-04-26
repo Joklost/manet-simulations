@@ -1,7 +1,7 @@
 #include "action.h"
 
 bool Action::is_within(const Action &action) const {
-    return this->start >= action.start && this->end <= action.end;
+    return action.start <= this->start && this->end <= action.end;
 }
 
 bool Action::operator==(const Action &rhs) const {
@@ -17,6 +17,5 @@ bool Action::operator!=(const Action &rhs) const {
 }
 
 bool compare_actions(const Action &left, const Action &right) {
-    return left.end > right.end;
-    /* TODO: order by type i < s < t < l. */
+    return left.end == right.end ? left.type > right.type : left.end > right.end;
 }

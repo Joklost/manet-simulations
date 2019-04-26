@@ -14,14 +14,10 @@ std::map<unsigned long, sims::Node> parse_log(const std::vector<std::string> &li
 
     for (auto &line : lines) {
         auto tokens = common::split(line, ",");
-        auto id = std::stoul(tokens.front());
-        tokens.pop_front();
-        auto latitude = std::stod(tokens.front());
-        tokens.pop_front();
-        auto longitude = std::stod(tokens.front());
-        tokens.pop_front();
-        auto timestamp = std::stod(tokens.front());
-        tokens.pop_front();
+        auto id = std::stoul(tokens.fpop());
+        auto latitude = std::stod(tokens.fpop());
+        auto longitude = std::stod(tokens.fpop());
+        auto timestamp = std::stod(tokens.fpop());
 
         auto &node = nodes[id];
         node.id = id;
@@ -48,7 +44,7 @@ int main(int argc, char *argv[]) {
 //    std::string gridlog{"gridlog_8x8_rssi.txt"};
 //    std::cout << "Generating " << gridlog << std::endl;
     const auto time_gap = 20000.0;
-    auto nodes = parse_log(grid(l, 8, 475_m, 100000.0, time_gap));
+    auto nodes = parse_log(grid(l, 4, 475_m, 100000.0, time_gap));
     std::vector<sims::Node> node_list(nodes.size());
     std::map<double, Topology, common::is_less<double>> topologies{};
 
@@ -57,8 +53,8 @@ int main(int argc, char *argv[]) {
         node_list.push_back(node);
 
         for (auto &location : node.location_history) {
-            if (topologies.find(location.get_time()) == topologies.end()) {
-                topologies[location.get_time()] = {location.get_time()};
+            if (topologies.find(location.time) == topologies.end()) {
+                topologies[location.time] = {location.time};
             }
         }
     }
@@ -71,7 +67,7 @@ int main(int argc, char *argv[]) {
             auto node1 = node_list[i]; /* Copy */
 
             for (auto &location : node1.location_history) {
-                if (location.get_time() <= time && location.get_time() > (time - time_gap)) {
+                if (location.time <= time && location.time > (time - time_gap)) {
                     node1.current_location = location;
                     topology.locations[node1.id] = location;
                 }
@@ -81,13 +77,13 @@ int main(int argc, char *argv[]) {
                 auto node2 = node_list[j]; /* Copy */
 
                 for (auto &location : node2.location_history) {
-                    if (location.get_time() <= time && location.get_time() > (time - time_gap)) {
+                    if (location.time <= time && location.time > (time - time_gap)) {
                         node2.current_location = location;
                     }
                 }
 
-                if (node1.current_location.get_latitude() > 0 && node2.current_location.get_latitude() > 0 &&
-                    node1.current_location.get_longitude() > 0 && node2.current_location.get_longitude() > 0) {
+                if (node1.current_location.latitude > 0 && node2.current_location.latitude > 0 &&
+                    node1.current_location.longitude > 0 && node2.current_location.longitude > 0) {
                     /* Compute distance based path loss on the links as we create them. */
                     auto distance = geo::distance_between(node1.current_location, node2.current_location);
                     auto pathloss = sims::math::distance_pathloss(distance * KM);
@@ -98,42 +94,12 @@ int main(int argc, char *argv[]) {
                         auto &link = links.back();
                         link.distance = rssi;
                         topology.connections[node1.id][node2.id] = rssi;
-                    }
-                }
-            }
-        }
-
-        for (unsigned long i = 0; i < node_list.size(); ++i) {
-            auto node2 = node_list[i]; /* Copy */
-
-//            for (auto &location : node2.location_history) {
-//                if (location.get_time() <= time && location.get_time() > (time - time_gap)) {
-//                    node2.current_location = location;
-//                    topology.locations[node2.id] = location;
-//                }
-//            }
-
-            for (unsigned long j = i + 1; j < node_list.size(); ++j) {
-                auto node1 = node_list[j]; /* Copy */
-//
-//                for (auto &location : node1.location_history) {
-//                    if (location.get_time() <= time && location.get_time() > (time - time_gap)) {
-//                        node1.current_location = location;
-//                    }
-//                }
-
-                if (node2.current_location.get_latitude() > 0 && node1.current_location.get_latitude() > 0 &&
-                    node2.current_location.get_longitude() > 0 && node1.current_location.get_longitude() > 0) {
-                    /* Compute distance based path loss on the links as we create them. */
-                    auto distance = geo::distance_between(node2.current_location, node1.current_location);
-                    auto pathloss = sims::math::distance_pathloss(distance * KM);
-                    auto rssi = 26.0 - pathloss;
-                    if (rssi > -112) {
                         topology.connections[node2.id][node1.id] = rssi;
                     }
                 }
             }
         }
+
     }
 
     for (auto &item : topologies) {
@@ -143,8 +109,8 @@ int main(int argc, char *argv[]) {
         for (auto &node_item : nodes) {
             auto &node = node_item.second;
             std::cout << node.id << ","
-                      << std::fixed << topology.locations[node.id].get_latitude() << ","
-                      << std::fixed << topology.locations[node.id].get_longitude() << ","
+                      << std::fixed << topology.locations[node.id].latitude << ","
+                      << std::fixed << topology.locations[node.id].longitude << ","
                       << std::fixed << time;
 
             for (auto &connection : topology.connections[node.id]) {

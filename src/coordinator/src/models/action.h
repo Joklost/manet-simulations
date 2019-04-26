@@ -4,7 +4,11 @@
 #include "packet.h"
 
 enum Type {
-    Listen, Transmission, Sleep, Inform
+    /* Ordering is important. */
+    Inform = 0,
+    Sleep = 1,
+    Transmission = 2,
+    Listen = 3
 };
 
 struct Action {
