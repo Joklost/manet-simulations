@@ -1,96 +1,61 @@
-#ifndef MANETSIMS_COORDINATOR_H
-#define MANETSIMS_COORDINATOR_H
+#ifndef COORDINATOR_H
+#define COORDINATOR_H
 
 #include <random>
 #include <vector>
 #include <map>
 
 #include <common/queue.h>
+#include <common/equality.h>
 #include <mpilib/mpi.h>
-#include <mpilib/link.h>
-#include <mpilib/node.h>
+
+#include "models/node.h"
+#include "models/action.h"
+#include "models/topology.h"
+#include "models/statistics.h"
 
 const int CSUCCESS = 0;
 const int CERROR = -1;
+const double TIME_GAP = 20000.0;
 
 class Coordinator {
-    enum Type {
-        Listen, Transmission, Sleep, Inform
-    };
-
     /* Debug */
     bool debug = false;
+    bool plots = false;
     std::shared_ptr<spdlog::logger> c;
 
+    Statistics stats{};
+
     /* MPI */
-    int lmc_node{};
-    int world_size{};
-    int world_rank{};
-    int name_len{};
-    char processor_name[MPI_MAX_PROCESSOR_NAME]{};
-    int dead_nodes{};
-
-    struct Packet {
-        unsigned long time{0ul};
-        std::vector<octet> data{};
-
-        bool operator==(const Packet &rhs) const;
-
-        bool operator!=(const Packet &rhs) const;
-    };
+    unsigned long world_size{};
+    unsigned long world_rank{};
+    std::string processor_name{};
 
     /* Model */
-    struct Action {
-        Type type{};
-        int rank{};
-        unsigned long start{};
-        unsigned long end{};
-
-        Packet packet{};
-
-        bool is_within(const Action &action) const;
-    };
-
-    static bool action_cmp(const Action &left, const Action &right) {
-        return left.end > right.end;
-        /* TODO: order by type i < s < t < l. */
-    }
-
-    std::map<int, std::vector<Action> > transmissions{};
-    common::PriorityQueue<Action, std::vector<Action>, decltype(&action_cmp)> action_queue{action_cmp};
-
-    std::map<int, mpilib::Node> nodes{};
-    std::vector<std::vector<double>> link_model;
+    unsigned long dead_nodes{};
+    std::map<unsigned long, Node> nodes{};
+    std::vector<Node> nodelist{};
+    std::map<double, Topology, common::is_less<double>> topologies{};
+    std::vector<Action> transmissions{};
+//    std::map<unsigned long, std::vector<Action>> transmissions{};
+    common::PriorityQueue<Action, std::vector<Action>, decltype(&compare_actions)> action_queue{compare_actions};
 
     /* Helpers */
-
-    /**
-     * Handshake with all participating nodes and the LMC node.
-     * @return bool if succesful.
-     */
     bool handshake();
 
-    /**
-     * Receive updated location for a node.
-     * @param rank The node's rank.
-     * @return The updated location of the node.
-     */
-    geo::Location update_location(int rank);
+    int enqueue_message(const mpi::Status &status);
 
-    void set_linkmodel(std::vector<mpilib::Link> &links);
+    void process_actions(std::mt19937 &gen);
 
-    int process_message(const mpi::Status &status);
+    Topology &get_topology(unsigned long time);
 
-    void process_queue(std::mt19937 &gen);
+    Topology &get_topology(double time);
 
 public:
-    explicit Coordinator(bool debug) : debug(debug) {}
+    explicit Coordinator(const char *logpath, bool debug = false, bool plots = false);
 
-    /**
-     * Run the Coordinator.
-     */
     void run();
 };
 
 
-#endif /* MANETSIMS_COORDINATOR_H */
+#endif /* COORDINATOR_H */

@@ -1,28 +1,24 @@
-#include <common/equality.h>
-#include <sims/radiomodel.h>
-#include <geo/geo.h>
+#include <common/all.h>
 
+#include "gpslog.h"
 #include "coordinator.h"
-
-#define TX_POWER 26.0
-
-#ifndef THERMAL_NOISE
-#define THERMAL_NOISE -119.66
-#endif
-
-#ifndef NOISE_FIGURE
-#define NOISE_FIGURE 4.2
-#endif
-
-static bool has_actions(const std::pair<unsigned long, mpilib::Node> &item) {
-    auto &node = item.second;
-    return node.action_count > 0 || (node.action_count == 0 && node.dead);
-}
+#include "models/radiomodel.h"
 
 void Coordinator::run() {
-    mpi::init(&this->world_size, &this->world_rank, &this->name_len, this->processor_name);
-    this->world_size = this->world_size - 2;  /* Coordinator and LMC */
-    this->lmc_node = this->world_size + 1;
+    int size{};
+    int rank{};
+    int name_length{};
+    char proc_name[MPI_MAX_PROCESSOR_NAME]{};
+
+    mpi::init(&size, &rank, &name_length, proc_name);
+    this->world_size = size - 1;  /* Coordinator. */
+    this->world_rank = rank;
+    this->processor_name = std::string{proc_name};
+
+    if (this->world_rank != 0ul) {
+        mpi::deinit();
+        throw std::runtime_error("coordr rank != 0");
+    }
 
     this->c = spdlog::stdout_color_mt("coordr");
     if (this->debug) {
@@ -33,9 +29,16 @@ void Coordinator::run() {
 
     if (!this->handshake()) {
         this->c->debug("deinit()");
-        mpi::send(DIE, this->lmc_node, DIE);
         mpi::deinit();
         return;
+    }
+
+    if (this->nodes.size() != this->world_size) {
+        std::string err{"mismatch in log node count and world size "};
+        err.append(std::to_string(this->nodes.size()));
+        err.append(" != ");
+        err.append(std::to_string(this->world_size));
+        throw std::runtime_error(err.c_str());
     }
 
     std::random_device rd;
@@ -43,91 +46,21 @@ void Coordinator::run() {
 
     while (true) {
         auto status = mpi::probe();
-        if (this->process_message(status) != CSUCCESS) {
+        if (this->enqueue_message(status) != CSUCCESS) {
             break;
         }
-        this->process_queue(gen);
+        this->process_actions(gen);
     }
 
     this->c->debug("deinit()");
-    mpi::send(DIE, this->lmc_node, DIE);
     mpi::deinit();
-}
 
-
-bool Coordinator::handshake() {
-    mpi::send(this->lmc_node, this->lmc_node, HANDSHAKE);
-
-    for (auto i = 1; i <= world_size; ++i) {
-        auto node_name = mpilib::processor_name(this->processor_name, i);
-        mpi::send(i, i, HANDSHAKE);
-        auto response = mpi::recv<int>(i, HANDSHAKE);
-        if (response == i) {
-            this->nodes.insert({i, {i}});
-            this->c->debug("handshake(target={}, status=success)", node_name);
-
-            mpi::Status status = mpi::probe(i, SET_LOCATION);
-            update_location(status.source);
-            auto node_buffer = mpilib::serialise(this->nodes[i]);
-            mpi::send(node_buffer, this->lmc_node, NODE_INFO);
-
-        } else {
-            this->c->debug("handshake(target={}, status=fail)", node_name);
-            return false;
-        }
-    }
-
-    auto response = mpi::recv<int>(this->lmc_node, HANDSHAKE);
-
-    if (response != this->lmc_node) {
-        this->c->debug("handshake(target=lmc, status=fail)");
-        return false;
-    } else {
-        this->c->debug("handshake(target=lmc, status=success)");
-    }
-
-    auto count = mpi::recv<unsigned long>(this->lmc_node, LINK_MODEL);
-    std::vector<mpilib::Link> links{};
-    links.reserve(count);
-    for (auto j = 0; j < count; ++j) {
-        auto link_buffer = mpi::recv<std::vector<octet>>(this->lmc_node, LINK_MODEL_LINK);
-        links.push_back(mpilib::deserialise<mpilib::Link>(link_buffer));
-    }
-
-    set_linkmodel(links);
-
-    /* Sets the clock on all nodes. */
-    for (auto i = 1; i <= world_size; ++i) {
-        mpi::send(i, i, READY);
-    }
-
-    return true;
-}
-
-void Coordinator::set_linkmodel(std::vector<mpilib::Link> &links) {
-    auto node_count = this->nodes.size() + 1;
-    this->c->debug("set_linkmodel(links={})", links.size());
-
-    this->link_model.resize(node_count, std::vector<double>(node_count));
-
-    for (auto &link : links) {
-        this->link_model[link.first][link.second] = link.pathloss;
-        this->link_model[link.second][link.first] = link.pathloss;
+    if (this->plots) {
+        this->stats.save();
     }
 }
 
-geo::Location Coordinator::update_location(const int rank) {
-    auto buffer = mpi::recv<std::vector<octet>>(rank, SET_LOCATION);
-    auto loc = mpilib::deserialise<geo::Location>(buffer);
-
-    this->nodes[rank].loc = loc;
-    //mpi::send(rank, this->lmc_node, UPDATE_LOCATION);
-    //mpi::send(buffer, this->lmc_node, UPDATE_LOCATION_DATA);
-
-    return loc;
-}
-
-int Coordinator::process_message(const mpi::Status &status) {
+int Coordinator::enqueue_message(const mpi::Status &status) {
     if (status.tag == DIE) {
         auto localtime = mpi::recv<unsigned long>(status.source, DIE);
         this->c->debug("die(source={}, localtime={})", status.source, localtime);
@@ -139,9 +72,7 @@ int Coordinator::process_message(const mpi::Status &status) {
             /* Break the loop to deinit the MPI. */
             return CERROR;
         }
-    }
-
-    if (status.tag == TX_PKT) {
+    } else if (status.tag == TX_PKT) {
         Action act{Transmission, status.source};
         act.start = mpi::recv<unsigned long>(status.source, TX_PKT);
         auto data = mpi::recv<std::vector<octet>>(status.source, TX_PKT_DATA);
@@ -149,29 +80,23 @@ int Coordinator::process_message(const mpi::Status &status) {
         act.packet = {act.end, data};
 
         this->action_queue.push(act);
-        this->transmissions[status.source].push_back(act);
+        this->transmissions.push_back(act);
         this->nodes[status.source].action_count += 1;
-    }
-
-    if (status.tag == RX_PKT) {
+    } else if (status.tag == RX_PKT) {
         Action act{Listen, status.source};
         act.start = mpi::recv<unsigned long>(status.source, RX_PKT);
         act.end = act.start + mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
 
         this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
-    }
-
-    if (status.tag == SLEEP) {
+    } else if (status.tag == SLEEP) {
         Action act{Sleep, status.source};
         act.start = mpi::recv<unsigned long>(status.source, SLEEP);
         act.end = act.start + mpi::recv<unsigned long>(status.source, SLEEP_DURATION);
 
         this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
-    }
-
-    if (status.tag == INFORM) {
+    } else if (status.tag == INFORM) {
         Action act{Inform, status.source};
         act.start = act.end = mpi::recv<unsigned long>(status.source, INFORM);
 
@@ -179,125 +104,195 @@ int Coordinator::process_message(const mpi::Status &status) {
         this->nodes[status.source].action_count += 1;
     }
 
-    if (status.tag == SET_LOCATION) {
-        this->nodes[status.source].loc = update_location(status.source);
-    }
-
     return CSUCCESS;
 }
 
-void Coordinator::process_queue(std::mt19937 &gen) {
+static bool has_actions(const std::pair<unsigned long, Node> &rank_node_pair) {
+    auto &node = rank_node_pair.second;
+    return node.action_count > 0 || (node.action_count == 0 && node.dead);
+}
+
+void Coordinator::process_actions(std::mt19937 &gen) {
+    const auto action_count = this->action_queue.size();
+
     while (std::all_of(this->nodes.cbegin(), this->nodes.cend(), has_actions)) {
-        auto act = this->action_queue.top(); /* Copy. */
-        this->action_queue.pop();
+        auto act = this->action_queue.fpop();
         this->nodes[act.rank].action_count -= 1;
 
         if (act.type == Transmission) {
             auto &tx = act;
 
+            auto &topology = this->get_topology(tx.start);
+            if (topology.locations.find(tx.rank) == topology.locations.end()) {
+                /* Node is not present in this topology. */
+                continue;
+            }
+
             /* Get interference from other transmitters. */
             std::vector<double> interference{};
-            for (auto &item : this->transmissions) {
-                auto rank = item.first;
-                if (rank == tx.rank) {
+            for (auto &tx_i : this->transmissions) {
+                if (tx_i.rank == tx.rank) {
                     continue;
                 }
 
-                for (auto &tx_i : item.second) {
-                    if (tx.end <= tx_i.start || tx.start >= tx_i.end) {
-                        continue;
-                    }
-
-                    auto pathloss_i = this->link_model[tx.rank][tx_i.rank];
-                    if (common::is_zero(pathloss_i)) {
-                        /* No link. */
-                        continue;
-                    }
-
-                    interference.push_back(TX_POWER - pathloss_i);
-                    break;
+                if (tx.end < tx_i.start || tx.start > tx_i.end) {
+                    continue;
                 }
+
+                auto rssi = topology.get_link(tx.rank, tx_i.rank);
+                if (common::is_zero(rssi)) {
+                    continue;
+                }
+
+                interference.push_back(rssi);
             }
 
             /* Go through possible receivers. */
-            auto &actions = this->action_queue.get_container();
-            for (auto &action : actions) {
+            for (auto &action : this->action_queue.get_container()) {
                 if (action.type != Listen) {
                     continue;
                 }
 
                 auto &rx = action;
-
-                if (!tx.is_within(rx)) {
-                    /* Time interval does not intersect. */
-                    continue;
-                }
-
                 if (rx.packet.time != 0ul) {
                     /* Listen action already have a packet. */
                     continue;
                 }
 
-                auto pathloss = this->link_model[rx.rank][tx.rank];
-
-                if (common::is_zero(pathloss)) {
-                    /* No link. */
+                if (!tx.is_within(rx)) {
+                    /* Transmit is not within receive interval. */
                     continue;
                 }
 
-                auto rssi = TX_POWER - pathloss;
-                auto pep = sims::radiomodel::pep(rssi, tx.packet.data.size(), interference);
-                std::bernoulli_distribution d(1.0 - pep);
-                auto should_receive = d(gen);
-
-                /* Print RSSI and interference for debugging purposes. */
-                if (this->debug) {
-                    auto interfering_power = 0.0;
-                    for (auto &RSSI_interference_dB : interference) {
-                        interfering_power += sims::radiomodel::linearize(RSSI_interference_dB);
-                    }
-
-                    if (!common::is_zero(interfering_power)) {
-                        interfering_power = sims::radiomodel::logarithmicize(interfering_power);
-                    }
-
-                    this->c->debug("{}(src: {}, dst: {}, rssi: {} dBm, pep: {}, p_i: {} dBm, p_ic: {})",
-                                   should_receive ? "recv" : "drop",
-                                   tx.rank, rx.rank, rssi, pep,
-                                   interfering_power, interference.size());
+                auto rssi = topology.get_link(rx.rank, tx.rank);
+                if (common::is_zero(rssi)) {
+                    continue;
                 }
+
+                auto pep = RadioModel::pep(rssi, tx.packet.data.size(), interference);
+                std::bernoulli_distribution d{1.0 - pep};
+                auto should_receive = d(gen);
 
                 if (should_receive) {
                     rx.packet = tx.packet;
                 }
+
+                if (this->plots) {
+                    /* Log RSSI and interference for plots. */
+                    auto interfering_power = 0.0;
+                    for (auto &RSSI_interference_dB : interference) {
+                        interfering_power += RadioModel::lin(RSSI_interference_dB);
+                    }
+
+                    if (!common::is_zero(interfering_power)) {
+                        interfering_power = RadioModel::log(interfering_power);
+                    }
+
+                    this->stats.packetloss.emplace_back(
+                            should_receive,
+                            this->nodes[tx.rank].id,
+                            this->nodes[rx.rank].id,
+                            rssi,
+                            pep,
+                            interfering_power,
+                            interference.size(),
+                            tx.start
+                    );
+                }
+
             }
         }
 
         if (act.type == Listen) {
             auto &rx = act;
-
-            /* Hardware module will check to see if anything has been received. */
             mpi::send(rx.packet.time, rx.rank, RX_PKT_END);
             mpi::send(rx.packet.data, rx.rank, RX_PKT_DATA);
         }
+    }
 
-        if (act.type == Sleep) {
-        }
+    if (action_count != this->action_queue.size()) {
+        const auto &acts = this->action_queue.get_container();
+        auto it = std::min_element(acts.cbegin(), acts.cend(), [](const Action &left, const Action &right) {
+            return left.start < right.start;
+        });
 
-        if (act.type == Inform) {
+        auto &start_time = it->start;
+        auto &txs = this->transmissions;
+        txs.erase(std::remove_if(txs.begin(), txs.end(), [start_time](const Action &tx) {
+            return tx.end < start_time;
+        }), txs.end());
+
+        if (this->plots) {
+            const auto &act = this->action_queue.top();
+            this->stats.queue_sizes.emplace_back(act.end, this->action_queue.size());
+            this->stats.transmissions_sizes.emplace_back(act.end, this->transmissions.size());
         }
     }
 }
 
-bool Coordinator::Action::is_within(const Coordinator::Action &action) const {
-    return this->start >= action.start && this->end <= action.end;
+Coordinator::Coordinator(const char *logpath, bool debug, bool plots) : debug(debug), plots(plots) {
+    auto time_nodes_pair = load_log(logpath);
+    auto max_time = time_nodes_pair.first;
+    this->nodelist = time_nodes_pair.second;
+
+    /* Generate topologies */
+    auto t = 0.0;
+    while (t < max_time) {
+        this->topologies[t] = {t};
+        t += TIME_GAP;
+    }
+
+    std::unordered_map<unsigned long, unsigned long> ranks{};
+    for (const auto &node : this->nodelist) {
+        ranks[node.id] = node.rank;
+    }
+
+    for (auto &node : this->nodelist) {
+        for (auto &time_location_pair : node.locations) {
+            const auto time = time_location_pair.first;
+            auto &location = time_location_pair.second;
+            auto &topology = this->get_topology(time);
+            topology.locations[node.rank] = location;
+
+            for (auto &id_rssi_pair : location.links) {
+                const auto id = id_rssi_pair.first;
+                const auto rssi = id_rssi_pair.second;
+
+                /* Precompute the conversion from id to rank. */
+                topology.links[ranks[node.id]][ranks[id]] = rssi;
+            }
+        }
+    }
 }
 
-bool Coordinator::Packet::operator==(const Coordinator::Packet &rhs) const {
-    return time == rhs.time &&
-           data == rhs.data;
+bool Coordinator::handshake() {
+    /* Handshake and assign rank to all nodes. */
+    for (auto &node : this->nodelist) {
+        auto i = node.rank;
+        node.name = mpilib::processor_name(this->processor_name.c_str(), i);
+        mpi::send(node.id, i, HANDSHAKE);
+        auto response = mpi::recv<unsigned long>(i, HANDSHAKE);
+        if (response == i) {
+            this->nodes[node.rank] = node;
+            this->c->debug("handshake(target={}, status=success)", node.name);
+        } else {
+            this->c->debug("handshake(target={}, status=fail)", node.name);
+            return false;
+        }
+    }
+
+    /* Sets the clock on all nodes. */
+    for (auto &node : this->nodelist) {
+        mpi::send(node.rank, node.rank, READY);
+    }
+
+    return true;
 }
 
-bool Coordinator::Packet::operator!=(const Coordinator::Packet &rhs) const {
-    return !(rhs == *this);
+Topology &Coordinator::get_topology(unsigned long time) {
+    return this->get_topology(time / 1000.0); /* Convert to double. */
+}
+
+Topology &Coordinator::get_topology(double time) {
+    return this->topologies[std::round(time - std::fmod(time, TIME_GAP))];
 }

@@ -1,10 +1,97 @@
 
+\paragraph{Hardware Functions}\label{sec:hwfuncspseudo}
+The hardware functions listed in this section depend on the following local state. The local state is unique for each node.\smallbreak
+
+clock $\leftarrow$ \KwNow
+
+localtime $\leftarrow$ 0
+
+id $\leftarrow$ unique identifier \smallbreak
+
+In the hardware functions we utilise a special keyword \singlequote{\KwNow}, which represents the real-time hardware clocks of a node. It is assumed that all nodes start at the same time. Initially, we store the current time in the clock variable, and use this variable to compute the real-time difference between the calling of hardware functions. At the end of each of the four functions we reset the clock variable to \singlequote{\KwNow}, after the localtime of node has been updated.\medbreak
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{FBroadcast}{Broadcast}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FBroadcast{packet}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        duration $\leftarrow$ transmission\_time(|packet|)\;
+        endtime $\leftarrow$ localtime $+$ duration\;
+        a $\leftarrow$ (transmit, id, localtime, endtime, packet)\;
+        \KwSend a \KwTo coordinator\;
+        localtime $\leftarrow$ endtime\;
+        clock $\leftarrow$ \KwNow\;
+    }
+
+    \caption{The \texttt{Broadcast} Function.}
+    \label{algo:hwfuncstransmit}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \KwResult{A packet or \KwNull}
+    \SetKwFunction{FListen}{Listen}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FListen{duration}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
+        \KwSend a \KwTo coordinator\;
+        localtime $\leftarrow$ \KwAwait endtime \KwFrom coordinator\;
+        packet $\leftarrow$ \KwAwait packet \KwFrom coordinator\;
+        clock $\leftarrow$ \KwNow\;
+        \KwRet packet\;
+    }
+    
+    \caption{The \texttt{Listen} Function.}
+    \label{algo:hwfuncslisten}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{FSleep}{Sleep}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FSleep{duration}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        endtime $\leftarrow$ localtime $+$ duration\;
+        a $\leftarrow$ (sleep, id, localtime, endtime, \KwNull)\;
+        \KwSend a \KwTo coordinator\;
+        localtime $\leftarrow$ endtime\;
+        clock $\leftarrow$ \KwNow\;
+    }
+    
+    \caption{The \texttt{Sleep} Function.}
+    \label{algo:hwfuncssleep}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{FInformLocalTime}{InformLocalTime}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FInformLocalTime{}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        a $\leftarrow$ (inform, id, localtime, localtime, \KwNull)\;
+        \KwSend a \KwTo coordinator\;
+        clock $\leftarrow$ \KwNow\;
+    }
+    
+    \caption{The \texttt{InformLocaltime} Function.}
+    \label{algo:hwfuncsupdatelocaltime}
+\end{algorithm}
+
+\pagebreak
+
+\paragraph{Coordinator} running in parallel along nodes.\smallbreak
+
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FCoordinator}{Coordinator}
     \SetKwProg{Fn}{procedure}{}{}
 
-    % \tcp{Tuples are accessed by dot notation}
     Action = (type, source, start, end, packet)\;
     \;
 
@@ -14,20 +101,22 @@
         \;
         
         \Repeat{\textit{protocol terminates}}{
-            m $\leftarrow$ \KwAwait Action \KwFrom any node\; \label{line:action-await}
-            \KwEnqueue m \KwTo waiting\;
-            \If{m.type = transmit}{ \label{line:message-transmit}
-                \KwAppend m \KwTo transmissions\;
+            \tcp{Part 1. Handle incoming messages.}
+            a $\leftarrow$ \KwAwait Action \KwFrom any node\; \label{line:action-await}
+            \KwEnqueue a \KwTo waiting\;
+            \If{a.type = transmit}{ \label{line:message-transmit}
+                \KwAppend a \KwTo transmissions\;
             }
-            % \tcp{sleep and inform actions are implicitly handled}
+            
             \;
+            \tcp{Part 2. Process waiting actions.}
             \While{each node has at least one Action in waiting}{
                 a $\leftarrow$ \KwDequeue Action \KwFrom waiting\;
 
                 \If{a.type = transmit}{ \label{line:action-transmit}
                     interferers $\leftarrow$ empty list of node identifiers\;
                     \ForEach{t $\in$ transmissions \KwWhere t $\neq$ a}{
-                        \If{a.end $\leq$ t.start \KwAnd a.start $\geq$ t.end}{
+                        \If{a.end $\geq$ t.start \KwAnd a.start $\leq$ t.end}{
                             \tcp{Transmissions intersect}
                             \KwAppend t.source \KwTo interferers\;
                         }
@@ -49,33 +138,201 @@
                     \KwSend a.end \KwTo a.source\;
                     \KwSend a.packet \KwTo a.source\;
                 }
+                \tcp{Sleep/Inform actions are handled implicitly.}
             }
-
-            \tcp{TODO: Perform cleanup of no longer relevant transmissions}
+            \;
+            \tcp{Part 3. Clean transmissions list.}            
+            start-time $\leftarrow$ earliest start time of all actions \KwInn waiting\;
+            \ForEach{t $\in$ transmissions \KwWhere t.end < start-time}{
+                \KwRemove t \KwFrom transmissions\;
+            }
         }
     }
     \caption{The \texttt{Coordinator} procedure.}
     \label{algo:mpicoordinator}
 \end{algorithm}
 
-%  \begin{algorithm}[ht]
-%      \DontPrintSemicolon
-%      \KwResult{True if the transmission should be received.}
-%      \SetKwFunction{FShouldReceive}{ShouldReceive}
-%      \SetKwProg{Fn}{Function}{}{}
-    
-%      \Fn{\FShouldReceive{l, t, interferers, packetsize}}{
-%         %  n$_r \leftarrow$ l.id\;
-%         %  n$_t \leftarrow$ t.id\;
-%         %  \ForEach{t$^\prime$ $\in$ transmissions - \{t\}}{
-%         %      \If{t.end $>$ t$^\prime$.start \KwAnd t.start $<$ t$^\prime$.end}{
-%         %          \KwAppend t$^\prime$ \KwTo nodes$_t$\;
-%         %      }
-%         %  }
+\pagebreak
 
-  
-%      }
+% \paragraph{Invariants} for procedure.\smallbreak
 
-%      \caption{The \texttt{ShouldReceive} Function.}
-%      \label{algo:controllershouldreceive}
-%  \end{algorithm}
+% For all nodes, we know at all times what the node is doing at that time. At any given time moment, we need to be able to reconstruct a situation from our data structures, such that we can show who is doing what at each time. This is the current configuration at a given time.
+
+% \begin{itemize}
+%     \item At any time, the waiting queue will contain a maximum of one listen action from each node.
+%     \item For each node:
+%     \begin{itemize}
+%         \item 
+%     \end{itemize}
+% % \end{itemize}
+
+% Assumptions
+
+% \begin{itemize}
+%     \item We know at all times what any node is doing.
+%     \item Any transmission for a given time interval will be processed before a listen action with the same interval or a greater one (where the transmission interval is wholly within the listen interval).
+%     \item At any time, the waiting queue will contain a maximum of one listen action from each node.
+%     \item A transmission t will always be present in the waiting queue prior to handling a listen action l, and if the intervals of t and l intersect, we will only handle t when l is still on the queue.
+% \end{itemize}
+
+% Diagram
+\begin{tikzpicture}[every node/.style={font=\normalsize,minimum height=0.5cm,minimum width=0.75cm},]
+
+% Matrix
+\node [matrix,very thin,column sep=0.5cm,row sep=0.2cm] (matrix) at (0,0) {
+
+\node(0,0) (t00 left) {}; &  \node(0,0) (\Node{1} 0) {}; &&  \node(0,0) (\Node{2} 0) {}; &&  \node(0,0) (\Node{3} 0) {}; &&  \node(0,0) (\Node{4} 0) {}; &&  \node(0,0) (\Node{5} 0) {}; & \node(0,0) (t00 right) {}; & \node(0,0) (legend 00) {}; \\
+\node(0,0) (t01 left) {}; &  \node(0,0) (\Node{1} 1) {}; &&  \node(0,0) (\Node{2} 1) {}; &&  \node(0,0) (\Node{3} 1) {}; &&  \node(0,0) (\Node{4} 1) {}; &&  \node(0,0) (\Node{5} 1) {}; & \node(0,0) (t01 right) {}; & \node(0,0) (legend 01) {}; \\
+\node(0,0) (t02 left) {}; &  \node(0,0) (\Node{1} 2) {}; &&  \node(0,0) (\Node{2} 2) {}; &&  \node(0,0) (\Node{3} 2) {}; &&  \node(0,0) (\Node{4} 2) {}; &&  \node(0,0) (\Node{5} 2) {}; & \node(0,0) (t02 right) {}; & \node(0,0) (legend 02) {}; \\
+\node(0,0) (t03 left) {}; &  \node(0,0) (\Node{1} 3) {}; &&  \node(0,0) (\Node{2} 3) {}; &&  \node(0,0) (\Node{3} 3) {}; &&  \node(0,0) (\Node{4} 3) {}; &&  \node(0,0) (\Node{5} 3) {}; & \node(0,0) (t03 right) {}; & \node(0,0) (legend 03) {}; \\
+\node(0,0) (t04 left) {}; &  \node(0,0) (\Node{1} 4) {}; &&  \node(0,0) (\Node{2} 4) {}; &&  \node(0,0) (\Node{3} 4) {}; &&  \node(0,0) (\Node{4} 4) {}; &&  \node(0,0) (\Node{5} 4) {}; & \node(0,0) (t04 right) {}; & \node(0,0) (legend 04) {}; \\
+\node(0,0) (t05 left) {}; &  \node(0,0) (\Node{1} 5) {}; &&  \node(0,0) (\Node{2} 5) {}; &&  \node(0,0) (\Node{3} 5) {}; &&  \node(0,0) (\Node{4} 5) {}; &&  \node(0,0) (\Node{5} 5) {}; & \node(0,0) (t05 right) {}; & \node(0,0) (legend 05) {}; \\
+\node(0,0) (t06 left) {}; &  \node(0,0) (\Node{1} 6) {}; &&  \node(0,0) (\Node{2} 6) {}; &&  \node(0,0) (\Node{3} 6) {}; &&  \node(0,0) (\Node{4} 6) {}; &&  \node(0,0) (\Node{5} 6) {}; & \node(0,0) (t06 right) {}; & \node(0,0) (legend 06) {}; \\
+\node(0,0) (t07 left) {}; &  \node(0,0) (\Node{1} 7) {}; &&  \node(0,0) (\Node{2} 7) {}; &&  \node(0,0) (\Node{3} 7) {}; &&  \node(0,0) (\Node{4} 7) {}; &&  \node(0,0) (\Node{5} 7) {}; & \node(0,0) (t07 right) {}; & \node(0,0) (legend 07) {}; \\
+\node(0,0) (t08 left) {}; &  \node(0,0) (\Node{1} 8) {}; &&  \node(0,0) (\Node{2} 8) {}; &&  \node(0,0) (\Node{3} 8) {}; &&  \node(0,0) (\Node{4} 8) {}; &&  \node(0,0) (\Node{5} 8) {}; & \node(0,0) (t08 right) {}; & \node(0,0) (legend 08) {}; \\
+\node(0,0) (t09 left) {}; &  \node(0,0) (\Node{1} 9) {}; &&  \node(0,0) (\Node{2} 9) {}; &&  \node(0,0) (\Node{3} 9) {}; &&  \node(0,0) (\Node{4} 9) {}; &&  \node(0,0) (\Node{5} 9) {}; & \node(0,0) (t09 right) {}; & \node(0,0) (legend 09) {}; \\
+\node(0,0) (t10 left) {}; & \node(0,0) (\Node{1} 10) {}; && \node(0,0) (\Node{2} 10) {}; && \node(0,0) (\Node{3} 10) {}; && \node(0,0) (\Node{4} 10) {}; && \node(0,0) (\Node{5} 10) {}; & \node(0,0) (t10 right) {}; & \node(0,0) (legend 10) {}; \\
+\node(0,0) (t11 left) {}; & \node(0,0) (\Node{1} 11) {}; && \node(0,0) (\Node{2} 11) {}; && \node(0,0) (\Node{3} 11) {}; && \node(0,0) (\Node{4} 11) {}; && \node(0,0) (\Node{5} 11) {}; & \node(0,0) (t11 right) {}; & \node(0,0) (legend 11) {}; \\
+\node(0,0) (t12 left) {}; & \node(0,0) (\Node{1} 12) {}; && \node(0,0) (\Node{2} 12) {}; && \node(0,0) (\Node{3} 12) {}; && \node(0,0) (\Node{4} 12) {}; && \node(0,0) (\Node{5} 12) {}; & \node(0,0) (t12 right) {}; & \node(0,0) (legend 12) {}; \\
+\node(0,0) (t13 left) {}; & \node(0,0) (\Node{1} 13) {}; && \node(0,0) (\Node{2} 13) {}; && \node(0,0) (\Node{3} 13) {}; && \node(0,0) (\Node{4} 13) {}; && \node(0,0) (\Node{5} 13) {}; & \node(0,0) (t13 right) {}; & \node(0,0) (legend 13) {}; \\
+\node(0,0) (t14 left) {}; & \node(0,0) (\Node{1} 14) {}; && \node(0,0) (\Node{2} 14) {}; && \node(0,0) (\Node{3} 14) {}; && \node(0,0) (\Node{4} 14) {}; && \node(0,0) (\Node{5} 14) {}; & \node(0,0) (t14 right) {}; & \node(0,0) (legend 14) {}; \\
+\node(0,0) (t15 left) {}; & \node(0,0) (\Node{1} 15) {}; && \node(0,0) (\Node{2} 15) {}; && \node(0,0) (\Node{3} 15) {}; && \node(0,0) (\Node{4} 15) {}; && \node(0,0) (\Node{5} 15) {}; & \node(0,0) (t15 right) {}; & \node(0,0) (legend 15) {}; \\
+\node(0,0) (t16 left) {}; & \node(0,0) (\Node{1} 16) {}; && \node(0,0) (\Node{2} 16) {}; && \node(0,0) (\Node{3} 16) {}; && \node(0,0) (\Node{4} 16) {}; && \node(0,0) (\Node{5} 16) {}; & \node(0,0) (t16 right) {}; & \node(0,0) (legend 16) {}; \\
+\node(0,0) (t17 left) {}; & \node(0,0) (\Node{1} 17) {}; && \node(0,0) (\Node{2} 17) {}; && \node(0,0) (\Node{3} 17) {}; && \node(0,0) (\Node{4} 17) {}; && \node(0,0) (\Node{5} 17) {}; & \node(0,0) (t17 right) {}; & \node(0,0) (legend 17) {}; \\
+\node(0,0) (t18 left) {}; & \node(0,0) (\Node{1} 18) {}; && \node(0,0) (\Node{2} 18) {}; && \node(0,0) (\Node{3} 18) {}; && \node(0,0) (\Node{4} 18) {}; && \node(0,0) (\Node{5} 18) {}; & \node(0,0) (t18 right) {}; & \node(0,0) (legend 18) {}; \\
+\node(0,0) (t19 left) {}; & \node(0,0) (\Node{1} 19) {}; && \node(0,0) (\Node{2} 19) {}; && \node(0,0) (\Node{3} 19) {}; && \node(0,0) (\Node{4} 19) {}; && \node(0,0) (\Node{5} 19) {}; & \node(0,0) (t19 right) {}; & \node(0,0) (legend 19) {}; \\
+\node(0,0) (t20 left) {}; & \node(0,0) (\Node{1} 20) {}; && \node(0,0) (\Node{2} 20) {}; && \node(0,0) (\Node{3} 20) {}; && \node(0,0) (\Node{4} 20) {}; && \node(0,0) (\Node{5} 20) {}; & \node(0,0) (t20 right) {}; & \node(0,0) (legend 20) {}; \\
+\node(0,0) (ten left) {}; & \node(0,0) (\Node{1} en) {}; && \node(0,0) (\Node{2} en) {}; && \node(0,0) (\Node{3} en) {}; && \node(0,0) (\Node{4} en) {}; && \node(0,0) (\Node{5} en) {}; & \node(0,0) (ten right) {}; & \node(0,0) (legend en) {}; \\%
+};
+
+% Agents labels
+\fill 
+	(\Node{1} 0) node[draw,fill=white] {\Node{1}}%
+	(\Node{2} 0) node[draw,fill=white] {\Node{2}}%
+	(\Node{3} 0) node[draw,fill=white] {\Node{3}}%
+	(\Node{4} 0) node[draw,fill=white] {\Node{4}}%
+    (\Node{5} 0) node[draw,fill=white] {\Node{5}}%
+    ;
+
+% Vertical lifelines
+\draw [dashed] 
+    (\Node{1} 0) -- (\Node{1} en)%
+    (\Node{2} 0) -- (\Node{2} en)%
+    (\Node{3} 0) -- (\Node{3} en)%
+    (\Node{4} 0) -- (\Node{4} en)%
+    (\Node{5} 0) -- (\Node{5} en)%
+    ;
+
+% Legend
+\filldraw[fill=green!20] (legend 00.north west) rectangle (legend 00.south east) node[midway,right=0.5 cm] {Transmit ($t$)};
+\filldraw[fill=blue!20] (legend 01.north west) rectangle (legend 01.south east) node[midway,right=0.5cm] {Listen ($l$)};
+\filldraw[fill=yellow!20] (legend 02.north west) rectangle (legend 02.south east) node[midway,right=0.5cm] {Sleep ($s$)};
+\filldraw[fill=gray!20] (legend 03.west) rectangle (legend 03.east) node[midway,right=0.5cm] {Inform ($i$)};
+%\filldraw[fill=white!20] (legend 04.north west) rectangle (legend 04.south east) node[midway,right=-0.4cm] {$a_{s,e}$ \ \ $a$: action, $s$: source, $e$: end};
+
+% Horizontal time lines
+\draw [dotted] 
+    %(t01 left) node[left] {1} -- (t01 right)% omit
+    %
+    (t02 left) node[left] {2} -- (t02 right)% leave this in
+    %
+    %(t03 left) node[left] {3} -- (t03 right)% omit
+    %(t04 left) node[left] {4} -- (t04 right)% omit
+    %(t05 left) node[left] {5} -- (t05 right)% omit
+    %
+    (t06 left) node[left] {6} -- (t06 right)%
+    (t06 left) -- (t06 right) node[draw,fill=white,right,text width=5.6cm] {%
+        time$_1$ $\leftarrow$ 6 \\ %
+        waiting $\leftarrow$ \{ $t_4$,  $i_5$, $l_2$, $t_1$, $l_3$, \ldots \} \\ %
+        transmissions $\leftarrow$ \{ $t_4$, $t_1$ \} %
+    }%
+    %
+    %(t07 left) node[left] {7} -- (t07 right)% omit
+    %(t08 left) node[left] {8} -- (t08 right)% omit
+    %(t09 left) node[left] {9} -- (t09 right)% omit
+    %
+    (t10 left) node[left] {10} -- (t10 right)%
+    (t10 left) -- (t10 right) node[draw,fill=white,right,text width=5.6cm] {%
+        time$_2$ $\leftarrow$ 10 \\ %
+        waiting $\leftarrow$ \{  \} \\ %
+        transmissions $\leftarrow$ \{  \} %
+    }%
+    %
+    %(t11 left) node[left] {11} -- (t11 right)% omit
+    %(t12 left) node[left] {12} -- (t12 right)% omit
+    %(t13 left) node[left] {13} -- (t13 right)% omit
+    %
+    (t14 left) node[left] {14} -- (t14 right)%
+    (t14 left) -- (t14 right) node[draw,fill=white,right,text width=5.6cm] {%
+    time$_3$ $\leftarrow$ 14 \\ %
+    waiting $\leftarrow$ \{  \} \\ %
+    transmissions $\leftarrow$ \{  \} %
+    }%
+    %   
+    %(t15 left) node[left] {15} -- (t15 right)% omit
+    %(t16 left) node[left] {16} -- (t16 right)% omit
+    %(t17 left) node[left] {17} -- (t17 right)% omit
+    %
+    (t18 left) node[left] {18} -- (t18 right)%
+    (t18 left) -- (t18 right) node[draw,fill=white,right,text width=5.6cm] {%
+    time$_4$ $\leftarrow$ 18 \\ %
+    waiting $\leftarrow$ \{  \} \\ %
+    transmissions $\leftarrow$ \{  \} %
+    }%
+    %
+    %(t19 left) node[left] {19} -- (t19 right)% omit
+    %(t20 left) node[left] {20} -- (t20 right)% omit
+    ;
+
+\newcommand{\nid}{\@empty}
+%Node{1}{
+    \renewcommand{\nid}{1}
+    \Transmit{\nid}{2}{6}
+    \Transmit{\nid}{6}{10}
+    \Inform{\nid}{12}
+    \Sleep{\nid}{13}{14}
+    \Listen{\nid}{14}{18}
+    \Sleep{\nid}{18}{20}
+%}
+
+%Node{2}{
+    \renewcommand{\nid}{2}
+    \Listen{\nid}{2}{5}
+    \Sleep{\nid}{5}{7}
+    \Transmit{\nid}{8}{10}
+    \Listen{\nid}{10}{14}
+    \Transmit{\nid}{16}{18}
+    \Inform{\nid}{20}
+%}
+
+%Node{3}{
+    \renewcommand{\nid}{3}
+    \Listen{\nid}{1}{6}
+    \Listen{\nid}{7}{10}
+    \Inform{\nid}{13}
+    \Transmit{\nid}{14}{16}
+    \Transmit{\nid}{18}{20}
+%}
+
+%Node{4}{
+    \renewcommand{\nid}{4}
+    \Transmit{\nid}{1}{3}
+    \Sleep{\nid}{4}{8}
+    \Listen{\nid}{9}{14}
+    \Transmit{\nid}{15}{17}
+    \Listen{\nid}{18}{20}
+%}
+
+%Node{5}{
+    \renewcommand{\nid}{5}
+    \Inform{\nid}{3}
+    \Listen{\nid}{6}{9}
+    \Transmit{\nid}{10}{12}
+    \Transmit{\nid}{16}{18}
+    \Inform{\nid}{20}
+%}
+
+\end{tikzpicture}
+
+\smallbreak
+waiting $\leftarrow \{ t_{4,3}, i_{5,3}, l_{2,5}, t_{1,6}, l_{3,6}, s_{2,7}, s_{4,8}, l_{5,9}, t_{1,10}, t_{2,10}, l_{3,10}, t_{5,12}, i_{1,12}, i_{3,13}, l_{4,14}, l_{2,14}, s_{1,14}, t_{3,16}, t_{4,17}, t_{2,18}, t_{5,18}, l_{1,18}, s_{1,20}, i_{2,20}, i_{5,20}, t_{3,20}, l_{4,20} \}$
