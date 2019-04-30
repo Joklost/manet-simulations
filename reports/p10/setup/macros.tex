@@ -172,8 +172,6 @@
     \renewcommand{\algorithmautorefname}{Algorithm}
 }
 
-\newcommand{\seqpacket}[2]{Packet~[Type:~\texttt{#1}, Data:~\texttt{#2}]}
-
 \newcommand{\tableref}[1]{\autoref{table:#1}}
 \newcommand{\figureref}[1]{\autoref{figure:#1}}
 \newcommand{\coderef}[1]{\autoref{code:#1}}
@@ -190,17 +188,7 @@
 
 \newcommand{\citationneeded}[1][]{[citation needed]}
 
-%\makeatletter
-%\newcounter{datastructures}
-%\let\c@algocf\c@datastructures
-
-%\newenvironment{datastructures}[1][htb]
-%  {\renewcommand{\algorithmcfname}{Data Structures}% Update algorithm name
-%   \let\c@algocf\c@datastructures% Update algorithm counter
-%   \begin{algorithm}[#1]%
-%  }{\end{algorithm}}
-%\makeatother
-\renewcommand{\labelenumi}{\Roman{enumi}}
+%\renewcommand{\labelenumi}{\Roman{enumi}}
 
 \SetKw{KwAwait}{await}
 \SetKw{KwFrom}{from}
