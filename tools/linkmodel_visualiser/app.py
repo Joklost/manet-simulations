@@ -1,7 +1,7 @@
-from typing import Tuple, List, Dict, Any, NoReturn
+from typing import Tuple, List, Dict, NoReturn
 
 import os
-import json
+import pprint
 import math
 import numpy as np
 import plotly.plotly as py
@@ -9,7 +9,6 @@ import plotly.offline
 import plotly.graph_objs as go
 import plotly.figure_factory as ff
 from models import LinkPair, Link
-import datetime
 
 
 def parse(file: str) -> Dict[float, List[LinkPair]]:
@@ -38,7 +37,7 @@ def parse(file: str) -> Dict[float, List[LinkPair]]:
 
             data[f'{split[0]}'][f'{split[3]}'] = d
 
-    for root_node_id, e_root_node in data.items():
+    for _, e_root_node in data.items():
         for timestamp, e_time in e_root_node.items():
             links: List[Link] = []
             node_count = len(e_time['nodes'])
@@ -78,7 +77,6 @@ def gen_x_axis() -> List[int]:
     while i <= 180:
         x.append(i)
         i += round(math.sqrt(20))
-        # i += 1 if i < 16 else round(math.sqrt(20))
 
     return x
 
@@ -92,7 +90,7 @@ def compute_std_dev_and_mean(data: List[float]) -> Tuple[float, float]:
     Compute the standard deviation and mean for sample data
 
     :param data: The LinkPairs
-    :return: [standard deviant, mean]
+    :return: [standard deviantion, mean]
     """
     mean = sum(data) / len(data)
 
@@ -110,15 +108,8 @@ def format_trace_data(data: Dict[float, List[LinkPair]]) -> Dict[int, List[float
     sorted_data = {key: [] for key in angle_buckets}
     for time in data.keys():
         for i, angle in enumerate(angle_buckets):
-            # if i == 0:
-            #     bucket_data = [j.rssi for j in data[time] if j.angle <= angle]
-            # else:
-            #     bucket_data = [j.rssi for j in data[time] if angle_buckets[i - 1] < j.angle <= angle]
-            # print(len(bucket_data))
-
-            bucket_data = [j.rssi for j in data[time] if j.angle <= angle] if i == 0 else [j.rssi for j in data[time] if
-                                                                                           angle_buckets[
-                                                                                               i - 1] < j.angle <= angle]
+            bucket_data = [j.rssi for j in data[time] if j.angle <= angle] if i == 0 else \
+                [j.rssi for j in data[time] if angle_buckets[i - 1] < j.angle <= angle]
             sorted_data[angle] = sorted_data[angle] + bucket_data
 
     return sorted_data
@@ -143,6 +134,12 @@ def build_normal_plot(data: Dict[int, List[float]]) -> plotly.offline.plot:
 
 
 def build_sample_size_trace(data: Dict[int, List[float]]) -> go.Bar:
+    """
+    Build an sample size trace
+
+    :param data: The data
+    :return: plotly Bar trace
+    """
     group = []
     samples = []
     for angle, bucket in data.items():
@@ -159,6 +156,13 @@ def build_sample_size_trace(data: Dict[int, List[float]]) -> go.Bar:
 
 
 def build_rssi_trace(data: Dict[int, List[float]], name: str) -> go.Scatter:
+    """
+    Build an RSSI trace
+
+    :param data: The data
+    :param name: Name of the trace to appear in legend
+    :return: plotly Scatter trace
+    """
     group = []
     rssi = []
 
@@ -181,11 +185,42 @@ def build_rssi_trace(data: Dict[int, List[float]], name: str) -> go.Scatter:
     )
 
 
-def build_traces(data: Dict[float, List[LinkPair]], log: str, org_trace: go.Scatter) -> NoReturn:
-    # build trace for original log
+def compute_score(data: Dict[int, List[float]], org_data: Dict[int, List[float]]) -> float:
+    """
+    Compute the score based on the difference of each RSSI value
+
+    :return: Score
+    """
+    score = 0.0
+    for angle, bucket in data.items():
+        if len(bucket) < 1 or len(org_data[angle]) < 1:
+            continue
+
+        avg = 0.0
+        for val in bucket:
+            avg += val
+        avg = avg / len(bucket)
+
+        org_avg = 0.0
+        for val in org_data[angle]:
+            org_avg += val
+        org_avg = org_avg / len(org_data[angle])
+
+        score += math.pow(abs(org_avg - avg), 2)
+
+    return score
+
+
+def build_traces(data: Dict[float, List[LinkPair]], org_data: Dict[int, List[float]], log: str) -> NoReturn:
+    print('Parsing data')
     sorted_data = format_trace_data(data)
 
-    # break of all bucket are empty. This happens when then the network is initialized
+    # TODO: write to debug log
+    # with open('debug_log_computed', 'w') as f:
+    #     for val in sorted_data[4]:
+    #         f.write(f'{val}\n')
+
+    # break if all buckets are empty. This happens when the network is initialized
     is_empty = True
     for angle, bucket in sorted_data.items():
         if len(bucket) > 1:
@@ -195,20 +230,31 @@ def build_traces(data: Dict[float, List[LinkPair]], log: str, org_trace: go.Scat
         return
 
     # build sample size trace
+    print('Building sample size trace')
     sample_size_trace = build_sample_size_trace(sorted_data)
 
     # build heuristic trace
+    print('Building heuristic trace')
     heuristic_trace = build_rssi_trace(sorted_data, log)
 
+    # build org trace
+    print('Building log measurement trace')
+    org_trace = build_rssi_trace(org_data, 'original')
+
     # build normal distribution plot
+    print('Building normal distribution trace')
     normal_plot = build_normal_plot(sorted_data)
+
+    # compute the score
+    print('Computing the score')
+    score = compute_score(sorted_data, org_data)
 
     layout = go.Layout(
         xaxis=go.layout.XAxis(
             tickmode='array',
             tickvals=gen_x_axis(),
             ticktext=x_axis_to_string(),
-            showline=True,
+            showline=False,
             title='Angle buckets'
         ),
         yaxis=go.layout.YAxis(
@@ -226,13 +272,13 @@ def build_traces(data: Dict[float, List[LinkPair]], log: str, org_trace: go.Scat
             showgrid=False
         ),
         showlegend=True,
-        title=f'Heuristic comparison'
+        title=f'Heuristic comparison - Score: {round(score, 2)}'
     )
 
     fig = go.Figure(data=[org_trace, heuristic_trace, sample_size_trace], layout=layout)
     rssi_div = plotly.offline.plot(fig, include_plotlyjs=True, output_type='div')
 
-    with open(f'plots/Original-{log}.html', 'w') as f:
+    with open(f'plots/original-{log}.html', 'w') as f:
         f.writelines(rssi_div)
         f.writelines(normal_plot)
 
@@ -242,6 +288,7 @@ if __name__ == '__main__':
     logs = os.listdir(log_path)
     link_pairs = {}
 
+    print('Loading data from logs')
     for log in logs:
         if log.endswith('.csv'):
             f_name, _ = os.path.splitext(log)
@@ -250,15 +297,12 @@ if __name__ == '__main__':
 
         link_pairs[f_name] = parse(f'{log_path}/{f_name}')
 
-    org_trace = build_rssi_trace(format_trace_data(link_pairs['original']), 'original')
     for log in [i for i in logs if not i == 'original']:
         if log.endswith('.csv'):
             f_name, _ = os.path.splitext(log)
         else:
             f_name = log
 
-        print(datetime.datetime.now())
-        build_traces(link_pairs[f_name], f_name, org_trace)
-        print(datetime.datetime.now())
+        build_traces(link_pairs[f_name], format_trace_data(link_pairs['original']), f_name)
 
     print("done")

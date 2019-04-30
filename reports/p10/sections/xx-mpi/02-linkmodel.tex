@@ -1,57 +1,83 @@
+\newpage
+%\begin{algorithm}[H]
+%    \DontPrintSemicolon
+%    \SetKwFunction{FLinkmodel}{Linkmodel}
+%    \SetKwProg{Fn}{Function}{}{}
+%
+%    \Fn{\FLinkmodel{links}}{
+%        \ForEach{$l \in $ links}{
+%            neighbours $\leftarrow$ findNeighbourhood($l$)\;
+%            \ForEach{$neighbour \in neighbours$}{
+%                C $\leftarrow r(l, neighbour)$ // The autocorrelation %function\;
+%
+%                $\Sigma \leftarrow \sigma^2$C // The covariance matrix\;
+%            }
+%        }
+%    }
+%
+%    \caption{Pseoducode for the linkmodel}
+%    \label{algo:linkmodel}
+%\end{algorithm}
+
+
+
+
+
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FLinkmodel}{Linkmodel}
     \SetKwProg{Fn}{Function}{}{}
 
     \Fn{\FLinkmodel{links}}{
-        \ForEach{$l \in $ links}{
-            neighbours $\leftarrow$ findNeighbourhood($l$)\;
-            \ForEach{$neighbour \in neighbours$}{
-                C $\leftarrow r(l, neighbour)$ // The autocorrelation function\;
+        model $\leftarrow$ An unordered map with id as key and RSSI as value\;\;
 
-                $\Sigma \leftarrow \sigma^2$C // The covariance matrix\;
+        \ForEach{link1 $\in$ links}{
+            fading $\leftarrow$ 0\;
+
+            \ForEach{link2 $\in$ links}{
+                \If{!$hasCommonNode$(link1, link2)}{
+                    \KwContinue\;
+                }
+                \ElseIf{link1 $=$ link2}{
+                    corr $\leftarrow$ 1\;
+                }
+                \Else{
+                    angle $\leftarrow \theta$(link1, link2)\;
+                    corr $\leftarrow$ $r$(angle)\;
+                }
+                
+                
+                ran $\leftarrow$ Pick a random value from a gaussian distribution with mean $=$ 0, and standard deviation $=$ 1\;
+                fading $\leftarrow$ fading + ran $\cdot$ corr\;
+
             }
+            %\tcp{distanceFading $\leftarrow l_d$($d$(link1))}
+            model[link1.id] = $tx_{power}$ - (fading)\;
         }
     }
-
     \caption{Pseoducode for the linkmodel}
     \label{algo:linkmodel}
 \end{algorithm}
 
+$d(link)$ computes the distance of a link.\\
+$\theta(link1, link2)$ computes the angle between two links.\\
+$r(link1, link2)$ is the autocorrelation function.\\
+$hasCommonNode(link1, link2)$ is a function checking if the links share a node.\\
+%$l_d(distance)$ computes the pathloss for the distance dependent part.
 
-
-
-
-\begin{algorithm}[H]
-    \DontPrintSemicolon
-    \SetKwFunction{FLinkmodel}{Linkmodel}
-    \SetKwProg{Fn}{Function}{}{}
-
-    \Fn{\FLinkmodel{links}}{
-        \textbf{Structure} $l_{pl}$ (id, value)\;\;
-
-        \ForEach{$l \in $ links}{
-            neighbours $\leftarrow$ findNeighbourhood($l$)\;
-            $l_{fading} \leftarrow$ 0\;\;
-
-            \ForEach{$neighbour \in neighbours$}{
-                angle $\leftarrow \theta(l, neighbour)$\;
-
-                dev $\leftarrow$ calculate deviation based on $angle$\;
-
-                Pick a random value $r$ from a gaussian distribution with mean $=$ 0, and the deviation $=$ dev\;
-
-                $l_{fading} \leftarrow l_{fading} +$ r\;
-            }
-
-            $l_d \leftarrow 10\gamma\log_{10}(d(l)) - 18.8$\;
-            $l_{pl}$.append($l.id, l_d + l_{fading}$)\;
-        }
-    }
-
-    \caption{Pseoducode for version 2 of linkmodel}
-    \label{algo:linkmodel2}
-\end{algorithm}
-
-
-\autoref{algo:linkmodel2} shows pseoducode for the new linkmodel. The approach taken is faulty and does not give correct results. The approach taken was picking a random link, and find all links sharing a node thereby discovering the neighbourhood. Then the neighbourhood is iterated through. The angle between the current neighbour and the link, is calculated and used to compute a deviation value. The deviation value is used as the deviation parameter for a Gaussian random value. The deviation is based on the angle, so a larger angle means a larger deviation resulting in potentially larger random values drawn from the Gaussian distribution. The random value is then accumulated with all random values from the neighbourhood. The sum represents the stochastic fading. The pathloss $l_{pl}$ is then computed as usual with $l_{pl} = l_d + l_f$.
+%\begin{algorithm}[H]
+%    \DontPrintSemicolon
+%    \SetKwFunction{FCorrelation}{Correlation}
+%    \SetKwProg{Fn}{Function}{}{}
+%
+%    \Fn{\FCorrelation{angle}}{
+%        \If{angle > 180}{
+%            angle $\leftarrow$ 360 - angle\;
+%        }
+%
+%        \Return angle / 180\;
+%    }
+%
+%    \caption{Pseoducode for the Correlation}
+%    \label{algo:correlation_func}
+%\end{algorithm}
