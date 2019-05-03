@@ -208,29 +208,30 @@
 \SetKw{KwDequeue}{dequeue}
 \SetKw{KwHead}{head}
 \SetKw{KwBreak}{break}
-\SetKw{KwNull}{null}
+\SetKw{KwNull}{\textit{null}}
 \SetKw{KwWhere}{where}
 \SetKw{KwInn}{in}
 \SetKw{KwFind}{find}
 
 \newcommand{\Node}[1]{Node #1}
+\newcommand{\Action}[3]{\ensuremath{#1^{#2}_{#3}}}
 
 \newcommand{\Transmit}[3]
 {
-    \filldraw[fill=green!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {$t_{#1,#3}$};
+    \filldraw[fill=green!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {\Action{t}{#1}{#3}};
 }
 
 \newcommand{\Listen}[3]
 {
-    \filldraw[fill=blue!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {$l_{#1,#3}$};
+    \filldraw[fill=blue!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {\Action{l}{#1}{#3}};
 }
 
 \newcommand{\Sleep}[3]
 {
-    \filldraw[fill=yellow!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {$s_{#1,#3}$};
+    \filldraw[fill=white!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {\Action{s}{#1}{#3}};
 }
 
 \newcommand{\Inform}[2]
 {
-    \filldraw[fill=gray!20] (\Node{#1} #2.west) rectangle (\Node{#1} #2.east) node[midway,above,fill=white] {$i_{#1,#2}$};
+    \filldraw[fill=gray!20] (\Node{#1} #2.west) rectangle (\Node{#1} #2.east) node[midway,above,fill=white] {\Action{i}{#1}{#2}};
 }

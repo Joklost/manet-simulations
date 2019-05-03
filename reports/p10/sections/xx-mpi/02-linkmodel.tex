@@ -1,4 +1,4 @@
-\newpage
+\clearpage
 %\begin{algorithm}[H]
 %    \DontPrintSemicolon
 %    \SetKwFunction{FLinkmodel}{Linkmodel}
@@ -19,7 +19,7 @@
 %    \label{algo:linkmodel}
 %\end{algorithm}
 
-
+\paragraph{Link Model} \
 
 
 
@@ -31,18 +31,18 @@
     \Fn{\FLinkmodel{links}}{
         model $\leftarrow$ An unordered map with id as key and RSSI as value\;\;
 
-        \ForEach{link1 $\in$ links}{
+        \ForEach{$l$ $\in$ links}{
             fading $\leftarrow$ 0\;
 
-            \ForEach{link2 $\in$ links}{
-                \If{!$hasCommonNode$(link1, link2)}{
+            \ForEach{$k$ $\in$ links}{
+                \If{$k$ $\neq$ $l$ \KwAnd nodes($k$) $\cap$ nodes($l$) = $\emptyset$}{
                     \KwContinue\;
                 }
-                \ElseIf{link1 $=$ link2}{
+                \ElseIf{$l$ $=$ $k$}{
                     corr $\leftarrow$ 1\;
                 }
                 \Else{
-                    angle $\leftarrow \theta$(link1, link2)\;
+                    angle $\leftarrow \theta$($l$, $k$)\;
                     corr $\leftarrow$ $r$(angle)\;
                 }
                 
@@ -51,18 +51,21 @@
                 fading $\leftarrow$ fading + ran $\cdot$ corr\;
 
             }
-            %\tcp{distanceFading $\leftarrow l_d$($d$(link1))}
-            model[link1.id] = $tx_{power}$ - (fading)\;
+            %\tcp{distanceFading $\leftarrow l_d$($d$($l$))}
+            model[l.id] = $tx_{power}$ - (fading)\;
         }
     }
     \caption{Pseoducode for the linkmodel}
     \label{algo:linkmodel}
 \end{algorithm}
+\smallbreak
 
-$d(link)$ computes the distance of a link.\\
-$\theta(link1, link2)$ computes the angle between two links.\\
-$r(angle)$ is the autocorrelation function.\\
-$hasCommonNode(link1, link2)$ is a function checking if the links share a node.\\
+$d(link)$ computes the distance of a link.
+
+$\theta(l, link2)$ computes the angle between two links.
+
+$r(angle)$ is the autocorrelation function.
+
 %$l_d(distance)$ computes the pathloss for the distance dependent part.
 
 %\begin{algorithm}[H]

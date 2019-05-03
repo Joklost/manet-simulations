@@ -9,7 +9,11 @@ localtime $\leftarrow$ 0
 
 id $\leftarrow$ unique identifier \smallbreak
 
-In the hardware functions we utilise a special keyword \singlequote{\KwNow}, which represents the real-time hardware clocks of a node. It is assumed that all nodes start at the same time. Initially, we store the current time in the clock variable, and use this variable to compute the real-time difference between the calling of hardware functions. At the end of each of the four functions we reset the clock variable to \singlequote{\KwNow}, after the localtime of node has been updated.\medbreak
+In the hardware functions we utilise a special keyword \KwNow, which represents the real-time hardware clocks of a node. It is assumed that all clocks run at the same speed. The clock variable is used to measure the real-time spent by the node between calls to hardware functions. Initially, we store the current time in the clock variable, and use the clock to compute the real-time difference between the calling of hardware functions and add the difference to the localtime variable (e.g., localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime).
+
+The unique identifier (id) of a node is meant to function as the address of a node for passing messages between nodes and the Coordinator. The identifier of the Coordinator = $0$, and the identifier of the nodes are in the range $\{ 1, 2, 3, \ldots, N \}$ for $N$ nodes.
+
+%Common for all four hardware functions is that we initially update the localtime variable, and set the clock variable to \KwNow before returning from the function, such that the execution time spent communicating with the Coordinator is not included in the duration of the action.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -18,17 +22,27 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
     
     \Fn{\FBroadcast{packet}}{
         localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        duration $\leftarrow$ transmission\_time(|packet|)\;
-        endtime $\leftarrow$ localtime $+$ duration\;
-        a $\leftarrow$ (transmit, id, localtime, endtime, packet)\;
-        \KwSend a \KwTo coordinator\;
-        localtime $\leftarrow$ endtime\;
+        duration $\leftarrow$ transmission-time(|packet|)\;
+        end $\leftarrow$ localtime $+$ duration\;
+        a $\leftarrow$ (transmit, id, localtime, end, packet)\;
+        \KwSend a \KwTo Coordinator\;
+        localtime $\leftarrow$ end\;
         clock $\leftarrow$ \KwNow\;
     }
 
     \caption{The \texttt{Broadcast} Function.}
     \label{algo:hwfuncstransmit}
 \end{algorithm}
+
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to neighbouring nodes listening for packets. The duration of a transmission is computed based on the \gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as well as the size of the packet. For our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz.
+
+\begin{eq}\label{eq:transmission-time}
+    \text{transmission-time}(\text{packetsize}) = \frac{1000000}{f_s} \cdot \left( \text{packetsize} \cdot 8 \right)
+\end{eq}
+
+\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds, based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$ bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s = 34800$ Hz.
+
+After computing the duration, the transmit action is sent to the Coordinator, the localtime variable is set to the end time and the clock is set to \KwNow, before the function returns. \medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -40,8 +54,9 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
         localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
         a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
         \KwSend a \KwTo coordinator\;
-        localtime $\leftarrow$ \KwAwait endtime \KwFrom coordinator\; \label{algo:hwfuncslisten:awaitend}
-        packet $\leftarrow$ \KwAwait packet \KwFrom coordinator\;
+        localtime $\leftarrow$ \KwAwait end \KwFrom Coordinator\; \label{algo:hwfuncslisten:awaitend}
+        packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
+        \tcp{The packet returned from Coordinator may be \KwNull}
         clock $\leftarrow$ \KwNow\;
         \KwRet packet\;
     }
@@ -50,6 +65,12 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
     \label{algo:hwfuncslisten}
 \end{algorithm}
 
+The \texttt{Listen} (\autoref{algo:hwfuncslisten}) functions takes a duration as input and sends a listen action to the Coordinator. After sending its action, the function waits for a response from the Coordinator at \autoref{algo:hwfuncslisten:awaitend}. The \KwAwait keyword is blocking, which means that no other functions can be called from a node while the node is listening for a packet. When the Coordinator processes a listen action, two messages will be sent to the node. The first is the end time, which is assigned to the localtime variable, and the second is the packet received (if any). If no packet has been received, the end time received from the Coordinator will be the same as the end time in the action sent to the Coordinator (localtime $+$ duration), and the packet received will be \KwNull. If a packet has been received, the Coordinator will send the time when the packet was received, with the packet following right after.
+
+At most a single packet may be received on a call to the \texttt{Listen} function, but depending on the number of transmissions in the same time interval, no packet could be received, as multiple transmissions either will provide interference for each other, creating collisions, or no transmissions may have happened in the time interval.
+
+After receiving a response from the Coordinator, the function will set the clock variable to \KwNow, and return either the packet or \KwNull. \medbreak
+
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FSleep}{Sleep}
@@ -57,16 +78,18 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
     
     \Fn{\FSleep{duration}}{
         localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        endtime $\leftarrow$ localtime $+$ duration\;
-        a $\leftarrow$ (sleep, id, localtime, endtime, \KwNull)\;
-        \KwSend a \KwTo coordinator\;
-        localtime $\leftarrow$ endtime\;
+        end $\leftarrow$ localtime $+$ duration\;
+        a $\leftarrow$ (sleep, id, localtime, end, \KwNull)\;
+        \KwSend a \KwTo Coordinator\;
+        localtime $\leftarrow$ end\;
         clock $\leftarrow$ \KwNow\;
     }
     
     \caption{The \texttt{Sleep} Function.}
     \label{algo:hwfuncssleep}
 \end{algorithm}
+
+The \texttt{Sleep} (\autoref{algo:hwfuncssleep}) takes a duration as input and sends a sleep action to the Coordinator. As no response is expected of the Coordinator, the function sets the localtime and clock variables immediately after sending the action. \medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -76,7 +99,7 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
     \Fn{\FInformLocalTime{}}{
         localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
         a $\leftarrow$ (inform, id, localtime, localtime, \KwNull)\;
-        \KwSend a \KwTo coordinator\;
+        \KwSend a \KwTo Coordinator\;
         clock $\leftarrow$ \KwNow\;
     }
     
@@ -84,9 +107,11 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
     \label{algo:hwfuncsupdatelocaltime}
 \end{algorithm}
 
+The \texttt{InformLocalTime} function is equivalent to the \texttt{Sleep} function in the sense that it behaves like the \texttt{Sleep} function with the duration set to 0. The function is included in the case there none of the other hardware functions are applicable, e.g., in the case where the node is performing longer computations,. Regularly informing the Coordinator of a nodes localtime will allow the Coordinator to continually process actions from other nodes.
+
 \clearpage
 
-\paragraph{Coordinator} \ \smallbreak
+\paragraph{Coordinator} \ 
 
 \begin{algorithm}[H]
     \DontPrintSemicolon
@@ -105,20 +130,20 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
             \tcp{Part 1. Handle incoming messages.}
             a $\leftarrow$ \KwAwait Action \KwFrom any node\; \label{line:action-await}
             \KwEnqueue a \KwTo waiting\;
-            \If{a.type = transmit}{ \label{line:message-transmit}
+            \If{a.type = transmit}{ \label{algo:mpicoordinator:message-transmit}
                 \KwAppend a \KwTo transmits\;
             }
             
             \;
             \tcp{Part 2. Process waiting actions.}
-            \While{each node has at least one Action in waiting}{
-                a $\leftarrow$ \KwDequeue Action \KwFrom waiting\;
+            \While{each node has at least one Action in waiting}{ \label{algo:mpicoordinator:whileactions}
+                a $\leftarrow$ \KwDequeue Action \KwFrom waiting\; \label{algo:mpicoordinator:dequeue}
 
                 \If{a.type = transmit}{ \label{line:action-transmit}
                     interferers $\leftarrow$ empty list of node identifiers\;
                     \ForEach{t $\in$ transmits \KwWhere t $\neq$ a}{
-                        \If{a.end $\geq$ t.start \KwAnd a.start $\leq$ t.end}{
-                            \tcp{Transmissions intersect}
+                        \If{a.end $\geq$ t.start \KwAnd a.start $\leq$ t.end}{ \label{algo:mpicoordinator:transmitintersects}
+                            \tcp{Transmissions intersect.}
                             \KwAppend t.source \KwTo interferers\;
                         }
                     }
@@ -127,9 +152,10 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
                         \If{a.start $\geq$ l.start \KwAnd a.end $\leq$ l.end}{
                             probability $\leftarrow$ $P_p$(l.source, a.source, interferers, |a.packet|)\;
                             should-receive $\leftarrow$ randomly choose based on probability\;
-                            \If{should-receive}{
-                                l.end = a.end\;
-                                l.packet = a.packet\;
+                            \If{should-receive}{ \label{algo:mpicoordinator:shouldreceive}
+                                \KwSend a.end \KwTo l.source\; 
+                                \KwSend a.packet \KwTo l.source\;
+                                \KwRemove l \KwFrom waiting\;
                             }
                         }
                     }
@@ -137,14 +163,14 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
 
                 \ElseIf{a.type = listen}{ \label{line:action-listen}
                     \KwSend a.end \KwTo a.source\;
-                    \KwSend a.packet \KwTo a.source\;
+                    \KwSend \KwNull \KwTo a.source\; \label{algo:mpicoordinator:sendnull}
                 }
                 \tcp{Sleep/Inform actions are handled implicitly.}
             }
             \;
             \tcp{Part 3. Clean transmits list.}            
             start-time $\leftarrow$ earliest start time of all actions \KwInn waiting\;
-            \ForEach{t $\in$ transmits \KwWhere t.end < start-time}{
+            \ForEach{t $\in$ transmits \KwWhere t.end < start-time}{ \label{algo:mpicoordinator:cleantransmits}
                 \KwRemove t \KwFrom transmits\;
             }
         }
@@ -155,13 +181,58 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
 
 \clearpage
 
+\todo[inline]{we can never receive an earlier action from a node}
+
+\paragraph{Part 1} \
+
+\begin{itemize}
+    \item The \KwAwait keyword is blocking.
+    \item Only transmit actions need special handling at Part 1. Any action we received is added to the waiting queue, and at \autoref{algo:mpicoordinator:message-transmit} we add any transmit actions to the transmits list.
+    \item After receiving a single message the Coordinator moves to Part 2, where we process all possible messages while the condition at \autoref{algo:mpicoordinator:whileactions} is satisfied.
+\end{itemize}
+
+\paragraph{Part 2} \
+
+\begin{itemize}
+    \item Sleep and inform actions are handled implicitly as we simply dequeue the actions at \autoref{algo:mpicoordinator:dequeue}. No further processing is needed, as the actions only have to be present on the waiting queue, to satisfy the condition at \autoref{algo:mpicoordinator:whileactions}.
+    \item As transmit actions always are processed before listen actions, we can safely remove listen actions from the queue when processing a transmit action, and process the listen action by sending the end time and packet of the transmit action to the source node of the listen action, should the packet be received by the node at \autoref{algo:mpicoordinator:shouldreceive}.
+    \item If we dequeue a listen action at \autoref{algo:mpicoordinator:dequeue}, we know that no packets were received for the action, and we can send \KwNull to the source node of the listen action at \autoref{algo:mpicoordinator:sendnull}.
+    \item It is assumed that a transmit action will interfere with another transmit action if the time intervals of the two actions intersect at any time (\autoref{algo:mpicoordinator:transmitintersects}).
+\end{itemize}
+
+\paragraph{Part 3} \
+
+\begin{itemize}
+    \item Any transmit actions in the transmits can be removed when it can no longer interfere with other transmit actions. At \autoref{algo:mpicoordinator:cleantransmits} any transmit actions in the transmits list is removed if the end time is before the earliest start time of all actions in the waiting queue.
+\end{itemize}
+
+\clearpage
+
+\begin{eq}\label{eq:noisepower}
+    P_{NI,dB}(n_r, m_t, \text{nodes}_t) = 10 \log_{10}\left( 10^{\frac{P_{N,dB}}{10}} + \mathlarger{\sum}\limits_{m \in \text{nodes}_t}  10^{\frac{\text{RSSI}_{\text{dBm}}(n_{r}, m)}{10}} \right)
+\end{eq}
+
+\begin{eq}
+    \gamma_{dB}(n_r, m_t, \text{nodes}_t) = \text{RSSI}_{\text{dBm}}(n_r, m_t) - P_{NI,dB}(n_r, m_t, \text{nodes}_t)
+\end{eq}
+
+\begin{eq}
+    P_b(n_r, m_t, \text{nodes}_t) = \frac{1}{2}\text{erfc} \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{dB}(n_r, m_t, \text{nodes}_t)}{10}}}{2} \right)} \right)
+\end{eq}
+
+\begin{eq}
+    P_p(n_r, m_t, \text{nodes}_t, \text{packetsize}, \text{time}) = 1 - \left( 1 - P_b(n_r, m_t, \text{nodes}_t) \right) ^{\text{packetsize}}
+\end{eq}
+
+\clearpage
+
 \begin{figure}
     \centering
 % Diagram
 \begin{tikzpicture}[every node/.style={font=\normalsize,minimum height=0.5cm,minimum width=0.75cm},]
 
 % Matrix
-\node [matrix,very thin,column sep=0.35cm,row sep=0.2cm] (matrix) at (0,0) {
+\node [matrix,very thin,column sep=0.5cm,row sep=0.2cm] (matrix) at (0,0) {
 
 \node(0,0) (t00 left) {}; &  \node(0,0) (\Node{1} 0) {}; &&  \node(0,0) (\Node{2} 0) {}; &&  \node(0,0) (\Node{3} 0) {}; &&  \node(0,0) (\Node{4} 0) {}; &&  \node(0,0) (\Node{5} 0) {}; & \node(0,0) (t00 right) {}; & \node(0,0) (legend 00) {}; \\
 \node(0,0) (t01 left) {}; &  \node(0,0) (\Node{1} 1) {}; &&  \node(0,0) (\Node{2} 1) {}; &&  \node(0,0) (\Node{3} 1) {}; &&  \node(0,0) (\Node{4} 1) {}; &&  \node(0,0) (\Node{5} 1) {}; & \node(0,0) (t01 right) {}; & \node(0,0) (legend 01) {}; \\
@@ -222,44 +293,44 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
     %(t05 left) node[left] {5} -- (t05 right)% omit
     %
     (t06 left) node[left] {6} -- (t06 right)%
-    (t06 left) -- (t06 right) node[draw,fill=white,right,text width=6.89cm] {%
-        time$_1$ $\leftarrow$ 6 \\ %
-        waiting $\leftarrow \{ l_{2,5}, t_{1,6}, l_{3,6}, s_{2,7}, s_{4,8}, l_{5,9} \ldots \}$ \\ %
-        transmits $\leftarrow \{ t_{4,3}, t_{1,6}, t_{1,10} \}$ %
-    }%
+    %(t06 left) -- (t06 right) node[draw,fill=white,right,text width=6.89cm] {%
+    %    time$_1$ $\leftarrow$ 6 \\ %
+    %    waiting $\leftarrow \{ l_{2,5}, t_{1,6}, l_{3,6}, s_{2,7}, s_{4,8}, l_{5,9} \ldots \}$ \\ %
+    %    transmits $\leftarrow \{ t_{4,3}, t_{1,6}, t_{1,10} \}$ %
+    %}%
     %
     %(t07 left) node[left] {7} -- (t07 right)% omit
     %(t08 left) node[left] {8} -- (t08 right)% omit
     %(t09 left) node[left] {9} -- (t09 right)% omit
     %
     (t10 left) node[left] {10} -- (t10 right)%
-    (t10 left) -- (t10 right) node[draw,fill=white,right,text width=6.89cm] {%
-        time$_2$ $\leftarrow$ 10 \\ %
-        waiting $\leftarrow \{ t_{1,10}, t_{2,10}, l_{3,10}, t_{5,12}, i_{1,12} \ldots \}$ \\ %
-        transmits $\leftarrow \{ t_{1,10}, t_{2,10}, t_{5,12} \}$ %
-    }%
+    %(t10 left) -- (t10 right) node[draw,fill=white,right,text width=6.89cm] {%
+    %    time$_2$ $\leftarrow$ 10 \\ %
+    %    waiting $\leftarrow \{ t_{1,10}, t_{2,10}, l_{3,10}, t_{5,12}, i_{1,12} \ldots \}$ \\ %
+    %    transmits $\leftarrow \{ t_{1,10}, t_{2,10}, t_{5,12} \}$ %
+    %}%
     %
     %(t11 left) node[left] {11} -- (t11 right)% omit
     %(t12 left) node[left] {12} -- (t12 right)% omit
     %(t13 left) node[left] {13} -- (t13 right)% omit
     %
     (t14 left) node[left] {14} -- (t14 right)%
-    (t14 left) -- (t14 right) node[draw,fill=white,right,text width=6.89cm] {%
-    time$_3$ $\leftarrow$ 14 \\ %
-    waiting $\leftarrow \{ i_{3,13}, l_{4,14}, l_{2,14}, s_{1,14}, t_{3,16} \ldots \}$ \\ %
-    transmits $\leftarrow \{ t_{1,10}, t_{2,10}, t_{5,12}, t_{3,16} \}$ %
-    }%
+    %(t14 left) -- (t14 right) node[draw,fill=white,right,text width=6.89cm] {%
+    %time$_3$ $\leftarrow$ 14 \\ %
+    %waiting $\leftarrow \{ i_{3,13}, l_{4,14}, l_{2,14}, s_{1,14}, t_{3,16} \ldots \}$ \\ %
+    %transmits $\leftarrow \{ t_{1,10}, t_{2,10}, t_{5,12}, t_{3,16} \}$ %
+    %}%
     %   
     %(t15 left) node[left] {15} -- (t15 right)% omit
     %(t16 left) node[left] {16} -- (t16 right)% omit
     %(t17 left) node[left] {17} -- (t17 right)% omit
     %
     (t18 left) node[left] {18} -- (t18 right)%
-    (t18 left) -- (t18 right) node[draw,fill=white,right,text width=6.89cm] {%
-    time$_4$ $\leftarrow$ 18 \\ %
-    waiting $\leftarrow \{ t_{4,17}, t_{2,18}, t_{5,18}, l_{1,18}, s_{1,20} \ldots \}$ \\ %
-    transmits $\leftarrow \{ t_{3,16}, t_{4,17}, t_{2,18}, t_{5,18}, t_{3,20} \}$ %
-    }%
+    %(t18 left) -- (t18 right) node[draw,fill=white,right,text width=6.89cm] {%
+    %time$_4$ $\leftarrow$ 18 \\ %
+    %waiting $\leftarrow \{ t_{4,17}, t_{2,18}, t_{5,18}, l_{1,18}, s_{1,20} \ldots \}$ \\ %
+    %transmits $\leftarrow \{ t_{3,16}, t_{4,17}, t_{2,18}, t_{5,18}, t_{3,20} \}$ %
+    %}%
     %
     %(t19 left) node[left] {19} -- (t19 right)% omit
     %(t20 left) node[left] {20} -- (t20 right)% omit
@@ -318,7 +389,7 @@ In the hardware functions we utilise a special keyword \singlequote{\KwNow}, whi
 \caption{Message Sequence Chart of an execution.}\label{tikz:coordinatormsc}
 \end{figure}
 
-$t_{1,6}$: transmission from \Node{1} ending at time 6. \medbreak
+\Action{t}{1}{6}: transmission from \Node{1} ending at time 6. \medbreak
 
 It is assumed that the example in \autoref{tikz:coordinatormsc} executes in real-time. For the sake of simplicity, we divide the time in to slots, where an action is received and queued in the same time slot as the action starts (e.g., the local time of the sending node). \smallbreak
 
@@ -331,6 +402,7 @@ The horizontal, dotted, lines at time slots 6, 10, 14, and 18 represents snapsho
 %waiting $\leftarrow \{ 
 %t_{4,3}
 %i_{5,3}
+
 %l_{2,5}
 %t_{1,6}
 %l_{3,6}
@@ -365,14 +437,18 @@ The horizontal, dotted, lines at time slots 6, 10, 14, and 18 represents snapsho
 With a set of $N$ unique node identifiers, $\text{nodes} = \{ 1, 2, 3, \ldots, N \}$:
 
 \begin{enumerate}
-    \item $\forall \text{n} \in \text{nodes}, \exists!\text{a} \in \text{waiting}.\ \text{a.source = n}\ \wedge\ \text{a.type = listen}$
+    \item $\forall \text{n} \in \text{nodes}.\ \text{exists at most one}\ \text{a} \in \text{waiting such that} \ \text{a.source = n}\ \land\ \text{a.type = listen}$
+    %\item $\forall \text{n} \in \text{nodes}.\\ \quad ((\nexists \text{a} \in \text{waiting}.\ \text{a.source = n}\ \land\ \text{a.type = listen})\ \lor\\ \quad (\exists! \text{b} \in \text{waiting}.\ \text{b.source = n}\ \land\ \text{b.type = listen}))$
+     
+    %\exists^{\leq 1}\text{a} \in \text{waiting}.\ \text{a.source = n}\ \land\ \text{a.type = listen}$
     \begin{itemize}
-        \item There is only one action with the listen type from each node in the waiting queue.
+        \item There is at most one action with the listen type from each node in the waiting queue.
     \end{itemize}
-    \item $\forall \text{a}, \forall \text{b} \in \text{waiting}.\ \text{a.source = b.source}\ \wedge\ \text{a.type = listen}\ \wedge\ \text{b.end} \leq \text{a.start}$
+    \item $\forall \text{a}, \forall \text{b} \in \text{waiting}.\ \text{a.source = b.source}\ \land\ \text{a.type = listen} \implies \text{b.end} \leq \text{a.start}$
     \begin{itemize}
         \item If a node has a listen action in the waiting queue, no other actions may be present after this.
     \end{itemize}
+    \item $\forall \text{a} \in \text{waiting}.\ \exists \text{b} \in \text{transmits}.\ \text{a.type = transmit} \implies \text{a} = \text{b} $ 
 \end{enumerate}
 
 The \texttt{Listen} hardware enforce 1 and 2 at \autoref{algo:hwfuncslisten:awaitend} in \autoref{algo:hwfuncslisten}, as the \KwAwait keyword is blocking while awaiting a response from the Coordinator. \medbreak
@@ -380,7 +456,10 @@ The \texttt{Listen} hardware enforce 1 and 2 at \autoref{algo:hwfuncslisten:awai
 \todo[inline]{%
 \textbf{TODO}
 
-Show that sleep/inform/listen does not interfere with other actions.
+Show that sleep/inform/listen does not interfere with other actions.\medbreak
+
+For every a on waiting list if a type is transmit then everybody else who can transmit on the same time is also on the transmit list.
+Every b that intersects still belong to the transmit list.\medbreak
 
 Suppose at time t in the real execution a listen ends and gets a packet with some probability computed with our distribution. We now want to prove that we return the packet with the same probability in the virtual time.
 }
@@ -392,3 +471,8 @@ Suppose at time t in the real execution a listen ends and gets a packet with som
 %
 %
 %
+
+
+
+
+\input{sections/xx-mpi/02-linkmodel.tex}
