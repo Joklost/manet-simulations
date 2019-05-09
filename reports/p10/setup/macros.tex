@@ -6,84 +6,84 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Creates the aau titlepage
 \newcommand{\aautitlepage}[3]{%
-  {
-    %set up various length
-    \ifx\titlepageleftcolumnwidth\undefined
-      \newlength{\titlepageleftcolumnwidth}
-      \newlength{\titlepagerightcolumnwidth}
-    \fi
-    \setlength{\titlepageleftcolumnwidth}{0.5\textwidth-\tabcolsep}
-    \setlength{\titlepagerightcolumnwidth}{\textwidth-2\tabcolsep-\titlepageleftcolumnwidth}
-    %create title page
-    \thispagestyle{empty}
-    \noindent%
-    \begin{tabular}{@{}ll@{}}
-      \parbox{\titlepageleftcolumnwidth}{
-        \iflanguage{danish}{%
-          \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_da}
-        }{%
-          \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_en}
+    {
+            %set up various length
+            \ifx\titlepageleftcolumnwidth\undefined
+                \newlength{\titlepageleftcolumnwidth}
+                \newlength{\titlepagerightcolumnwidth}
+            \fi
+            \setlength{\titlepageleftcolumnwidth}{0.5\textwidth-\tabcolsep}
+            \setlength{\titlepagerightcolumnwidth}{\textwidth-2\tabcolsep-\titlepageleftcolumnwidth}
+            %create title page
+            \thispagestyle{empty}
+            \noindent%
+            \begin{tabular}{@{}ll@{}}
+                \parbox{\titlepageleftcolumnwidth}{
+                    \iflanguage{danish}{%
+                        \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_da}
+                    }{%
+                        \includegraphics[width=\titlepageleftcolumnwidth]{figures/aau_logo_en}
+                    }
+                }  &
+                \parbox{\titlepagerightcolumnwidth}{\raggedleft\sf\small
+                    #2
+                }\bigskip \\
+                #1 &
+                \parbox[t]{\titlepagerightcolumnwidth}{%
+                    \textbf{Abstract:}\bigskip\par
+                    \fbox{\parbox{\titlepagerightcolumnwidth-2\fboxsep-2\fboxrule}{%
+                            #3
+                        }}
+                }         \\
+            \end{tabular}
+            \vfill
+            \iflanguage{danish}{%
+                \noindent{\footnotesize\emph{Rapportens indhold er frit tilgængeligt, men offentliggørelse (med kildeangivelse) må kun ske efter aftale med forfatterne.}}
+            }{%
+                \noindent{\footnotesize\emph{The content of this report is freely available, but publication (with reference) may only be pursued due to agreement with the author.}}
+            }
+            \clearpage
         }
-      } &
-      \parbox{\titlepagerightcolumnwidth}{\raggedleft\sf\small
-        #2
-      }\bigskip\\
-       #1 &
-      \parbox[t]{\titlepagerightcolumnwidth}{%
-      \textbf{Abstract:}\bigskip\par
-        \fbox{\parbox{\titlepagerightcolumnwidth-2\fboxsep-2\fboxrule}{%
-          #3
-        }}
-      }\\
-    \end{tabular}
-    \vfill
-    \iflanguage{danish}{%
-      \noindent{\footnotesize\emph{Rapportens indhold er frit tilgængeligt, men offentliggørelse (med kildeangivelse) må kun ske efter aftale med forfatterne.}}
-    }{%
-      \noindent{\footnotesize\emph{The content of this report is freely available, but publication (with reference) may only be pursued due to agreement with the author.}}
-    }
-    \clearpage
-  }
 }
 
 \newcommand*{\inlinegraphic}[1]{%
     \raisebox{-.02\baselineskip}{%
         \includegraphics[
-        height=\baselineskip,
-        width=\baselineskip,
-        keepaspectratio,
+            height=\baselineskip,
+            width=\baselineskip,
+            keepaspectratio,
         ]{#1}%
     }%
 }
 
 %Create english project info
 \newcommand{\englishprojectinfo}[8]{%
-  \parbox[t]{\titlepageleftcolumnwidth}{
-    \textbf{Title:}\\ #1\bigskip\par
-    \textbf{Theme:}\\ #2\bigskip\par
-    \textbf{Project Period:}\\ #3\bigskip\par
-    \textbf{Project Group:}\\ #4\bigskip\par
-    \textbf{Participant(s):}\\ #5\bigskip\par
-    \textbf{Supervisor(s):}\\ #6\bigskip\par
-    \textbf{Copies:} #7\bigskip\par
-    \textbf{Page Numbers:} \pageref{LastPage}\bigskip\par
-    \textbf{Date of Completion:}\\ #8
-  }
+    \parbox[t]{\titlepageleftcolumnwidth}{
+        \textbf{Title:}\\ #1\bigskip\par
+        \textbf{Theme:}\\ #2\bigskip\par
+        \textbf{Project Period:}\\ #3\bigskip\par
+        \textbf{Project Group:}\\ #4\bigskip\par
+        \textbf{Participant(s):}\\ #5\bigskip\par
+        \textbf{Supervisor(s):}\\ #6\bigskip\par
+        \textbf{Copies:} #7\bigskip\par
+        \textbf{Page Numbers:} \pageref{LastPage}\bigskip\par
+        \textbf{Date of Completion:}\\ #8
+    }
 }
 
 %Create danish project info
 \newcommand{\danishprojectinfo}[8]{%
-  \parbox[t]{\titlepageleftcolumnwidth}{
-    \textbf{Titel:}\\ #1\bigskip\par
-    \textbf{Tema:}\\ #2\bigskip\par
-    \textbf{Projektperiode:}\\ #3\bigskip\par
-    \textbf{Projektgruppe:}\\ #4\bigskip\par
-    \textbf{Deltagere:}\\ #5\bigskip\par
-    \textbf{Vejleder:}\\ #6\bigskip\par
-    \textbf{Oplagstal:} #7\bigskip\par
-    \textbf{Sidetal:} \pageref{LastPage}\bigskip\par
-    \textbf{Afleveringsdato:}\\ #8
-  }
+    \parbox[t]{\titlepageleftcolumnwidth}{
+        \textbf{Titel:}\\ #1\bigskip\par
+        \textbf{Tema:}\\ #2\bigskip\par
+        \textbf{Projektperiode:}\\ #3\bigskip\par
+        \textbf{Projektgruppe:}\\ #4\bigskip\par
+        \textbf{Deltagere:}\\ #5\bigskip\par
+        \textbf{Vejleder:}\\ #6\bigskip\par
+        \textbf{Oplagstal:} #7\bigskip\par
+        \textbf{Sidetal:} \pageref{LastPage}\bigskip\par
+        \textbf{Afleveringsdato:}\\ #8
+    }
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,17 +95,17 @@
 \def\theoremframecommand{{\color{aaublue!50}\vrule width 5pt \hspace{5pt}}}
 \newshadedtheorem{exa}{Example}[chapter]
 \newenvironment{example}[1]{%
-		\begin{exa}[#1]
-}{%
-		\end{exa}
+    \begin{exa}[#1]
+        }{%
+    \end{exa}
 }
 
 % Code listing macros
 \newenvironment{java}[3][]
 {\VerbatimEnvironment
-\begin{listing}[H]
-    \caption{#2}\label{#3}
-    \begin{minted}[
+    \begin{listing}[H]
+        \caption{#2}\label{#3}
+        \begin{minted}[
         linenos=true,
         breaklines=true,
         breakautoindent=true,
@@ -117,9 +117,9 @@
 % Code listing macros
 \newenvironment{cpp}[3][]
 {\VerbatimEnvironment
-\begin{listing}[ht]
-    \caption{#2}\label{#3}
-    \begin{minted}[
+    \begin{listing}[ht]
+        \caption{#2}\label{#3}
+        \begin{minted}[
         linenos=true,
         breaklines=true,
         breakautoindent=true,
@@ -130,9 +130,9 @@
 
 \newenvironment{csharp}[3][]
 {\VerbatimEnvironment
-\begin{listing}[H]
-    \caption{#2}\label{#3}
-    \begin{minted}[
+    \begin{listing}[H]
+        \caption{#2}\label{#3}
+        \begin{minted}[
         linenos=true,
         breaklines=true,
         breakautoindent=true,
@@ -143,9 +143,9 @@
 
 \newenvironment{xml}[3][]
 {\VerbatimEnvironment
-\begin{listing}[!htb]
-    \caption{#2}\label{#3}
-    \begin{minted}[
+    \begin{listing}[!htb]
+        \caption{#2}\label{#3}
+        \begin{minted}[
         linenos=true,
         breaklines=true,
         breakautoindent=true,
@@ -161,7 +161,7 @@
 }
 
 % this is needed, or the \renewcommand for the \listingautorefname will fail
-\newcommand{\listingautorefname}{Code} 
+\newcommand{\listingautorefname}{Code}
 
 \addto\extrasenglish{
     \renewcommand{\chapterautorefname}{Chapter}
@@ -198,6 +198,7 @@
 \SetKw{KwRemove}{remove}
 \SetKw{KwAnd}{and}
 \SetKw{KwOr}{or}
+\SetKw{KwIn}{in}
 \SetKw{KwTo}{to}
 \SetKw{KwTransmit}{transmit}
 \SetKw{KwListen}{listen}
@@ -214,24 +215,233 @@
 \SetKw{KwFind}{find}
 
 \newcommand{\Node}[1]{Node #1}
+
+\newcommand{\NodeMatrix}[1]{%
+    \let\matrixcontent\empty
+    \foreach \j in {0,...,#1,end}{%
+            \foreach \i in {tleft,sep0,\Node{1},sep1,\Node{2},sep2,\Node{3},sep3,\Node{4},sep4,\Node{5},sep5,tright,legend1,legend2} {%
+                    \begingroup\edef\x{\endgroup\noexpand\gappto\noexpand\matrixcontent{|(\i-\j)| \&}}\x
+                }%
+            \gappto\matrixcontent{\\}%
+        }
+
+    %% Matrix
+    \matrix (matrix) at (0,0) [matrix of nodes, ampersand replacement=\&,very thin,column sep=0.1cm,row sep=0.2cm] {%
+        \matrixcontent%
+    };
+
+    % Node labels
+    \fill
+    (\Node{1}-0) node[draw,fill=white] {\Node{1}}%
+    (\Node{2}-0) node[draw,fill=white] {\Node{2}}%
+    (\Node{3}-0) node[draw,fill=white] {\Node{3}}%
+    (\Node{4}-0) node[draw,fill=white] {\Node{4}}%
+    (\Node{5}-0) node[draw,fill=white] {\Node{5}}%
+    ;
+
+    % Vertical lifelines
+    \draw [dashed]
+    (\Node{1}-0) -- (\Node{1}-end)%
+    (\Node{2}-0) -- (\Node{2}-end)%
+    (\Node{3}-0) -- (\Node{3}-end)%
+    (\Node{4}-0) -- (\Node{4}-end)%
+    (\Node{5}-0) -- (\Node{5}-end)%
+    ;
+
+    % Legend
+    \filldraw[fill=green!20] (legend1-0.north west) rectangle (legend1-0.south east) node[midway] {$t$};
+    \fill (legend2-0) node[right=0.28cm] {Transmit};
+    \filldraw[fill=blue!20] (legend1-1.north west) rectangle (legend1-1.south east) node[midway] {$l$};
+    \fill (legend2-1) node[right=0.28cm] {Listen};
+    \filldraw[fill=white!20] (legend1-2.north west) rectangle (legend1-2.south east) node[midway] {$s$};
+    \fill (legend2-2) node[right=0.28cm] {Sleep};
+    \filldraw[fill=gray!20] (legend1-3.south west) rectangle (legend1-3.south east) node[above,midway] {$i$};
+    \fill (legend2-3) node[right=0.28cm] {Inform};
+
+    \draw[thick,dash dot] %
+    (legend1-5.north west) -- (legend1-5.west) -- %
+    (legend1-5.center) -- (legend1-5.south) -- %
+    (legend1-5.south east) -- (legend1-5.north east) -- %
+    (legend2-5.north) %
+    node[midway,right=0.5cm] {Processed};
+    %\draw[thick,dash dot] (legend1-4.west) -- (legend2-4) node[midway,right=0.65cm] {Processed};
+    %\draw[thick] (legend1-6.west) -- (legend2-6) node[midway,right=0.65cm] {Submitted}; 
+
+    \draw[thick] %
+    (legend1-6.north west) -- (legend1-6.west) -- %
+    (legend1-6.center) -- (legend1-6.south) -- %
+    (legend1-6.south east) -- (legend1-6.north east) -- %
+    (legend2-6.north) %
+    node[midway,right=0.5cm] {Submitted};
+}
+
 \newcommand{\Action}[3]{\ensuremath{#1^{#2}_{#3}}}
+\newcommand{\mNode}[1]{\ensuremath{n_#1}}
+\newcommand{\nid}{\@empty}
 
 \newcommand{\Transmit}[3]
 {
-    \filldraw[fill=green!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {\Action{t}{#1}{#3}};
+    \filldraw[fill=green!20] (\Node{#1}-#2.west) rectangle (\Node{#1}-#3.east) node[midway] {\Action{t}{#1}{#3}};
 }
 
 \newcommand{\Listen}[3]
 {
-    \filldraw[fill=blue!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {\Action{l}{#1}{#3}};
+    \filldraw[fill=blue!20] (\Node{#1}-#2.west) rectangle (\Node{#1}-#3.east) node[midway] {\Action{l}{#1}{#3}};
 }
 
 \newcommand{\Sleep}[3]
 {
-    \filldraw[fill=white!20] (\Node{#1} #2.west) rectangle (\Node{#1} #3.east) node[midway] {\Action{s}{#1}{#3}};
+    \filldraw[fill=white!20] (\Node{#1}-#2.west) rectangle (\Node{#1}-#3.east) node[midway] {\Action{s}{#1}{#3}};
 }
 
 \newcommand{\Inform}[2]
 {
-    \filldraw[fill=gray!20] (\Node{#1} #2.west) rectangle (\Node{#1} #2.east) node[midway,above,fill=white] {\Action{i}{#1}{#2}};
+    \filldraw[fill=gray!20] (\Node{#1}-#2.west) rectangle (\Node{#1}-#2.east) node[midway,above,fill=white] {\Action{i}{#1}{#2}};
 }
+
+\newcommand{\CoordinatorFigure}[1]{%
+    \begin{tikzpicture}[every node/.style={font=\normalsize,minimum height=0.5cm,minimum width=0.75cm},]
+        \NodeMatrix{20}
+
+        % Horizontal time lines
+        \draw [dotted]
+        %(t01 left) node[left] {1} -- (t01 right)% omit
+        %
+        (tleft-2) node[left] {2} -- (tright-2)% leave this in
+        %
+        %(t03 left) node[left] {3} -- (t03 right)% omit
+        %(t04 left) node[left] {4} -- (t04 right)% omit
+        %(t05 left) node[left] {5} -- (t05 right)% omit
+        %
+        (tleft-6) node[left] {6} -- (tright-6)% leave this in
+        %(t06 left) -- (t06 right) node[draw,fill=white,right,text width=6.89cm] {%
+        %    time$_1$ $\leftarrow$ 6 \\ %
+        %    waiting $\leftarrow \{ \Action{l}{2}{5}, \Action{t}{1}{6}, \Action{l}{3}{6}, \Action{s}{2}{7}, \Action{s}{4}{8}, \Action{l}{5}{9} \ldots \}$ \\ %
+        %    transmits $\leftarrow \{ \Action{t}{4}{3}, \Action{t}{1}{6}, \Action{t}{1}{10} \}$ %
+        %}%
+        %
+        %(t07 left) node[left] {7} -- (t07 right)% omit
+        %(t08 left) node[left] {8} -- (t08 right)% omit
+        %(t09 left) node[left] {9} -- (t09 right)% omit
+        %
+        (tleft-10) node[left] {10} -- (tright-10)% leave this in        
+        %%(t10 left) node[left] {10} -- (t10 right)%
+        %(t10 left) -- (t10 right) node[draw,fill=white,right,text width=6.89cm] {%
+        %    time$_2$ $\leftarrow$ 10 \\ %
+        %    waiting $\leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{l}{3}{10}, \Action{t}{5}{12}, \Action{i}{1}{12} \ldots \}$ \\ %
+        %    transmits $\leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{t}{5}{12} \}$ %
+        %}%
+        %
+        %(t11 left) node[left] {11} -- (t11 right)% omit
+        %(t12 left) node[left] {12} -- (t12 right)% omit
+        %(t13 left) node[left] {13} -- (t13 right)% omit
+        %
+        (tleft-14) node[left] {14} -- (tright-14)% leave this in        
+        %(t14 left) -- (t14 right) node[draw,fill=white,right,text width=6.89cm] {%
+        %time$_3$ $\leftarrow$ 14 \\ %
+        %waiting $\leftarrow \{ \Action{i}{3}{13}, \Action{l}{4}{14}, \Action{l}{2}{14}, \Action{s}{1}{14}, \Action{t}{3}{16} \ldots \}$ \\ %
+        %transmits $\leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{t}{5}{12}, \Action{t}{3}{16} \}$ %
+        %}%
+        %   
+        %(t15 left) node[left] {15} -- (t15 right)% omit
+        %(t16 left) node[left] {16} -- (t16 right)% omit
+        %(t17 left) node[left] {17} -- (t17 right)% omit
+        %
+        (tleft-18) node[left] {18} -- (tright-18)% leave this in              
+        %(t18 left) -- (t18 right) node[draw,fill=white,right,text width=6.89cm] {%
+        %time$_4$ $\leftarrow$ 18 \\ %
+        %waiting $\leftarrow \{ \Action{t}{4}{17}, \Action{t}{2}{18}, \Action{t}{5}{18}, \Action{l}{1}{18}, \Action{s}{1}{20} \ldots \}$ \\ %
+        %transmits $\leftarrow \{ \Action{t}{3}{16}, \Action{t}{4}{17}, \Action{t}{2}{18}, \Action{t}{5}{18}, \Action{t}{3}{20} \}$ %
+        %}%
+        %
+        %(t19 left) node[left] {19} -- (t19 right)% omit
+        %(t20 left) node[left] {20} -- (t20 right)% omit
+        ;
+
+        \renewcommand{\nid}{\@empty}
+        %Node{1}{
+        \renewcommand{\nid}{1}
+        \Transmit{\nid}{2}{5}
+        \Transmit{\nid}{6}{10}
+
+        \Inform{\nid}{12}
+        \Sleep{\nid}{13}{14}
+        \Listen{\nid}{14}{18}
+        \Sleep{\nid}{18}{20}
+        %}
+
+        %Node{2}{
+        \renewcommand{\nid}{2}
+        \Listen{\nid}{2}{5}
+        \Sleep{\nid}{5}{7}
+
+        \Transmit{\nid}{8}{10}
+        \Listen{\nid}{10}{14}
+        \Transmit{\nid}{16}{18}
+        \Inform{\nid}{20}
+        %}
+
+        %Node{3}{
+        \renewcommand{\nid}{3}
+        \Listen{\nid}{1}{6}
+
+        \Listen{\nid}{7}{10}
+        \Inform{\nid}{13}
+        \Transmit{\nid}{14}{16}
+        \Transmit{\nid}{18}{20}
+        %}
+
+        %Node{4}{
+        \renewcommand{\nid}{4}
+        \Transmit{\nid}{1}{3}
+        \Sleep{\nid}{4}{8}
+
+        \Listen{\nid}{9}{14}
+        \Transmit{\nid}{15}{17}
+        \Listen{\nid}{18}{20}
+        %}
+
+        %Node{5}{
+        \renewcommand{\nid}{5}
+        \Inform{\nid}{3}
+        \Sleep{\nid}{5}{6}
+        \Listen{\nid}{6}{9}
+
+        \Transmit{\nid}{10}{12}
+        \Transmit{\nid}{16}{18}
+        \Inform{\nid}{20}
+        %}
+
+        #1
+    \end{tikzpicture}
+}
+
+
+% \newcommand{\PatternFill}[3]
+% {
+%   \fill[pattern=north west lines, pattern color=gray,opacity=0.75] (\Node{#1}-#2.west) rectangle (\Node{#1}-#3.east);
+% }
+
+% \newcommand{\xTransmit}[3]
+% {
+%   \Transmit{#1}{#2}{#3}
+%   \PatternFill{#1}{#2}{#3}
+% }
+
+% \newcommand{\xListen}[3]
+% {
+%   \Listen{#1}{#2}{#3}
+%   \PatternFill{#1}{#2}{#3}
+% }
+
+% \newcommand{\xSleep}[3]
+% {
+%   \Sleep{#1}{#2}{#3}
+%   \PatternFill{#1}{#2}{#3}
+% }
+
+% \newcommand{\xInform}[2]
+% {
+%   \filldraw[fill=gray!20] (\Node{#1}-#2.west) rectangle (\Node{#1}-#2.east) node[midway,above,fill=white,pattern=north west lines, pattern color=gray,opacity=0.6] {\Action{i}{#1}{#2}};
+%   %\PatternFill{#1}{#2}{#3}
+% }

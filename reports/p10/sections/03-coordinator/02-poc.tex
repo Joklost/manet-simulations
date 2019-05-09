@@ -1,0 +1,237 @@
+\clearpage
+
+\section{Proof}
+
+\subsection{Invariants}
+
+With a set of $N$ unique node identifiers, $\text{nodes} = \{ 1, 2, 3, \ldots, N \}$:
+
+\begin{enumerate}
+    \item For all $\text{n} \in \text{nodes}$, there exists at most one $\text{a} \in \text{waiting}$ such that a.source = n and a.type = listen.
+          %\item $\forall \text{n} \in \text{nodes}.\\ \quad ((\nexists \text{a} \in \text{waiting}.\ \text{a.source = n}\ \land\ \text{a.type = listen})\ \lor\\ \quad (\exists! \text{b} \in \text{waiting}.\ \text{b.source = n}\ \land\ \text{b.type = listen}))$
+
+          %\exists^{\leq 1}\text{a} \in \text{waiting}.\ \text{a.source = n}\ \land\ \text{a.type = listen}$
+          \begin{itemize}
+              \item There is at most one action with the listen type from each node in the waiting queue.
+          \end{itemize}
+    \item For all a, b $\in$ waiting, if a.source = b.source and a.type = listen then b.end $\leq$ a.start.
+    % $\forall \text{a}, \forall \text{b} \in \text{waiting}.\ \text{a.source = b.source}\ \land\ \text{a.type = listen} \implies \text{b.end} \leq \text{a.start}$
+          \begin{itemize}
+              \item If a node has a listen action in the waiting queue, no other actions may be present after this.
+          \end{itemize}
+    \item For all a $\in$ waiting, if a.type = transmit then a $\in$ transmits.
+    
+    %$\forall \text{a} \in \text{waiting}.\ \exists \text{b} \in \text{transmits}.\ \text{a.type = transmit} \implies \text{a} = \text{b} $
+          \begin{itemize}
+              \item If a node has a transmit action on the waiting queue, that action must be present on the transmits list.
+          \end{itemize}
+
+    %\item For all t $\in$ transmits, if a.type = transmit then 
+\end{enumerate}
+
+%The \texttt{Listen} hardware enforce 1 and 2 at \autoref{algo:hwfuncslisten:awaitend} in \autoref{algo:hwfuncslisten}, as the \KwAwait keyword is blocking while awaiting a response from the Coordinator. \medbreak
+Suppose that at a point in time $t$ in a real-time execution a listen actions ends, and receives a packet with some probability computed, using the packet error probability function $P_p$. With the invariants outlined above, we want to prove that the packet would be received with the same probability in a virtual-time execution.
+
+\todo[inline]{%
+    \textbf{NOTES}
+
+    maybe add clean-up property.
+
+    For every a on waiting list if a type is transmit then everybody else who can transmit on the same time is also on the transmit list. Every b that intersects still belong to the transmit list.\smallbreak
+
+    Show that transmission t will always be there prior to handling l, and if they intersect, we will only handle t when l is on the queue? \smallbreak
+
+    Any action we receive will always have a start time later than the last end time of any action from the same node.
+}
+
+\subsection{Sample executions}
+
+\todo[inline]{explain cut}
+
+To illustrate snapshots of a given point in the execution of the Coordinator we introduce the concept of a cut. A cut consist of two horizontal lines (\tikz[baseline=-0.6ex]{\draw[thick,dash dot] (0,0) -- (1,0);} and \tikz[baseline=-0.6ex]{\draw[thick] (0,0) -- (1,0);})
+
+\subsubsection{Original}
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+
+    }
+
+    \caption{Coordinator 0}\label{tikz:coordinatormsc0}
+\end{figure}
+
+\subsubsection{Cut 1: Nothing can be processed}
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+    %\draw[thick,dash dot] %
+
+    }
+
+    \caption{Coordinator 1}\label{tikz:coordinatormsc1}
+\end{figure}
+
+\subsubsection{Cut 2: Listen}
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+        % thick,dash dot
+
+        \draw[thick,dash dot] %
+        (sep0-6.center) -- (sep1-6.center) -- %
+        (sep1-5.center) -- (sep2-5.center) -- %
+        (sep2-1.center) -- (sep3-1.center) -- %
+        (sep3-4.center) -- (sep4-4.center) -- %
+        (sep4-5.center) -- (sep5-5.center) %
+        ;
+
+        \draw[thick] %
+        (sep0-10.center) -- (sep1-10.center) -- %
+        (sep1-7.center) -- (sep2-7.center) -- %
+        (sep2-6.center) -- (sep3-6.center) -- %
+        (sep3-8.center) -- (sep4-8.center) -- %
+        (sep4-9.center) -- (sep5-9.center) -- %
+        (sep5-9.center) %
+        ;
+    }
+
+    \caption{Coordinator 2}\label{tikz:coordinatormsc2}
+\end{figure}
+
+\subsubsection{Cut 3:}
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+
+    }
+
+    \caption{Coordinator 3}\label{tikz:coordinatormsc3}
+\end{figure}
+
+\subsubsection{Cut 4:}
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+
+    }
+
+    \caption{Coordinator 4}\label{tikz:coordinatormsc4}
+\end{figure}
+
+\subsubsection{Cut 5:}
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+
+    }
+
+    \caption{Coordinator 5}\label{tikz:coordinatormsc5}
+\end{figure}
+
+The diagonal path starting at time 6 represents the local time of the different nodes when the Coordinator is about to process the waiting queue. The localtime of nodes sending transmit, sleep, or inform actions set their localtime variable right after sending their actions to the Coordinator, while the localtime of a node who has sent a listen action to the Coordinator is set only after the listen action has been processed, and the actions have been removed from the waiting queue.
+
+\medbreak
+
+The configuration at time 6: \smallbreak
+%Everything below the line has not yet been received at the time. \medbreak
+
+$\text{time}_1 \leftarrow 6$
+
+%$\text{localtime}_1 \leftarrow 10, \text{localtime}_2 \leftarrow 7$
+
+$\text{waiting} \leftarrow \{%
+    %\Action{t}{4}{3}, %
+    %\Action{i}{5}{3}, %
+    %\Action{l}{2}{5}, %
+    %\Action{t}{1}{5}, %
+    \Action{l}{3}{6}, %
+    \Action{s}{5}{6}, %
+    \Action{s}{2}{7}, %
+    \Action{s}{4}{8}, %
+    \Action{l}{5}{9}, %
+    \Action{t}{1}{10} %
+    \}$
+
+$\text{transmits} \leftarrow \{ \Action{t}{4}{3}, \Action{t}{1}{6}, \Action{t}{1}{10} \}$
+
+% \medbreak
+
+% $\text{time}_2$ $\leftarrow 10$
+
+% $\text{waiting} \leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{l}{3}{10}, \Action{t}{5}{12}, \Action{i}{1}{12} \ldots \}$
+
+% $\text{transmits} \leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{t}{5}{12} \}$ %
+
+% \medbreak
+
+% $\text{time}_3$ $\leftarrow 14$
+
+% $\text{waiting} \leftarrow \{ \Action{i}{3}{13}, \Action{l}{4}{14}, \Action{l}{2}{14}, \Action{s}{1}{14}, \Action{t}{3}{16} \ldots \}$
+
+% $\text{transmits} \leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{t}{5}{12}, \Action{t}{3}{16} \}$ %
+
+% \medbreak
+
+% $\text{time}_4$ $\leftarrow 18$
+
+% $\text{waiting} \leftarrow \{ \Action{t}{4}{17}, \Action{t}{2}{18}, \Action{t}{5}{18}, \Action{l}{1}{18}, \Action{s}{1}{20} \ldots \}$
+
+% $\text{transmits} \leftarrow \{ \Action{t}{3}{16}, \Action{t}{4}{17}, \Action{t}{2}{18}, \Action{t}{5}{18}, \Action{t}{3}{20} \}$ %
+
+%\begin{tikzpicture}[every node/.style={font=\normalsize,minimum height=0.5cm,minimum width=0.75cm},]
+%    \NodeMatrix{10}
+%\end{tikzpicture}
+
+
+%\Action{t}{1}{6}: transmission from \Node{1} ending at time 6. \medbreak
+
+%It is assumed that the example in \autoref{tikz:coordinatormsc} executes in real-time. For the sake of simplicity, we divide the time in to slots, where an action is received and queued in the same time slot as the action starts (e.g., the local time of the sending node). \smallbreak
+
+%The horizontal, dotted, lines at time slots 6, 10, 14, and 18 represents snapshots of the data structures of the Coordinator after a message has been received in part 1, but before any actions are processed in part 2.
+
+%waiting $\leftarrow \{ \Action{t}{4}{3}, \Action{i}{5}{3}, \Action{l}{2}{5}, \Action{t}{1}{6}, \Action{l}{3}{6}, \Action{s}{2}{7}, \Action{s}{4}{8}, \Action{l}{5}{9}, \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{l}{3}{10}, \Action{t}{5}{12}, \Action{i}{1}{12}, \Action{i}{3}{13}, \Action{l}{4}{14}, \Action{l}{2}{14}, \Action{s}{1}{14}, \Action{t}{3}{16}, \Action{t}{4}{17}, \Action{t}{2}{18}, \Action{t}{5}{18}, \Action{l}{1}{18}, \Action{s}{1}{20}, \Action{i}{2}{20}, \Action{i}{5}{20}, \Action{t}{3}{20}, \Action{l}{4}{20} \}$
+
+%waiting $\leftarrow \{\Action{t}{4}{17}, \Action{t}{2}{18}, \Action{t}{5}{18}, \Action{l}{1}{18}, \Action{s}{1}{20}, \Action{i}{2}{20}, \Action{i}{5}{20}, \Action{t}{3}{20}, \Action{l}{4}{20} \}$
+
+%waiting $\leftarrow \{ 
+%\Action{t}{4}{3}
+%\Action{i}{5}{3}
+%\Action{l}{2}{5}
+%\Action{t}{1}{6}
+%\Action{l}{3}{6}
+%\Action{s}{2}{7}
+%\Action{s}{4}{8}
+%\Action{l}{5}{9}
+%\Action{t}{1}{10}
+
+%\Action{t}{2}{10}
+%\Action{l}{3}{10}
+%\Action{t}{5}{12}
+%\Action{i}{1}{12}
+%\Action{i}{3}{13}
+%\Action{l}{4}{14}
+%\Action{l}{2}{14}
+%\Action{s}{1}{14}
+%\Action{t}{3}{16}
+%\Action{t}{4}{17}
+%\Action{t}{2}{18}
+%\Action{t}{5}{18}
+%\Action{l}{1}{18}
+%\Action{s}{1}{20}
+%\Action{i}{2}{20}
+%\Action{i}{5}{20}
+%\Action{t}{3}{20}
+%\Action{l}{4}{20} 
+%\}$

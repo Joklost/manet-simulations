@@ -1,0 +1,27 @@
+\clearpage
+\section{Packet Error Probability}\label{sec:radiomodel}
+\todo[inline]{%
+\textbf{TODO} maybe move to RSSI chapter %
+}
+
+To simulate loss of packets during radio communication, we introduce the packet error probability. The probability for any form of error occurring during the transmission and reception of a packet through wireless radio communication. The probability for packet error is calculated using the \gls{rssi} on a link between two nodes, the size of the packet, as well as the \gls{snr}. The computations in this section are derived from 
+
+\medbreak
+
+The function $\text{RSSI}_{\text{dBm}}(n, m, t)$ returns the \gls{rssi} on the link between two nodes, $n$ and $m$, at time $t$, where a higher value (a value closer to 0) is better.
+
+\begin{eq}\label{eq:noisepower}
+    P_{NI,\text{dB}}(n_r, m_t, \text{nodes}_t, t) = 10 \log_{10}\left( 10^{\frac{P_{N,\text{dB}}}{10}} + \mathlarger{\sum}\limits_{m \in \text{nodes}_t}  10^{\frac{\text{RSSI}_{\text{dBm}}(n_r, m, t)}{10}} \right)
+\end{eq}
+
+\begin{eq}
+    \gamma_{\text{dB}}(n_r, m_t, \text{nodes}_t, t) = \text{RSSI}_{\text{dBm}}(n_r, m_t, t) - P_{NI,\text{dB}}(n_r, m_t, \text{nodes}_t, t)
+\end{eq}
+
+\begin{eq}
+    P_b(n_r, m_t, \text{nodes}_t, t) = \frac{1}{2}\text{erfc} \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{\text{dB}}(n_r, m_t, \text{nodes}_t, t)}{10}}}{2} \right)} \right)
+\end{eq}
+
+\begin{eq}
+    P_p(n_r, m_t, \text{nodes}_t, \text{packetsize}, t) = 1 - \left( 1 - P_b(n_r, m_t, \text{nodes}_t, t) \right) ^{\text{packetsize}}
+\end{eq}

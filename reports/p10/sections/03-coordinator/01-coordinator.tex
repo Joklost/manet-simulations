@@ -1,0 +1,98 @@
+\section{Coordinator}
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{FCoordinator}{Coordinator}
+    \SetKwProg{Fn}{procedure}{}{}
+
+    Action = (type, source, start, end, packet)\;
+    \;
+
+    \Fn{\FCoordinator{}}{
+        waiting $\leftarrow$ priority queue of Action objects, ordered by end, transmit before listen\;
+        transmits $\leftarrow$ empty list of Action objects\;
+        \;
+
+        \Repeat{\textit{protocol terminates}}{
+            \tcp{Part 1. Handle incoming messages.}
+            a $\leftarrow$ \KwAwait Action \KwFrom any node\; \label{algo:mpicoordinator:action-await}
+            \KwEnqueue a \KwTo waiting\;
+            \If{a.type = transmit}{ \label{algo:mpicoordinator:message-transmit}
+                \KwAppend a \KwTo transmits\;
+            }
+            \;
+            \tcp{Part 2. Clean transmits list.}
+            \If{each node has at least one Action \KwIn waiting}{ \label{algo:mpicoordinator:ifactions}
+                start-time $\leftarrow$ earliest start time of all actions \KwInn waiting\;
+                \ForEach{t $\in$ transmits \KwWhere t.end < start-time}{ \label{algo:mpicoordinator:cleantransmits}
+                    \KwRemove t \KwFrom transmits\;
+                }
+            }
+            \;
+            \tcp{Part 3. Process waiting actions.}
+            \While{each node has at least one Action \KwIn waiting}{ \label{algo:mpicoordinator:whileactions}
+                a $\leftarrow$ \KwDequeue Action \KwFrom waiting\; \label{algo:mpicoordinator:dequeue}
+
+                \If{a.type = transmit}{ \label{line:action-transmit}
+                    interferers $\leftarrow$ empty list of node identifiers\;
+                    \ForEach{t $\in$ transmits \KwWhere t $\neq$ a}{
+                        \If{a.end $\geq$ t.start \KwAnd a.start $\leq$ t.end}{ \label{algo:mpicoordinator:transmitintersects}
+                            \tcp{Transmissions intersect.}
+                            \KwAppend t.source \KwTo interferers\;
+                        }
+                    }
+
+                    \ForEach{l $\in$ waiting \KwWhere l.type = listen}{
+                        \If{a.start $\geq$ l.start \KwAnd a.end $\leq$ l.end}{
+                            probability $\leftarrow$ $P_p$(l.source, a.source, interferers, |a.packet|)\;
+                            should-receive $\leftarrow$ randomly choose based on probability\;
+                            \If{should-receive}{ \label{algo:mpicoordinator:shouldreceive}
+                                \KwSend a.end \KwTo l.source\;
+                                \KwSend a.packet \KwTo l.source\;
+                                \KwRemove l \KwFrom waiting\;
+                            }
+                        }
+                    }
+                }
+
+                \ElseIf{a.type = listen}{ \label{line:action-listen}
+                    \KwSend a.end \KwTo a.source\;
+                    \KwSend \KwNull \KwTo a.source\; \label{algo:mpicoordinator:sendnull}
+                }
+                \tcp{Sleep/Inform actions are handled implicitly.}
+            }
+        }
+    }
+    \caption{The \texttt{Coordinator} procedure.}
+    \label{algo:mpicoordinator}
+\end{algorithm}
+
+\clearpage
+
+\subsection{Coordinator notes}
+\todo[inline]{rewrite as text?}
+\paragraph{Part 1} \
+
+\begin{itemize}
+    \item The \KwAwait keyword is blocking, and blocks until a node sends an action.
+    \item Any action we receive from a node at \autoref{algo:mpicoordinator:action-await} will always have a start time greater than or equal to the latest end time of any action from that node.
+    \item Only transmit actions need special handling in Part 1. Any action we received is added to the waiting queue, and at \autoref{algo:mpicoordinator:message-transmit} we add any transmit actions to the transmits list.
+    \item After receiving a single message the Coordinator moves to Part 2, where we process all possible messages while the condition at \autoref{algo:mpicoordinator:whileactions} is satisfied.
+\end{itemize}
+
+\paragraph{Part 2} \
+
+\begin{itemize}
+    \item Any transmit actions in the transmits can be removed when it can no longer interfere with other transmit actions. At \autoref{algo:mpicoordinator:cleantransmits} any transmit actions in the transmits list is removed if the end time is before the earliest start time of all actions in the waiting queue.
+    \item The transmits list will be cleaned, only if the condition at \autoref{algo:mpicoordinator:ifactions} is true. As the while loop at \autoref{algo:mpicoordinator:whileactions} has the same condition, the transmits list will be cleaned only before processing the waiting queue.
+    %\item If a transmit action is in the transmits list and is no longer on the waiting queue then the action has already been processed, and can be safely removed.
+\end{itemize}
+
+\paragraph{Part 3} \
+
+\begin{itemize}
+    \item Sleep and inform actions are handled implicitly as we simply dequeue the actions at \autoref{algo:mpicoordinator:dequeue}. No further processing is needed, as the actions only have to be present on the waiting queue, to satisfy the condition at \autoref{algo:mpicoordinator:whileactions}.
+    \item As transmit actions always are processed before listen actions, we can safely remove listen actions from the queue when processing a transmit action, and process the listen action by sending the end time and packet of the transmit action to the source node of the listen action, should the packet be received by the node at \autoref{algo:mpicoordinator:shouldreceive}.
+    \item If we dequeue a listen action at \autoref{algo:mpicoordinator:dequeue}, we know that no packets were received for the action, and we can send \KwNull to the source node of the listen action at \autoref{algo:mpicoordinator:sendnull}.
+    \item It is assumed that a transmit action will interfere entirely with another transmit action if the time intervals of the two actions intersect at any point in time (\autoref{algo:mpicoordinator:transmitintersects}), rather than interfering only for the intersecting time.
+\end{itemize}
