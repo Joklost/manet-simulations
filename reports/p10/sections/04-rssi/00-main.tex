@@ -1,1 +1,28 @@
 \chapter{Link Model}
+
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{Frssidiff}{rssidiff}
+    \SetKwProg{Fn}{Function}{}{}
+
+    % \Fn{\Frssidiff{l1, l2}}{
+    \Fn{\Frssidiff{links}}{
+        result $\leftarrow$ \{ \}\;
+        \ForEach{$\alpha \in$ (0, 5, 10, ..., 180)}{
+
+            bucket $\leftarrow$ \{ \}\;
+            \ForEach{l1, l2 $\in$ links}{
+                \If{share\_node(l1, l2) \KwAnd $\alpha < \theta$(l1, l2)$\le \alpha + 5$}{
+                    l1\_rssi $\leftarrow$ ($tx_{power}$ - l\_d(l1.distance)) - l1.rssi\;
+                    l2\_rssi $\leftarrow$ ($tx_{power}$ - l\_d(l2.distance)) - l2.rssi\;
+                    %bucket $\leftarrow$ bucket $\cup$ {abs(l1\_rssi - l2\_rssi)}\;
+                    bucket $\leftarrow$ bucket $\cup$ \{|l1\_rssi - l2\_rssi|\}\;
+                }
+            }
+            result $\leftarrow$ result $\cup$ bucket\;
+        }
+        \KwReturn result\;
+    }
+    \caption{Pseoducode for the RSSI difference for all link pairs}
+    \label{algo:linkmodel}
+\end{algorithm}
