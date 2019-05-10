@@ -19,6 +19,3 @@
 [submodule "src/libs/linklayer"]
 	path = src/libs/linklayer
 	url = git@github.com:Joklost/linklayer.git
-[submodule "src/libs/SFML"]
-	path = src/libs/SFML
-	url = https://github.com/SFML/SFML.git
