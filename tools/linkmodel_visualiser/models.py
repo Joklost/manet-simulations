@@ -34,7 +34,6 @@ class Link:
     @staticmethod
     def l_d(distance) -> float:
         return 0.0 if distance == 0 else 25 * math.log10(distance) + 45
-        # return 0.0 if self.distance == 0 else 25 * math.log10(self.distance) + 45.8
 
     def reverse_link(self, link) -> bool:
         return link.node1 == self.node2 and link.node2 == self.node1
@@ -60,14 +59,14 @@ class LinkPair:
     def __init__(self, link1: Link, link2: Link):
         self.link1 = link1
         self.link2 = link2
-        self.angle = self.angle_between()
+        self.angle = self._angle_between()
         self.rssi_diff = abs(self.link1.rssi - self.link2.rssi)
 
     def __eq__(self, other):
         return (self.link1 == other.link1 and self.link2 == other.link2) or (
                 self.link1 == other.link2 and self.link2 == other.link1)
 
-    def angle_between(self) -> float:
+    def _angle_between(self):
         if self.link1.node1 == self.link2.node1:
             origin = self.link1.node1
             loc1 = self.link1.node2
@@ -88,25 +87,21 @@ class LinkPair:
             loc1 = self.link1.node1
             loc2 = self.link2.node1
 
-        a = np.array([float(i) for i in origin])
-        b = np.array([float(i) for i in loc1])
-        c = np.array([float(i) for i in loc2])
+        lat_org_rad = math.radians(origin[0])
+        lon_org_rad = math.radians(origin[1])
 
-        ba = a - b
-        bc = c - b
+        courses = []
+        for lat, lon in [loc1, loc2]:
+            lat_rad = math.radians(lat)
+            lon_rad = math.radians(lon)
 
-        x = (np.linalg.norm(ba) * np.linalg.norm(bc))
-        y = np.dot(ba, bc)
-        if y == 0 and x == 0:
-            cosine_angle = 0
-        else:
-            cosine_angle = y / x
-            if cosine_angle > 1:
-                cosine_angle = 1
-            elif cosine_angle < 0:
-                cosine_angle = 0
-        #
-        # cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+            val = math.atan2(math.sin(lon_org_rad - lon_rad) * math.cos(lat_rad),
+                             math.cos(lat_org_rad) * math.sin(lat_rad) -
+                             math.sin(lat_org_rad) * math.cos(lat_rad) *
+                             math.cos(lon_org_rad - lon_rad))
+            courses.append(math.fmod(val, 2 * math.pi))
 
-        angle = np.degrees(np.arccos(cosine_angle))
-        return angle
+        return math.degrees(math.acos(math.cos(courses[0]) *
+                                      math.cos(courses[1]) +
+                                      math.sin(courses[0]) *
+                                      math.sin(courses[1])))
