@@ -1,6 +1,7 @@
 from typing import Tuple, List, Dict, NoReturn, Union
 
 import os
+import statistics
 import pprint
 import math
 import numpy as np
@@ -281,36 +282,61 @@ def build_histogram_for_stochastic_in_angle_buckets(log: str):
     measured_log = create_linkpairs(log, remove_distance=True)
     count, fixed = parse_linkpairs_to_angle_bucket_sorted(measured_log)
 
-    data = []
+    hist_data = []
+    table_angle = []
+    table_avg_rssi = []
+    table_median = []
     for i, angle in enumerate(_gen_angle_buckets()):
         if len(fixed[angle]) < 1:
             continue
 
-        data.append(go.Histogram(
-            x=[val / sum(fixed[angle]) for val in fixed[angle]],
+        hist_data.append(go.Histogram(
+            # x=[val / sum(fixed[angle]) for val in fixed[angle]], # normalized value
+            x=fixed[angle],
             name=_str_angle_bucket()[i],
-            # histnorm='percent'
+            # histnorm='percent' # count presented as percentage
         ))
+        table_angle.append(_str_angle_bucket()[i])
+        table_avg_rssi.append(sum(fixed[angle]) / len(fixed[angle]))
+        table_median.append(statistics.median(fixed[angle]))
 
     log_name = parse_logfile_name(log)
-    layout = go.Layout(
+    hist_layout = go.Layout(
         xaxis=dict(
             title='Difference in RSSI minus distance fading between a link pair'
         ),
         yaxis=dict(
             title='Count'
         ),
-        title=f'{log_name} - Normalized - Sample size: {count}'
+        title=f'{log_name} - Raw - Sample size: {count}'
     )
-    fig = go.Figure(data=data, layout=layout)
-    plotly.offline.plot(fig, filename=f'plots/histogram_normalized_{log_name}.html')
+    hist_fig = go.Figure(data=hist_data, layout=hist_layout)
+    hist_div = plotly.offline.plot(hist_fig, include_plotlyjs=True, output_type='div')
+
+    table_trace = [go.Table(
+        header=dict(
+            values=['Angle', 'Average RSSI', 'Median'],
+            line=dict(color='#7D7F80'),
+            fill=dict(color='#a1c3d1'),
+            align=['left'] * 5
+        ),
+        cells=dict(
+            values=[table_angle, table_avg_rssi, table_median],
+            align=['left'] * 5
+        )
+    )]
+    table_layout = dict(width=800)
+    table_fig = go.Figure(data=table_trace, layout=table_layout)
+    table_div = plotly.offline.plot(table_fig, include_plotlyjs=False, output_type='div')
+
+    with open(f'plots/histogram_raw_{log_name}.html', 'w') as f:
+        f.write(hist_div)
+        f.write(table_div)
 
 
 if __name__ == '__main__':
     # np.seterr(divide='ignore', invalid='ignore')
     print('Loading data from logs')
-    # build plot for showing average rssi in a distance bucket
-
     for arg in sys.argv[1:2]:
         # build plot presenting the average stochastic for angle buckets
         # build_angle_bucket_stochastic_minus_distance_fading_increase_plot(arg)
