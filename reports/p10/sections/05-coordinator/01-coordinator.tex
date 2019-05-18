@@ -1,11 +1,11 @@
-\section{Coordinator}
+\section{Coordinator}\label{sec:coordinator}
 
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FCoordinator}{Coordinator}
     \SetKwProg{Fn}{procedure}{}{}
 
-    Action = (type, source, start, end, packet)\;
+    Action = (type, source, start, end, packet)\; \label{algo:mpicoordinator:actiontuple}
     \;
 
     \Fn{\FCoordinator{}}{
