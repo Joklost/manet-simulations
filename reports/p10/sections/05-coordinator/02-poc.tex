@@ -159,7 +159,34 @@ The first action in the waiting queue is the transmit action \Action{t}{4}{3}. R
 
 When processing the \Action{t}{4}{3} action we have two cases to consider: In the first case, the packet is received by \Node{3} and the \Action{t}{3}{6} action is removed from the waiting queue. Should this be the case, the condition for processing actions in the waiting queue is no longer satisfied, and the Coordinator will not be able to process any further actions until the \Action{l}{3}{10} action has been submitted to the Coordinator. In the second case, the packet is dropped and not received by \Node{3}. In this case, the \Action{l}{3}{10} action is still on the waiting queue, and the Coordinator can continue processing actions as the waiting queue still contains at least one action from each node.
 
-\subsubsection{Cut 3:}
+\subsubsection{Cut 3: Listen action}
+This cut shows a snapshot of the Coordinator directly after the \Action{t}{3}{16} action has been submitted. With this action on the waiting queue the condition for processing actions has been satisfied, and the Coordinator may process the first action on the queue. For this cut, there is two interesting points to note. First, when a listen action is at the head of the waiting queue, it means that no packet has been received during this transmission. When this is the case, the action is removed, and \KwNull is sent to the source of the listen action. Second, the \Action{l}{4}{14} action has already been processed, and removed from the waiting queue, even though the action could not have been processed before the \Action{t}{3}{16} action had been submitted. The listen action has removed from the waiting queue early, as the node had received a packet when processing the \Action{t}{5}{12} action.  \smallbreak
+
+%Additionally, the \Action{t}{2}{10} action in the transmits list can now be removed, as the end time of the action is earlier 
+
+
+\begin{figure}[H]
+    \centering
+    % Diagram
+    \CoordinatorFigure{%
+        \draw[thick,dash dot] %
+        (sep0-13.center) -- (sep1-13.center) -- %
+        (sep1-10.center) -- (sep2-10.center) -- %
+        (sep2-14.center) -- (sep3-14.center) -- %
+        (sep3-15.center) -- (sep4-15.center) -- %
+        (sep4-16.center) -- (sep5-16.center)
+        ;
+
+        \draw[thick] %
+        (sep0-18.center) -- (sep1-18.center) -- %
+        (sep1-14.center) -- (sep2-14.center) -- (sep2-16.center) -- (sep3-16.center) -- %
+        (sep3-20.center) -- (sep4-20.center) -- %
+        (sep4-18.center) -- (sep5-18.center) %
+        ;
+    }
+
+    \caption{Cut 3}\label{tikz:coordinatormsc3}
+\end{figure}
 
 The content of the waiting queue and transmits list at the time of this cut is: \smallbreak
 
@@ -179,41 +206,17 @@ $\text{waiting} \leftarrow \{%
     %\Action{i}{1}{12}, %
     %\Action{t}{5}{12}, %
     %\Action{i}{3}{13}, %
-    \Action{s}{1}{14}, %
     \Action{l}{2}{14}, %
+    \Action{s}{1}{14}, %
     %\Action{l}{4}{14}, % \Action{t}{5}{12} popped this
-    %\Action{t}{3}{16}, % not added
+    \Action{t}{3}{16}, % just added
     \Action{t}{4}{17}, %
     \Action{t}{5}{18}, %
     \Action{l}{1}{18}, %
     \Action{l}{4}{20} %
     \}$
 
-$\text{transmits} \leftarrow \{ \Action{t}{4}{3}, \Action{t}{1}{6}, \Action{t}{1}{10} \}$ \smallbreak
-
-\begin{figure}[H]
-    \centering
-    % Diagram
-    \CoordinatorFigure{%
-        \draw[thick,dash dot] %
-        (sep0-13.center) -- (sep1-13.center) -- %
-        (sep1-10.center) -- (sep2-10.center) -- %
-        (sep2-14.center) -- (sep3-14.center) -- %
-        (sep3-15.center) -- (sep4-15.center) -- %
-        (sep4-16.center) -- (sep5-16.center)
-        ;
-
-        \draw[thick] %
-        (sep0-18.center) -- (sep1-18.center) -- %
-        (sep1-14.center) -- (sep3-14.center) -- %
-        (sep3-20.center) -- (sep4-20.center) -- %
-        (sep4-18.center) -- (sep5-18.center) %
-        ;
-    }
-
-    \caption{Cut 3}\label{tikz:coordinatormsc3}
-\end{figure}
-
+$\text{transmits} \leftarrow \{ \Action{t}{2}{10}, \Action{t}{5}{12}, \Action{t}{3}{16}, \Action{t}{4}{17}, \Action{t}{5}{18} \}$ \smallbreak
 
 
 % \subsubsection{Cut 4:}
