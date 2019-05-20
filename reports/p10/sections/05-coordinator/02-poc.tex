@@ -1,6 +1,4 @@
-\clearpage
-
-\section{Proof}
+\section{Correctness}
 
 \subsection{Invariants}\label{sec:coordinator-invariants}
 
@@ -42,7 +40,7 @@ Suppose that at a point in time $t$ in a real-time execution a listen actions en
 \subsection{Sample executions}\label{sec:coordinator-examples}
 Throughout this section we present a sample execution of an arbitrary communications protocol with five nodes. The execution is represented as a variant of a message sequence chart where, rather than the nodes communicating with each other (there is no interaction between the nodes), it is assumed that all nodes interact with the Coordinator implicitly. \smallbreak
 
-To illustrate snapshots of a given point in the execution of the Coordinator we introduce the concept of a cut. A cut consist of two horizontal lines, \ProcessedLine and \SubmittedLine. Everything above the first (\ProcessedLine) has already been processed the Coordinator, and everything below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the content of the data structures within the Coordinator, where we see the order of currently queued actions in the waiting queue, as well as the actions in the transmits list. With this, we can verify whether the invariants we defined earlier holds true for the different scenarios we present in the following sections. \smallbreak
+To illustrate snapshots of a given point in the execution of the Coordinator we introduce the concept of a cut. A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine. Everything above the first (\ProcessedLine) has already been processed the Coordinator, and everything below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the content of the data structures within the Coordinator, where we see the order of currently queued actions in the waiting queue, as well as the actions in the transmits list. With this, we can verify whether the invariants we defined earlier holds true for the different scenarios we present in the following sections. \smallbreak
 
 \autoref{tikz:coordinatormsc0} shows the original message sequence chart we use in the following sections to present different scenarios for the Coordinator. All of the scenarios we present are based on \autoref{tikz:coordinatormsc0}, but with cuts at different points in execution. In the figures, almost all of the actions are represented as a rectangle where the rectangle visually represents the time interval of the action (start, end), and the center of the rectangle is the identifier of the action (e.g., \Action{t}{1}{5}). For example, the action \Action{t}{1}{5} is the 5-tuple $\Action{t}{1}{5} = (\text{transmit}, 1, 2, 5, \text{data})$, in \autoref{sec:coordinator}, where data $\neq$ \KwNull if type = transmit. Note that the only action not represented by a rectangle is the inform action, as this action has the same start and end time. Instead, this action is represented by a short line, where the identifier of the action is placed above the line.
 %\footnote{This is the Action tuple from \autoref{algo:mpicoordinator}, \autoref{algo:mpicoordinator:actiontuple}
@@ -65,21 +63,22 @@ For the first cut we have a scenario where nothing may be processed. Recall that
     \centering
     % Diagram
     \CoordinatorFigure{%
-        \draw[thick,dash dot] %
-        (sep0-2.center) -- (sep2-2.center) -- %
-        (sep2-1.center) -- (sep3-1.center) -- %
-        (sep4-1.center) -- (sep4-3.center) -- %
-        (sep5-3.center) %
-        ;
+        \LineLegend
+        \Processed{%
+            (sep0-2.center) -- (sep2-2.center) -- %
+            (sep2-1.center) -- (sep3-1.center) -- %
+            (sep4-1.center) -- (sep4-3.center) -- %
+            (sep5-3.center) %
+        }
 
-        \draw[thick] %
-        (sep0-18.center) -- (sep1-18.center) -- %
-        (sep1-5.center) -- (sep2-5.center) -- %
-        (sep2-1.center) -- (sep3-1.center) -- %
-        (sep3-8.center) -- (sep4-8.center) -- %
-        (sep4-9.center) -- (sep5-9.center) -- %
-        (sep5-9.center) %
-        ;
+        \Submitted{%
+            (sep0-18.center) -- (sep1-18.center) -- %
+            (sep1-5.center) -- (sep2-5.center) -- %
+            (sep2-1.center) -- (sep3-1.center) -- %
+            (sep3-8.center) -- (sep4-8.center) -- %
+            (sep4-9.center) -- (sep5-9.center) -- %
+            (sep5-9.center) %
+        }
     }
     \caption{Cut 1}\label{tikz:coordinatormsc1}
 \end{figure}
@@ -137,21 +136,22 @@ The first action in the waiting queue is the transmit action \Action{t}{4}{3}. R
     \centering
     % Diagram
     \CoordinatorFigure{%
-        \draw[thick,dash dot] %
-        (sep0-2.center) -- (sep2-2.center) -- %
-        (sep2-1.center) -- (sep3-1.center) -- %
-        (sep4-1.center) -- (sep4-3.center) -- %
-        (sep5-3.center) %
-        ;
+        \LineLegend
+        \Processed{%
+            (sep0-2.center) -- (sep2-2.center) -- %
+            (sep2-1.center) -- (sep3-1.center) -- %
+            (sep4-1.center) -- (sep4-3.center) -- %
+            (sep5-3.center) %
+        }
 
-        \draw[thick] %
-        (sep0-18.center) -- (sep1-18.center) -- %
-        (sep1-5.center) -- (sep2-5.center) -- %
-        (sep2-6.center) -- (sep3-6.center) -- %
-        (sep3-8.center) -- (sep4-8.center) -- %
-        (sep4-9.center) -- (sep5-9.center) -- %
-        (sep5-9.center) %
-        ;
+        \Submitted{%
+            (sep0-18.center) -- (sep1-18.center) -- %
+            (sep1-5.center) -- (sep2-5.center) -- %
+            (sep2-6.center) -- (sep3-6.center) -- %
+            (sep3-8.center) -- (sep4-8.center) -- %
+            (sep4-9.center) -- (sep5-9.center) -- %
+            (sep5-9.center) %
+        }
     }
 
     \caption{Cut 2}\label{tikz:coordinatormsc2}
@@ -160,29 +160,32 @@ The first action in the waiting queue is the transmit action \Action{t}{4}{3}. R
 When processing the \Action{t}{4}{3} action we have two cases to consider: In the first case, the packet is received by \Node{3} and the \Action{t}{3}{6} action is removed from the waiting queue. Should this be the case, the condition for processing actions in the waiting queue is no longer satisfied, and the Coordinator will not be able to process any further actions until the \Action{l}{3}{10} action has been submitted to the Coordinator. In the second case, the packet is dropped and not received by \Node{3}. In this case, the \Action{l}{3}{10} action is still on the waiting queue, and the Coordinator can continue processing actions as the waiting queue still contains at least one action from each node.
 
 \subsubsection{Cut 3: Listen action}
-This cut shows a snapshot of the Coordinator directly after the \Action{t}{3}{16} action has been submitted. With this action on the waiting queue the condition for processing actions has been satisfied, and the Coordinator may process the first action on the queue. For this cut, there is two interesting points to note. First, when a listen action is at the head of the waiting queue, it means that no packet has been received during this transmission. When this is the case, the action is removed, and \KwNull is sent to the source of the listen action. Second, the \Action{l}{4}{14} action has already been processed, and removed from the waiting queue, even though the action could not have been processed before the \Action{t}{3}{16} action had been submitted. The listen action has removed from the waiting queue early, as the node had received a packet when processing the \Action{t}{5}{12} action.  \smallbreak
+This cut shows a snapshot of the Coordinator directly after the \Action{t}{3}{16} action has been submitted. With this action on the waiting queue the condition for processing actions has been satisfied, and the Coordinator may process the first action on the queue, the \Action{l}{2}{14} action. For this cut, there is two interesting points to note. First, when a listen action is at the head of the waiting queue, it means that no packet has been received during this transmission. When this is the case, the action is removed, and \KwNull is sent to the source of the listen action. Second, the \Action{l}{4}{14} action has already been processed, and removed from the waiting queue, even though the action could not have been processed before the \Action{t}{3}{16} action had been submitted. The listen action has removed from the waiting queue early, as the node had received a packet when processing the \Action{t}{5}{12} action.  \smallbreak
 
-%Additionally, the \Action{t}{2}{10} action in the transmits list can now be removed, as the end time of the action is earlier 
+%Additionally, the \Action{t}{1}{10} and \Action{t}{2}{10} actions in the transmits list are not removed, as the end time of the actions is not strictly less than the start time of the \Action{}{}{}
+
 
 
 \begin{figure}[H]
     \centering
     % Diagram
     \CoordinatorFigure{%
-        \draw[thick,dash dot] %
-        (sep0-13.center) -- (sep1-13.center) -- %
-        (sep1-10.center) -- (sep2-10.center) -- %
-        (sep2-14.center) -- (sep3-14.center) -- %
-        (sep3-15.center) -- (sep4-15.center) -- %
-        (sep4-16.center) -- (sep5-16.center)
-        ;
+        \LineLegend
+        \Processed{%
+            (sep0-13.center) -- (sep1-13.center) -- %
+            (sep1-10.center) -- (sep2-10.center) -- %
+            (sep2-14.center) -- (sep3-14.center) -- %
+            (sep3-15.center) -- (sep4-15.center) -- %
+            (sep4-16.center) -- (sep5-16.center)
+        }
 
-        \draw[thick] %
-        (sep0-18.center) -- (sep1-18.center) -- %
-        (sep1-14.center) -- (sep2-14.center) -- (sep2-16.center) -- (sep3-16.center) -- %
-        (sep3-20.center) -- (sep4-20.center) -- %
-        (sep4-18.center) -- (sep5-18.center) %
-        ;
+        \Submitted{%
+            (sep0-18.center) -- (sep1-18.center) -- %
+            (sep1-14.center) -- (sep2-14.center) -- %
+            (sep2-16.center) -- (sep3-16.center) -- %
+            (sep3-20.center) -- (sep4-20.center) -- %
+            (sep4-18.center) -- (sep5-18.center) %
+        }
     }
 
     \caption{Cut 3}\label{tikz:coordinatormsc3}
@@ -216,7 +219,7 @@ $\text{waiting} \leftarrow \{%
     \Action{l}{4}{20} %
     \}$
 
-$\text{transmits} \leftarrow \{ \Action{t}{2}{10}, \Action{t}{5}{12}, \Action{t}{3}{16}, \Action{t}{4}{17}, \Action{t}{5}{18} \}$ \smallbreak
+$\text{transmits} \leftarrow \{ \Action{t}{1}{10}, \Action{t}{2}{10}, \Action{t}{5}{12}, \Action{t}{3}{16}, \Action{t}{4}{17}, \Action{t}{5}{18} \}$ \smallbreak
 
 
 % \subsubsection{Cut 4:}
