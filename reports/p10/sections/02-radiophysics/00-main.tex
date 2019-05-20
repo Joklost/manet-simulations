@@ -1,2 +1,15 @@
 \chapter{Radio Physics}
 \todo[inline]{rssi, pep, transmission time (baudrate)}
+
+
+\section{Hardware}\label{sec:hardwarephysics}
+
+\todo[inline]{temp}
+\begin{eq}\label{eq:transmission-time}
+    \text{transmission-time}(\text{packetsize}) = \frac{1000000}{f_s} \cdot \left( \text{packetsize} \cdot 8 \right)
+\end{eq}
+
+\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds, based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$ bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s = 34800$ Hz.
+
+
+\include{sections/02-radiophysics/03-radio-model.tex}

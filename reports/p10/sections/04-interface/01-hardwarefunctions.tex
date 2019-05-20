@@ -32,14 +32,8 @@ The unique identifier (id) of a node is meant to function as the address of a no
     \label{algo:hwfuncstransmit}
 \end{algorithm}
 
-The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to neighbouring nodes listening for packets. The duration of a transmission is computed based on the \gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as well as the size of the packet. For our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz.
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to neighbouring nodes listening for packets. The duration of a transmission is computed based on the \gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as well as the size of the packet. For our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz, using \autoref{eq:transmission-time} found in \autoref{sec:hardwarephysics}.
 % this comment removes top padding for equation
-\begin{eq}\label{eq:transmission-time}
-    \text{transmission-time}(\text{packetsize}) = \frac{1000000}{f_s} \cdot \left( \text{packetsize} \cdot 8 \right)
-\end{eq}
-\todo[inline]{move to RSSI chapter}
-
-\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds, based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$ bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s = 34800$ Hz.
 
 After computing the duration, the transmit action is sent to the Coordinator, the localtime variable is set to the end time and the clock is set to \KwNow, before the function returns. \medbreak
 
