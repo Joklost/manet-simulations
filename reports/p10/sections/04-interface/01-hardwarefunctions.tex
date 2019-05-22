@@ -11,6 +11,8 @@ In the hardware functions we utilise a special keyword \KwNow, which represents 
 
 The unique identifier (id) of a node is meant to function as the address of a node for passing messages between nodes and the Coordinator. The identifier of the Coordinator = $0$, and the identifier of the nodes are in the range $\{ 1, 2, 3, \ldots, N \}$ for $N$ nodes.
 
+\todo[inline]{for any action $a$, $a.start \leq a.end$}
+
 %Common for all four hardware functions is that we initially update the localtime variable, and set the clock variable to \KwNow before returning from the function, such that the execution time spent communicating with the Coordinator is not included in the duration of the action.
 
 \begin{algorithm}[ht]
@@ -32,8 +34,8 @@ The unique identifier (id) of a node is meant to function as the address of a no
     \label{algo:hwfuncstransmit}
 \end{algorithm}
 
-The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to neighbouring nodes listening for packets. The duration of a transmission is computed based on the \gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as well as the size of the packet. For our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz, using \autoref{eq:transmission-time} found in \autoref{sec:hardwarephysics}.
-% this comment removes top padding for equation
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to neighbouring nodes listening for packets. The duration of a transmission is computed based on the \gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as well as the size of the packet, using \autoref{eq:transmission-time} found in \autoref{sec:hardwarephysics}.
+% or our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz, 
 
 After computing the duration, the transmit action is sent to the Coordinator, the localtime variable is set to the end time and the clock is set to \KwNow, before the function returns. \medbreak
 
