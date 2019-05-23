@@ -18,6 +18,6 @@ The function $\text{RSSI}_{\text{dBm}}(n, m, t)$ returns the \gls{rssi} on the l
     P_b(n_r, m_t, \text{nodes}_t, t) = \frac{1}{2}\text{erfc} \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{\text{dB}}(n_r, m_t, \text{nodes}_t, t)}{10}}}{2} \right)} \right)
 \end{eq}
 
-\begin{eq}
+\begin{eq}\label{eq:pep}
     P_p(n_r, m_t, \text{nodes}_t, \text{packetsize}, t) = 1 - \left( 1 - P_b(n_r, m_t, \text{nodes}_t, t) \right) ^{\text{packetsize}}
 \end{eq}

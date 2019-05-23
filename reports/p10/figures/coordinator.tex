@@ -1,0 +1,66 @@
+\begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwFunction{FCoordinator}{Coordinator}
+    \SetKwProg{Fn}{procedure}{}{}
+
+    Action = $(type,\ source,\ start,\ end,\ packet)$\; \label{algo:mpicoordinator:actiontuple}
+    \;
+
+    \Fn{\FCoordinator{}}{
+        $waiting$ $\leftarrow$ priority queue of Action objects, ordered by $end$, $transmit$ before $listen$\;
+        $transmits$ $\leftarrow$ empty set of Action objects\;
+        \;
+
+        \Repeat{\textit{protocol terminates}}{
+            \tcp{Part 1. Handle incoming message.}
+            $a$ $\leftarrow$ \KwAwait Action \KwFrom any node\; \label{algo:mpicoordinator:action-await}
+            \KwEnqueue $a$ \KwTo $waiting$\;
+            \If{$a$.$type$ = $transmit$}{ \label{algo:mpicoordinator:message-transmit}
+                \KwAppend $a$ \KwTo $transmits$\;
+            }
+            \;
+            \tcp{Part 2. Clean $transmits$ set.}
+            \If{each node has at least one Action \KwIn $waiting$}{ \label{algo:mpicoordinator:ifactions}
+                $starttime$ $\leftarrow$ earliest $start$ time of all actions \KwInn $waiting$\;
+                \ForEach{$t$ $\in$ $transmits$ \KwWhere $t$.$end$ < $starttime$}{ \label{algo:mpicoordinator:cleantransmits}
+                    \KwRemove $t$ \KwFrom $transmits$\;
+                }
+            }
+            \;
+            \tcp{Part 3. Process $waiting$ actions.}
+            \While{each node has at least one Action \KwIn $waiting$}{ \label{algo:mpicoordinator:whileactions}
+                $a$ $\leftarrow$ \KwDequeue Action \KwFrom $waiting$\; \label{algo:mpicoordinator:dequeue}
+
+                \If{$a$.$type$ = $transmit$}{ \label{line:action-transmit}
+                    $interferers$ $\leftarrow$ empty set of node identifiers\;
+                    \ForEach{$t$ $\in$ $transmits$ \KwWhere $t$ $\neq$ $a$}{
+                        \If{$a$.$end$ $\geq$ $t$.$start$ \KwAnd $a$.$start$ $\leq$ $t$.$end$}{ \label{algo:mpicoordinator:transmitintersects}
+                            \tcp{Transmissions intersect.}
+                            \KwAppend $t$.$source$ \KwTo $interferers$\;
+                        }
+                    }
+
+                    \ForEach{$l$ $\in$ $waiting$ \KwWhere $l$.$type$ = $listen$}{
+                        \If{$a$.$start$ $\geq$ $l$.$start$ \KwAnd $a$.$end$ $\leq$ $l$.$end$}{
+                            $probability$ $\leftarrow$ $P_p$($l$.$source$, $a$.$source$, $interferers$, |$a$.$packet$|, $a$.$end$)\;
+                            $shouldreceive$ $\leftarrow$ randomly choose based on $probability$\;
+                            \If{$shouldreceive$}{ \label{algo:mpicoordinator:shouldreceive}
+                                \KwRemove $l$ \KwFrom $waiting$\; \label{algo:mpicoordinator:removelisten}
+                                \KwSend $a$.$end$ \KwTo $l$.$source$\; 
+                                \KwSend $a$.$packet$ \KwTo $l$.$source$\;
+                            }
+                        }
+                    }
+                }
+
+                \ElseIf{$a$.$type$ = $listen$}{ \label{line:action-listen}
+                    \KwSend $a$.$end$ \KwTo $a$.$source$\; \label{algo:mpicoordinator:unblock2}
+                    \KwSend \KwNull \KwTo $a$.$source$\; \label{algo:mpicoordinator:sendnull}
+                }
+                \tcp{$sleep$/$inform$ actions are handled implicitly.}
+            }
+        }
+    }
+    \caption{The \texttt{Coordinator} procedure.}
+    \label{algo:mpicoordinator}
+\end{algorithm}
