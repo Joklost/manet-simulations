@@ -94,6 +94,10 @@ def _str_angle_bucket(interval: int = 5) -> List[str]:
     return [f'0-{interval}'] + [f'{i - interval + 1}-{i}' for i in range(interval * 2, 181, interval)]
 
 
+def _str_distance_bucket(upper_bound: int, lower_bound: int = 0, interval: int = 20) -> List[str]:
+    return [f'0-{interval}'] + [f'{i - interval + 1}-{i}' for i in range(lower_bound * 2, upper_bound, interval)]
+
+
 def parse_to_angle_bucket_individual_rssi_distance(data: Dict[float, List[LinkPair]], as_average: bool = False) \
         -> Dict[int, List[Tuple[float, float]]]:
     angle_buckets = _gen_angle_buckets()
@@ -129,6 +133,7 @@ def parse_linkpairs_to_angle_bucket_sorted(data, interval=None) -> Tuple[int, Di
             bucket_data = []
             for lp in data[time]:
                 if lp.angle <= angle if i == 0 else angle_buckets[i - 1] < lp.angle <= angle:
+                    # if lp.link2.distance > 9 and lp.link1.distance > 9: # min distance
                     bucket_data.append(lp.rssi_diff)
 
             fixed[angle] += bucket_data
@@ -159,6 +164,9 @@ def build_average_rssi_for_distance_plot(log: str):
         bar_y.append(avg_rssi)
         x.append(f'{prev + 1}-{dist}')
         prev = dist
+
+    # print(list(zip(range(len(bar_y)), bar_y)))
+    # print(list(zip(range(len(bar_y)), [26 - Link.l_d(dist) for dist in range(1, int(max_dist), 20)])))
 
     data = [go.Bar(
         x=x,
@@ -261,6 +269,10 @@ def build_normal_dist_for_distance_bucket(log: str):
             prev = distance
 
         std_dev, mean = helpers.compute_std_dev_and_mean(bucket)
+
+        # if prev in [100, 300, 500, 650]:
+        #     print(f'prev: {prev} - dist. {distance} - std_dev: {std_dev} - mean: {mean}')
+
         data.append(np.random.normal(mean, std_dev, 10000))
         group_labels.append(f'{prev + 1}-{distance}')
         prev = distance
@@ -280,25 +292,26 @@ def build_normal_dist_for_distance_bucket(log: str):
 
 def build_histogram_for_stochastic_in_angle_buckets(log: str):
     measured_log = create_linkpairs(log, remove_distance=True)
-    count, fixed = parse_linkpairs_to_angle_bucket_sorted(measured_log)
+    count, fixed = parse_linkpairs_to_angle_bucket_sorted(measured_log, interval=3)
 
     hist_data = []
     table_angle = []
     table_avg_rssi = []
     table_median = []
-    for i, angle in enumerate(_gen_angle_buckets()):
-        if len(fixed[angle]) < 1:
+    for i, angle in enumerate(_gen_angle_buckets(interval=3)):
+        if angle not in fixed.keys() or len(fixed[angle]) < 1:
             continue
 
+        data = fixed[angle]
         hist_data.append(go.Histogram(
             # x=[val / sum(fixed[angle]) for val in fixed[angle]], # normalized value
-            x=fixed[angle],
-            name=_str_angle_bucket()[i],
-            # histnorm='percent' # count presented as percentage
+            x=data,
+            name=_str_angle_bucket(interval=3)[i],
+            histnorm='percent'  # count presented as percentage
         ))
-        table_angle.append(_str_angle_bucket()[i])
-        table_avg_rssi.append(sum(fixed[angle]) / len(fixed[angle]))
-        table_median.append(statistics.median(fixed[angle]))
+        table_angle.append(_str_angle_bucket(interval=3)[i])
+        table_avg_rssi.append(sum(data) / len(data))
+        table_median.append(statistics.median(data))
 
     log_name = parse_logfile_name(log)
     hist_layout = go.Layout(
@@ -306,7 +319,7 @@ def build_histogram_for_stochastic_in_angle_buckets(log: str):
             title='Difference in RSSI minus distance fading between a link pair'
         ),
         yaxis=dict(
-            title='Count'
+            title='Percentage'
         ),
         title=f'{log_name} - Raw - Sample size: {count}'
     )
@@ -334,10 +347,69 @@ def build_histogram_for_stochastic_in_angle_buckets(log: str):
         f.write(table_div)
 
 
+def build_scatter_for_least_square_losmodel(log: str):
+    measured_log = create_linkpairs(log, as_pair=False, remove_distance=True)
+    plot_data = create_linkpairs(log, as_pair=False)
+
+    max_dist = int(max([val.distance for val in measured_log]))
+    prev = 0
+    x = []
+    y = []
+    plot_y = []
+
+    for dist in range(0, max_dist, 20):
+        bucket = [link.rssi for link in measured_log if prev < link.distance <= dist]
+        plot_bucket = [link.rssi for link in plot_data if prev < link.distance <= dist]
+
+        if len(bucket) < 1:
+            prev = dist
+            continue
+
+        y.append(sum(bucket) / len(bucket))
+        plot_y.append(sum(plot_bucket) / len(plot_bucket))
+        x.append(dist)
+
+    losmodel = helpers.compute_least_squared_regression(x, y)
+    print([losmodel(d) for d in x])
+    # helpers.compute_total_least_squared_regression(x, y)
+    #
+    # print(log)
+    # print(m)
+    # print(c)
+    # print(y)
+    # print(x)
+    #
+    data = [go.Scatter(
+        x=x,
+        y=plot_y,
+        name='Average RSSI for distance bucket',
+        error_y=dict(
+            type='data',
+            array=[losmodel(i) for i in x],
+            visible=True
+        )
+    ), go.Scatter(
+        x=[i for i in range(max_dist)],
+        y=[26 - Link.l_d(i) for i in range(max_dist)],
+        name='Distance function'
+    # )]
+    ), go.Scatter(
+        x=[i for i in range(max_dist)],
+        y=[losmodel(i) for i in range(max_dist)],
+        name='LoSModel'
+    )]
+
+    layout = go.Layout(
+        title=parse_logfile_name(log)
+    )
+    fig = go.Figure(data=data, layout=layout)
+    plotly.offline.plot(fig, filename='plots/scatter_least_squared_for_average_RSSI.html')
+
+
 if __name__ == '__main__':
     # np.seterr(divide='ignore', invalid='ignore')
     print('Loading data from logs')
-    for arg in sys.argv[1:2]:
+    for arg in sys.argv[2:]:
         # build plot presenting the average stochastic for angle buckets
         # build_angle_bucket_stochastic_minus_distance_fading_increase_plot(arg)
 
@@ -348,7 +420,10 @@ if __name__ == '__main__':
         # build_normal_dist_for_distance_bucket(arg)
 
         # build histogram for frequency of stochastic value only in angle buckets
-        build_histogram_for_stochastic_in_angle_buckets(arg)
+        # build_histogram_for_stochastic_in_angle_buckets(arg)
 
         # build bar plot for average rssi in a distance bucket
         # build_average_rssi_for_distance_plot(arg)
+
+        # build scatter plot for least square regression for LoSModel
+        build_scatter_for_least_square_losmodel(arg)
