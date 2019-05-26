@@ -3,29 +3,85 @@
 
 \subsection{Invariants}\label{sec:coordinator-invariants}
 
-With a set of $N$ unique node identifiers, $nodes = \{ 1, 2, 3, \ldots, N \}$:
+With a set of $N$ unique node identifiers where $\mathit{nodes} = \{ 1, 2, 3, \ldots, N \}$, %
+the following invariants hold:
 
 \begin{enumerate}
-    \item For all $n \in nodes$, there exists at most one $a \in waiting$ such that $a.source = n$ and $a.type = listen$.
+    \item For all $n \in \mathit{nodes}$, there exists at most one $a \in \mathit{waiting}$ such that 
+          $a.\mathit{source} = n$ and $a.\mathit{type} = \mathit{listen}$.
           \begin{itemize}
-              \item There is at most one action with the $listen$ type from each node in the $waiting$ queue.
+              \item There is at most one action with the $\mathit{listen}$ type from each node in the 
+                    $\mathit{waiting}$ queue.
           \end{itemize}
-    \item For all $a, b \in waiting$, if $a.source = b.source$ and $a.type = listen$ then $b.end \leq a.start$.
+    \item For all $a, b \in \mathit{waiting}$, if $a.\mathit{source} = b.\mathit{source}$ and 
+          $a.\mathit{type} = \mathit{listen}$ then $b.\mathit{end} \leq a.\mathit{start}$.
           \begin{itemize}
-              \item If a node has a $listen$ action in the waiting queue, no other actions may be present after this.
+              \item If a node has a $\mathit{listen}$ action in the waiting queue, no other actions may be 
+                    present after this.
           \end{itemize}
-    \item For all $a \in waiting$, if $a.type = transmit$ then $a \in transmits$.
+    \item For all $a \in \mathit{discovered}$, if $a.\mathit{type} = \mathit{transmit}$ and there exists 
+          $b \in \mathit{waiting}$ such that $b.\mathit{type} = \mathit{transmit}$ and 
+          $a.\mathit{end} \geq b.\mathit{start}$ and $a.\mathit{start} \leq b.\mathit{end}$ then 
+          $a \in \mathit{transmits}$.
           \begin{itemize}
-              \item If a node has a $transmit$ action on the waiting queue, that action must be present in the $transmits$ set.
+              \item Every \textit{transmit} action submitted to the Coordinator that could possibly 
+                    interfere with any \textit{transmit} action on the \textit{waiting} queue must be 
+                    present in the \textit{transmits} set.
           \end{itemize}
 \end{enumerate}
 
-The first and second invariants are satisfied in part by the implementation of the Listen function (\autoref{algo:hwfuncslisten} in \autoref{sec:hwfuncspseudo}), and in part by the Coordinator. The Listen function uses the blocking \KwAwait keyword on \autoref{algo:hwfuncslisten:awaitend}, to wait for a response from the Coordinator. The Coordinator, in turn, sends a response to the source of the $listen$ action only after the action already has been removed from the $waiting$ queue at \autoref{algo:mpicoordinator:dequeue} or \autoref{algo:mpicoordinator:removelisten} in \autoref{algo:mpicoordinator}. Due to the blocking nature of the \KwAwait keyword, and the fact that a node is only able to continue execution after a response have been received from the Coordinator, the invariants are satisfied, as it is impossible for a node to send more actions to the Coordinator, while a $listen$ action from the same node is already on the $waiting$ queue. \smallbreak
+The first and second invariants are satisfied both by the implementation of the Listen function 
+(\autoref{algo:hwfuncslisten} in \autoref{sec:hwfuncspseudo}), and by the Coordinator. The Listen function 
+uses the blocking \KwAwait keyword on \autoref{algo:hwfuncslisten:awaitend} in \autoref{algo:hwfuncslisten}, 
+to wait for a response from the Coordinator. The Coordinator, in turn, sends a response to the source of the 
+$listen$ action only after the action already has been removed from the $waiting$ queue at 
+\autoref{algo:mpicoordinator:dequeue} or \autoref{algo:mpicoordinator:removelisten} in 
+\autoref{algo:mpicoordinator}. Due to the blocking nature of the \KwAwait keyword, and the fact that a node 
+is only able to continue execution after a response have been received from the Coordinator, the invariants 
+are satisfied, as it is impossible for a node to send more actions to the Coordinator, while a $listen$ 
+action from the same node is already on the $waiting$ queue. 
+\smallbreak
 
-The third invariant is satisfied as long as a $transmit$ action in the $transmits$ set is not removed, before the action has been removed from the $waiting$ queue. At \autoref{algo:mpicoordinator:cleantransmits} we have the condition that we only remove $transmit$ actions from the $transmits$ set if the end time of any action in the set is less than the earliest start time of all actions in $waiting$. This means that if we have a $transmit$ action both in the $waiting$ queue and $transmits$ set, we will not be able to remove it from the $transmits$ set, before the action has been removed from the $waiting$ queue, according to the condition at \autoref{algo:mpicoordinator:cleantransmits}. If we have an action $t \in waiting$ where $t \in transmits$ then the earliest start time of all actions in the $waiting$ queue is at least $t.start$, which means that we will not be able to remove $t$ from the transmits set, as $t.end \nless t.start$, and we know from the implementation of the hardware functions that for any action $a$, $a.start \leq a.end$, as shown in \autoref{sec:hwfuncspseudo}.
+The third invariant is satisfied as long as any \textit{transmit} actions that could possibly interfere with 
+any \textit{transmit} action in the \textit{waiting} queue is present in the \textit{transmits} set. 
 
+To aid in this
+To track this, we utilise the \textit{discovered} set. 
+
+With the \textit{discovered} set we can still track the
+\textit{transmit} actions that have been removed from the \textit{waiting} queue, as these could interfere 
+with future \textit{transmit} actions. A \textit{transmit} action $a$ interferes with another 
+\textit{transmit} action $b$, as long as the time interval for the actions intersect at some point  
+($a.\mathit{end} \geq b.\mathit{start}$ and $a.\mathit{start} \leq b.\mathit{end}$). 
+
+
+At \autoref{algo:mpicoordinator:cleantransmits}
+in \autoref{algo:mpicoordinator} we have the condition that we only remove $\mathit{transmit}$ actions from 
+the $\mathit{transmits}$ set if the end time of any action in the set is less than the earliest start time of 
+all actions in $\mathit{waiting}$. This means that if we have a $\mathit{transmit}$ action both in the 
+$\mathit{waiting}$ queue and $\mathit{transmits}$ set, we will not be able to remove it from the 
+$\mathit{transmits}$ set, before the action has been removed from the $\mathit{waiting}$ queue, according to 
+the condition at \autoref{algo:mpicoordinator:cleantransmits}. If we have an action $t \in \mathit{waiting}$ 
+where $t \in \mathit{transmits}$ then the earliest start time of all actions in the $\mathit{waiting}$ queue 
+is at least $t.\mathit{start}$, which means that we will not be able to remove $t$ from the \textit{transmits} 
+set, as $t.\mathit{end} \nless t.\mathit{start}$, and we know from the implementation of the hardware 
+functions that for any action $a$, $a.\mathit{start} \leq a.\mathit{end}$, 
+as shown in \autoref{sec:hwfuncspseudo}.
+
+%The third invariant is satisfied as long as a $transmit$ action in the $transmits$ set is not removed, 
+%before the action has been removed from the $waiting$ queue. 
 \subsection{Methodology}\label{sec:correctnessmethods}
-Suppose that at a point in time $t$ in an asynchronous real-time execution a listen actions ends, and receives a packet with some probability computed, using the packet error probability function $P_p$. With the invariants outlined above, we want to prove that the packet would be received with the same probability in a virtual-time execution. Due to the asynchronous nature of a wireless communication protocol it is not as simple as presenting a single slice of the execution. Instead, to illustrate snapshots of a given point in the execution of the Coordinator we introduce the concept of a cut: A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine. Everything above the first (\ProcessedLine) has already been processed by the Coordinator, and everything below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the content of the data structures within the Coordinator, where we see the order of currently queued actions in the $waiting$ queue, as well as the actions in the $transmits$ set. \medbreak
+Suppose that at a point in time $t$ in an asynchronous real-time execution a listen actions ends, and receives 
+a packet with some probability computed, using the packet error probability function $P_p$. With the 
+invariants outlined above, we want to prove that the packet would be received with the same probability in a 
+virtual-time execution. Due to the asynchronous nature of a wireless communication protocol it is not as 
+simple as presenting a single slice of the execution. Instead, to illustrate snapshots of a given point in 
+the execution of the Coordinator we introduce the concept of a cut: A cut consist of two horizontal lines, 
+\ProcessedLine\ and \SubmittedLine. Everything above the first (\ProcessedLine) has already been processed by 
+the Coordinator, and everything below the second (\SubmittedLine) has not yet been submitted to the 
+Coordinator. We use a cut to show the content of the data structures within the Coordinator, where we see the 
+order of currently queued actions in the $waiting$ queue, as well as the actions in the $transmits$ set. 
+\medbreak
 
 Throughout this section we present a sample execution of an arbitrary asynchronous communications protocol with five nodes. The execution is represented as a variant of a message sequence chart where, rather than the nodes communicating with each other (there is no interaction between the nodes), it is assumed that all nodes interact with the Coordinator implicitly. We utilise cuts to present five different possible scenarios of the Coordinator: No action can be processed, processing a $transmit$, processing an $inform$ action, processing a $listen$ action, and finally, processing a $sleep$ action. For each of the different scenarios we start with a concrete example, based on the figure, accompanying the cut, and we end with a generalisation of the scenario.
 
@@ -39,11 +95,11 @@ The following is the result of processing each of the $transmit$ actions from \a
 %
 \begin{description}[leftmargin=2em,style=nextline]
     \item[\T{4}{3}] The packet originating from \Node{4} (\T{4}{3}) was dropped by \Node{3} (\L{3}{6}) to interference from \Node{1} (\T{1}{5}). \Node{2} (\L{2}{5}) started listening too soon to receive the packet.
-    \item[\T{1}{5}] The packet originating from \Node{1} (\T{1}{5}) was received by \Node{2} (\L{2}{5}) at time 5, but dropped by \Node{3} (\L{3}{6}) to interference from \Node{4} (\T{4}{3}). 
+    \item[\T{1}{5}] The packet originating from \Node{1} (\T{1}{5}) was received by \Node{2} (\L{2}{5}) at time 5, but dropped by \Node{3} (\L{3}{6}) to interference from \Node{4} (\T{4}{3}).
     \item[\T{1}{10}] The transmission from \Node{1} (\T{1}{10}) was not received by any listening nodes, as \Node{5} (\L{5}{9}) stopped listening too soon, while \Node{3} (\L{3}{10}) started listening too late.
     \item[\T{2}{10}] The packet originating from \Node{2} (\T{2}{10}) was dropped by \Node{3} (\L{3}{10}) to interference from \Node{1}.
     \item[\T{5}{12}] The packet originating from \Node{5} (\T{5}{12}) was received by \Node{4} (\L{4}{14}) at time 12, but dropped by \Node{2} (\L{2}{14}) due to distance.
-    \item[\T{3}{16}] The packet originating from \Node{3} (\T{3}{16}) was dropped by \Node{1} (\L{1}{18}) to interference from \Node{4} (\T{4}{17}). 
+    \item[\T{3}{16}] The packet originating from \Node{3} (\T{3}{16}) was dropped by \Node{1} (\L{1}{18}) to interference from \Node{4} (\T{4}{17}).
     \item[\T{4}{17}] The packet originating from \Node{4} (\T{4}{17}) was dropped by \Node{1} (\L{1}{18}) to interference from \Node{2} (\T{2}{18}), \Node{3} (\T{3}{16}), and \Node{5} (\T{5}{18}).
     \item[\T{2}{18}] The packet originating from \Node{2} (\T{2}{18}) was dropped by \Node{1} (\L{1}{18}) to interference from \Node{4} (\T{4}{17}), and \Node{5} (\T{5}{18}).
     \item[\T{5}{18}] The packet originating from \Node{5} (\T{5}{18}) was dropped by \Node{1} (\L{1}{18}) to interference from \Node{2} (\T{2}{18}), and \Node{4} (\T{4}{17}).
