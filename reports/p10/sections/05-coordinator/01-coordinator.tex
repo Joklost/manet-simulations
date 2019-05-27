@@ -69,8 +69,8 @@ Finally, the phi
 
                     \ForEach{$l$ $\in$ $\mathit{waiting}$ \KwWhere $l$.$\mathit{type}$ = \textit{listen}}{
                         \If{$a$.$\mathit{start}$ $\geq$ $l$.$\mathit{start}$ \KwAnd $a$.$\mathit{end}$ $\leq$ $l$.$\mathit{end}$}{
-                            $\mathit{probability}$ $\leftarrow$ $P_p$($l$.$\mathit{source}$, $a$.$\mathit{source}$, $\mathit{interferers}$, |$a$.$\mathit{packet}$|, $a$.$\mathit{end}$)\;
-                            $shouldreceive$ $\leftarrow$ randomly choose based on $\mathit{probability}$\;
+                            $p$ $\leftarrow$ $P_p$($l$.$\mathit{source}$, $a$.$\mathit{source}$, $\mathit{interferers}$, |$a$.$\mathit{packet}$|, $a$.$\mathit{end}$)\;
+                            $shouldreceive$ $\leftarrow$ randomly choose based on $p$\;
                             \If{$shouldreceive$}{ \label{algo:mpicoordinator:shouldreceive}
                                 \KwRemove $l$ \KwFrom $\mathit{waiting}$\; \label{algo:mpicoordinator:removelisten}
                                 \KwSend $a$.$\mathit{end}$ \KwTo $l$.$\mathit{source}$\; 
