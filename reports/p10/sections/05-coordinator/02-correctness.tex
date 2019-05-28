@@ -16,8 +16,8 @@ invariants hold:
     \item For all $a, b \in \mathit{waiting}$, if $a.\mathit{source} = b.\mathit{source}$ and $a.\mathit{type}
               = \mathit{listen}$ then $b.\mathit{end} \leq a.\mathit{start}$.
           \begin{itemize}
-              \item If a node has a $\mathit{listen}$ action in the waiting queue, no other actions may be
-                    present after this.
+              \item If a node has a $\mathit{listen}$ action in the \textit{waiting} queue, no other actions
+                    may be present after this.
           \end{itemize}
     \item For all $a \in \mathit{discovered}$, if $a.\mathit{type} = \mathit{transmit}$ and there exists $b
               \in \mathit{waiting}$ such that $b.\mathit{type} = \mathit{transmit}$ and $a.\mathit{end} \geq
@@ -109,6 +109,16 @@ throughout both the real-time execution, and the simulation:
     \item[\T{3}{20}] The packet originating from \Node{3} (\T{3}{20}) was received by \Node{4} (\L{4}{20}).
 \end{description}
 
+With the invariants outlined above, we want to prove that the packet would be received with the same
+probability in a virtual-time execution, as it would in a real-time execution. Due to the asynchronous nature
+of executing a wireless communication protocol using an \gls{mpi}, it is not as simple as presenting a single
+slice of the execution. Instead, to illustrate snapshots of a given point in the execution of the Coordinator
+we introduce the concept of a cut: A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine.
+Everything above the first (\ProcessedLine) has already been processed by the Coordinator, and everything
+below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the
+content of the data structures within the Coordinator, where we see the order of currently queued actions in
+the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ set.
+
 \begin{figure}[H]
     \centering
     % Diagram
@@ -125,16 +135,6 @@ throughout both the real-time execution, and the simulation:
     }
     \caption{Real-time execution of an arbitrary protocol with five nodes.}\label{tikz:coordinatormsc0}
 \end{figure}
-
-With the invariants outlined above, we want to prove that the packet would be received with the same
-probability in a virtual-time execution, as it would in a real-time execution. Due to the asynchronous nature
-of executing a wireless communication protocol using an \gls{mpi}, it is not as simple as presenting a single
-slice of the execution. Instead, to illustrate snapshots of a given point in the execution of the Coordinator
-we introduce the concept of a cut: A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine.
-Everything above the first (\ProcessedLine) has already been processed by the Coordinator, and everything
-below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the
-content of the data structures within the Coordinator, where we see the order of currently queued actions in
-the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ set.
 
 \subsection{Simulated Execution}
 Throughout this section we present a simulated, virtual-time, version of the real-time execution from
@@ -224,7 +224,7 @@ action, we compute the probability for packet error on a transmission between th
     \T{1}{5}.\mathit{source} \}, |\T{4}{3}.\mathit{packet}|, \T{4}{3}.\mathit{end})$, we can randomly choose
 whether the transmission should be received, or dropped, and either finish processing the \textit{listen}
 action by sending the packet to the source of the action, or move on to the next \textit{listen} action. For
-the \T{4}{3} action, we assume the packet to be dropped by the listening node. \medbreak
+the \T{4}{3} action, we assume the packet to be dropped by the listening node. \smallbreak
 
 When processing the \T{4}{3} action we have two cases to consider for this particular scenario: In the first
 case, the packet is received by \Node{3} and the \L{3}{6} action is removed from the \textit{waiting} queue.
@@ -237,9 +237,40 @@ processing actions as the \textit{waiting} queue still contains at least one act
 
 This holds in general, as every \textit{listen} action will be after any \textit{transmit} action $t$ on the
 \textit{waiting} queue, and every \textit{transmit} action that could possibly interfere with $t$ is in the
-\textit{transmits} set.
+\textit{transmits} set. Let us assume that a node $n$ submitted the \textit{transmit} action $t$, and that $t$
+is at the head of the \textit{waiting} queue. When processing $t$, we want to compute the probability for any
+node $m$ listening in the time interval of the \textit{transmit} action $t$ to receive the packet transmitted
+by $n$. When this is the case, the \textit{listen} action is relevant to $t$. To do this, we need to make sure
+that any \textit{listen} action, that is relevant for the processing of $t$ is on the \textit{waiting} queue,
+and any \textit{transmit} actions that could possibly interfere with $t$ is in the \textit{transmits} set,
+when processing $t$. \smallbreak
 
-\todo[inline]{more details! use invariant 3}
+First, we know that every \textit{listen} action $l$ that could possibly receive the
+\textit{transmit} action $t$ is on the \textit{waiting} queue, as the end time of any $l$ on the
+\textit{waiting} queue, when processing $t$, has to be greater than, or equal to, the end time of $t$. Recall
+that due to the ordering of the \textit{waiting} queue, we always process any \textit{transmit} action before
+processing a \textit{listen} action. In addition to this, when processing $t$, we know that for all
+\textit{listen} actions $l$, where the time interval of $t$ is fully within the time interval for $l$, the
+source node $m$ of $l$ will have only the $l$ action on the \textit{waiting} queue. We know this as any action
+$a$ from node $m$ would have an end time earlier than the start time of $l$, $a.\mathit{end} \leq
+l.\mathit{start}$, which means that the $a$ action would already have been processed, before we process $t$.
+Additionally, invariant 2 states that if a node has a \textit{listen} action in the \textit{waiting} queue, no
+other actions may be present after this. Finally, as we know that the condition for processing actions in the
+\textit{waiting} queue is satisfied when we begin processing the \textit{transmit} action $t$, any node $m$
+that does not have a \textit{listen} action that is relevant to $t$, is unable to submit a \textit{listen}
+action that could become relevant to $t$, as any future action submitted from $m$ would have a start time
+greater than, or equal to, the end time of the previous action submitted from $m$, which we know is greater 
+than the end time of the action $t$ that is currently being processed. \smallbreak
+
+Secondly, invariant 3 states that every \textit{transmit} action submitted to the Coordinator (discovered
+actions) that could possibly interfere with any \textit{transmit} action on the \textit{waiting} queue must be
+present in the \textit{transmits} set. This means that when we process the \textit{transmit} action $t$ we can
+be we certain that any discovered \textit{transmit} actions that interfere with $t$, will be in the
+\textit{transmits} set. \todo[inline]{what about non-discovered?} \smallbreak
+
+With these two points, when processing a \textit{transmit} action $t$, we can safely compute the
+probability for any \textit{listen} action $l$ relevant to $t$, including the interference from any
+interfering \textit{transmit} actions in the \textit{transmits} set.
 
 \subsubsection{Cut 3: \textit{inform} action}
 The next cut is a snapshot of the Coordinator directly after the \T{4}{3} action has been processed and
@@ -248,14 +279,7 @@ still at least action from each node in the \textit{waiting} queue. At the head 
 is the \textit{inform} action \I{5}{3}. Processing an \textit{inform} action is trivial, as no processing is
 needed for this action. The action is simply removed from the \textit{waiting} queue, and the Coordinator may
 move on to the next action, if the condition is still satisfied. This holds in general for any \textit{inform}
-action. \smallbreak
-
-Note that the only change in the \textit{waiting} queue, from the previous cut, is the removal of the \T{4}{3}
-action, which still remains in the \textit{transmits} set, as the end time of the \T{4}{3} action is still
-greater than, or equal to, the start time of the \L{3}{6} action, and causes interference for the \T{1}{5}
-action (the next action in the queue). Additionally, no new actions have been submitted between the 2nd and
-3rd cuts, as a new action is received only if the condition for processing actions is no longer satisfied.
-\medbreak
+action. %\smallbreak
 
 \begin{figure}[H]
     \caption{Processing an \textit{inform} action.}\label{tikz:coordinatormsc3}
@@ -276,6 +300,12 @@ action (the next action in the queue). Additionally, no new actions have been su
     \end{minipage}
 \end{figure}
 
+Note that the only change in the \textit{waiting} queue, from the previous cut, is the removal of the \T{4}{3}
+action, which still remains in the \textit{transmits} set, as the end time of the \T{4}{3} action is still
+greater than, or equal to, the start time of the \L{3}{6} action, and causes interference for the \T{1}{5}
+action (the next action in the queue). Additionally, no new actions have been submitted between the 2nd and
+3rd cuts, as a new action is received only if the condition for processing actions is no longer satisfied.
+%\medbreak
 
 \subsubsection{Cut 4: \textit{listen} action}
 This cut shows a snapshot of the Coordinator directly after the \T{3}{16} action has been submitted. With this
@@ -292,7 +322,13 @@ been processed before the \T{3}{16} action had been submitted. The \textit{liste
 This holds in general, as no \textit{transmit} action can be fully within the time interval of any
 \textit{listen} action, if the \textit{listen} action is at the head of the \textit{waiting} queue. The
 \textit{listen} action would have been removed when processing earlier \textit{transmit} actions, as
-\textit{transmit} actions are ordered before \textit{listen} actions in the \textit{waiting} queue.
+\textit{transmit} actions are ordered before \textit{listen} actions in the \textit{waiting} queue. Let us
+assume that a node $n$ submitted the \textit{listen} action $l$, and that $l$ is at head of the
+\textit{waiting} queue. When processing the $l$ action, no actions from node $n$ before, or after, $l$ is
+present in the \textit{waiting} queue, as all previous actions have been processed, and invariant 2 states
+that no action may be present after a \textit{listen} action. Additionally, no \textit{transmit} actions from
+any other node $m$ can be present on the \textit{waiting} queue, with end time less than, or equal to, the end
+time of the $l$ action, as these would already have been processed, due to the ordering of the priority queue.
 
 \begin{figure}[H]
     \caption{Processing a \textit{listen} action.}\label{tikz:coordinatormsc4}

@@ -1,27 +1,78 @@
 \clearpage
 \section{Coordinator}\label{sec:coordinator}
-To facilitate communication between nodes using the hardware interface, we introduce the Coordinator. The Coordinator works by gathering actions (\textit{transmit}, \textit{listen}, \textit{sleep}, and \textit{inform}) sent from nodes using an \gls{mpi}. The pseudo code description of the Coordinator can be seen in \autoref{algo:mpicoordinator}. \smallbreak
+To facilitate communication between nodes using the hardware interface, we introduce the Coordinator. The
+Coordinator works by gathering actions (\textit{transmit}, \textit{listen}, \textit{sleep}, and
+\textit{inform}) sent from nodes using an \gls{mpi}. The pseudo code description of the Coordinator can be
+seen in \autoref{algo:mpicoordinator}. \smallbreak
 
-The Coordinator works by continuously awaiting actions from any node (\autoref{algo:mpicoordinator:action-await}). The \KwAwait keyword is blocking, and blocks until any node sends an action to the Coordinator. An action is the 5-tuple Action = $(\mathit{type},\ \mathit{source},\ \mathit{start},\ \mathit{end},\ \mathit{packet})$. Accessing an element of an action is done with the dot ($.$) operator, using named access. For example, for the \textit{listen} action $a = (\mathit{listen}, 1, 2, 5, \KwNull)$ we can access the source of the action using the dot operator as such: $a.source = 1$. The $\mathit{type}$ element denotes the type of the action, and is one of either \textit{transmit}, \textit{listen}, \textit{sleep}, or \textit{inform}. The $\mathit{source}$ element is the unique identifier of the source node that submitted the action to the Coordinator. The $\mathit{start}$ and $\mathit{end}$ elements are timestamps for points of time in the execution, where $\mathit{start} \leq \mathit{end}$. Finally, the $\mathit{packet}$ element is the data packet sent during a transmission, or \KwNull for any action where $\mathit{type} \neq \mathit{transmit}$. \smallbreak
+The Coordinator works by continuously awaiting actions from any node
+(\autoref{algo:mpicoordinator:action-await}). The \KwAwait keyword is blocking, and blocks until any node
+sends an action to the Coordinator. An action is the 5-tuple Action = $(\mathit{type},\ \mathit{source},\
+\mathit{start},\ \mathit{end},\ \mathit{packet})$. Accessing an element of an action is done with the dot
+($.$) operator, using named access. For example, if node $1$ starts listening at time $2$ and ends listening
+at time $5$, we have the \textit{listen} action $a = (\mathit{listen}, 1, 2, 5, \KwNull)$. We can access the
+source of the action using the dot operator as such: $a.source = 1$. The $\mathit{type}$ element denotes the
+type of the action, and is one of either \textit{transmit}, \textit{listen}, \textit{sleep}, or
+\textit{inform}. The $\mathit{source}$ element is the unique identifier of the source node that submitted the
+action to the Coordinator. The $\mathit{start}$ and $\mathit{end}$ elements are timestamps for points of time
+in the execution, where $\mathit{start} \leq \mathit{end}$. Finally, the $\mathit{packet}$ element is the data
+packet sent during a transmission, or \KwNull for any action where $\mathit{type} \neq \mathit{transmit}$.
+\smallbreak
 
-The pseudo code of the Coordinator is separated into three parts, where each of the parts is repeatedly executed in sequence, until the protocol terminates. The first part takes care of receiving actions from nodes, the second part maintains and cleans the $\mathit{transmits}$ set of \textit{transmit} actions, and the third part processes, and removes, actions from the $\mathit{waiting}$ queue. \smallbreak
+The pseudo code of the Coordinator is separated into three parts, where each of the parts is repeatedly
+executed in sequence, until the protocol terminates. The first part takes care of receiving actions from
+nodes, the second part maintains and cleans the $\mathit{transmits}$ set of \textit{transmit} actions, and the
+third part processes, and removes, actions from the $\mathit{waiting}$ queue. \smallbreak
 
-Whenever an action is submitted to the Coordinator (\autoref{algo:mpicoordinator:action-await}), the action is enqueued in the $\mathit{waiting}$ queue. The $\mathit{waiting}$ queue is a priority queue of Action objects, where the actions are ordered by their end time, with \textit{transmit} actions before \textit{listen} actions, in case of a tie. The ordering of \textit{sleep} and \textit{inform} in relation to \textit{transmit} or \textit{listen} actions are irrelevant. If the received action is a \textit{transmit} action, the action is also added to the $\mathit{transmits}$ set (\autoref{algo:mpicoordinator:message-transmit}). Note that any action we receive from a particular node during this part will always have a start time greater than or equal to the end time of the last action received from that node. After receiving an action, the Coordinator continues to the second part. \smallbreak
+Whenever an action is submitted to the Coordinator (\autoref{algo:mpicoordinator:action-await}), the action is
+enqueued in the $\mathit{waiting}$ queue, and added to the \textit{discovered} set. The $\mathit{waiting}$
+queue is a priority queue of Action objects, where the actions are ordered by their end time, with
+\textit{transmit} actions before \textit{listen} actions, in case of a tie. The \textit{discovered} set is
+a set used to track all actions submitted to the Coordinator. The ordering of \textit{sleep} and
+\textit{inform} in relation to \textit{transmit} or \textit{listen} actions in the \textit{waiting} queue are
+irrelevant. If the received action is a \textit{transmit} action, the action is also added to the
+$\mathit{transmits}$ set (\autoref{algo:mpicoordinator:message-transmit}). Note that any action we receive
+from a particular node during this part will always have a start time greater than or equal to the end time of
+the last action received from that node. After receiving an action, the Coordinator continues to the second
+part. \smallbreak
 
-The $\mathit{transmits}$ set is used to gather any \textit{transmit} actions that may cause interference when processing \textit{transmit} actions in the third part of the Coordinator. In order to make sure that the size of the $\mathit{transmits}$ set does not grow indefinitely, we remove \textit{transmit} actions that will not interfere with future \textit{transmit} actions. To do this we check that the $\mathit{waiting}$ queue contains at least one action from each node (\autoref{algo:mpicoordinator:ifactions}). Next, we find the earliest start time of all actions in the $\mathit{waiting}$ queue. With this we can remove any \textit{transmit} actions where the end time is strictly less that then earliest start time found in the $\mathit{waiting}$ queue (\autoref{algo:mpicoordinator:cleantransmits}). \smallbreak
+The $\mathit{transmits}$ set is used to gather any \textit{transmit} actions that may cause interference when
+processing \textit{transmit} actions in the third part of the Coordinator. In order to make sure that the size
+of the $\mathit{transmits}$ set does not grow indefinitely, we remove \textit{transmit} actions that will not
+interfere with future \textit{transmit} actions. To do this we check that the $\mathit{waiting}$ queue
+contains at least one action from each node (\autoref{algo:mpicoordinator:ifactions}). Next, we find the
+earliest start time of all actions in the $\mathit{waiting}$ queue. With this we can remove any
+\textit{transmit} actions where the end time is strictly less that then earliest start time found in the
+$\mathit{waiting}$ queue (\autoref{algo:mpicoordinator:cleantransmits}). \smallbreak
 
-Finally, the phi
+Finally, in the third part of the Coordinator, we process actions from the \textit{waiting} queue. The
+Coordinator only processes actions when the \textit{waiting} queue fulfils the same condition as in the second
+part, where the \textit{waiting} queue has to contain at least one action from each node. While this is the
+case, the Coordinator dequeues a single action (\autoref{algo:mpicoordinator:dequeue}) from the
+\textit{waiting} queue. Any \textit{sleep} or \textit{inform} actions are processed implicitly, as they only
+have to be present in the \textit{waiting} queue, to satisfy the condition of the loop. Only the
+\textit{transmit} and \textit{listen} actions need processing by the Coordinator. \smallbreak
 
-\paragraph{Part 3} \
+% \paragraph{Part 3} \
 
-\begin{itemize}
-    \item The \textit{sleep} and \textit{inform} actions are handled implicitly as we simply dequeue the actions at \autoref{algo:mpicoordinator:dequeue}. No further processing is needed, as the actions only have to be present on the $\mathit{waiting}$ queue, to satisfy the condition at \autoref{algo:mpicoordinator:whileactions}.
-    \item As \textit{transmit} actions always are processed before \textit{listen} actions, we can safely remove \textit{listen} actions from the queue when processing a \textit{transmit} action, and process the \textit{listen} action by sending the end time and packet of the \textit{transmit} action to the source of the \textit{listen} action, should the packet be received by the node at \autoref{algo:mpicoordinator:shouldreceive}.
-    \item If we dequeue a \textit{listen} action at \autoref{algo:mpicoordinator:dequeue}, we know that no packets were received for the action, and we can send \KwNull to the $\mathit{source}$ of the listen action at \autoref{algo:mpicoordinator:sendnull}.
-    \item It is assumed that a \textit{transmit} action will interfere entirely with another \textit{transmit} action if the time intervals of the two actions intersect at any point in time (\autoref{algo:mpicoordinator:transmitintersects}), rather than interfering only for the intersecting time.
-\end{itemize}
-
-\todo[inline]{discuss discovered set}
+% \begin{itemize}
+%     \item The \textit{sleep} and \textit{inform} actions are handled implicitly as we simply dequeue the
+%           actions at \autoref{algo:mpicoordinator:dequeue}. No further processing is needed, as the actions
+%           only have to be present on the $\mathit{waiting}$ queue, to satisfy the condition at
+% %           \autoref{algo:mpicoordinator:whileactions}.
+%     \item As \textit{transmit} actions always are processed before \textit{listen} actions, we can safely
+%           remove \textit{listen} actions from the queue when processing a \textit{transmit} action, and
+%           process the \textit{listen} action by sending the end time and packet of the \textit{transmit}
+%           action to the source of the \textit{listen} action, should the packet be received by the node at
+%           \autoref{algo:mpicoordinator:shouldreceive}.
+%     \item If we dequeue a \textit{listen} action at \autoref{algo:mpicoordinator:dequeue}, we know that no
+%           packets were received for the action, and we can send \KwNull to the $\mathit{source}$ of the listen
+%           action at \autoref{algo:mpicoordinator:sendnull}.
+%     \item It is assumed that a \textit{transmit} action will interfere entirely with another \textit{transmit}
+%           action if the time intervals of the two actions intersect at any point in time
+%           (\autoref{algo:mpicoordinator:transmitintersects}), rather than interfering only for the
+%           intersecting time.
+% \end{itemize}
 
 \begin{algorithm}[H]
     \DontPrintSemicolon
@@ -60,7 +111,7 @@ Finally, the phi
 
                 \If{$a$.$\mathit{type}$ = \textit{transmit}}{ \label{line:action-transmit}
                     $\mathit{interferers}$ $\leftarrow$ empty set of node identifiers\;
-                    \ForEach{$t$ $\in$ $\mathit{transmits}$ \KwWhere $t$ $\neq$ $a$}{
+                    \ForEach{$t$ $\in$ $\mathit{transmits}$ \KwWhere $t$ $\neq$ $a$}{ \label{algo:mpicoordinator:foreachinterfere}
                         \If{$a$.$\mathit{end}$ $\geq$ $t$.$\mathit{start}$ \KwAnd $a$.$\mathit{start}$ $\leq$ $t$.$\mathit{end}$}{ \label{algo:mpicoordinator:transmitintersects}
                             \tcp{Transmissions intersect.}
                             \KwAppend $t$.$\mathit{source}$ \KwTo $\mathit{interferers}$\;
@@ -69,11 +120,11 @@ Finally, the phi
 
                     \ForEach{$l$ $\in$ $\mathit{waiting}$ \KwWhere $l$.$\mathit{type}$ = \textit{listen}}{
                         \If{$a$.$\mathit{start}$ $\geq$ $l$.$\mathit{start}$ \KwAnd $a$.$\mathit{end}$ $\leq$ $l$.$\mathit{end}$}{
-                            $p$ $\leftarrow$ $P_p$($l$.$\mathit{source}$, $a$.$\mathit{source}$, $\mathit{interferers}$, |$a$.$\mathit{packet}$|, $a$.$\mathit{end}$)\;
+                            $p$ $\leftarrow$ $P_p$($l$.$\mathit{source}$, $a$.$\mathit{source}$, $\mathit{interferers}$, |$a$.$\mathit{packet}$|, $a$.$\mathit{end}$)\; \label{mpi:coordinator:pep}
                             $shouldreceive$ $\leftarrow$ randomly choose based on $p$\;
                             \If{$shouldreceive$}{ \label{algo:mpicoordinator:shouldreceive}
                                 \KwRemove $l$ \KwFrom $\mathit{waiting}$\; \label{algo:mpicoordinator:removelisten}
-                                \KwSend $a$.$\mathit{end}$ \KwTo $l$.$\mathit{source}$\; 
+                                \KwSend $a$.$\mathit{end}$ \KwTo $l$.$\mathit{source}$\;
                                 \KwSend $a$.$\mathit{packet}$ \KwTo $l$.$\mathit{source}$\;
                             }
                         }
@@ -91,3 +142,29 @@ Finally, the phi
     \caption{The \texttt{Coordinator} procedure.}
     \label{algo:mpicoordinator}
 \end{algorithm}
+
+When processing a \textit{transmit} action, the Coordinator first gathers all \textit{transmit} actions from
+the \textit{transmits} set, that interfere with the \textit{transmit} action being processed
+(\autoref{algo:mpicoordinator:foreachinterfere}). A \textit{transmit} actions causes interference with
+another, if at any point in time their time intervals intersect
+(\autoref{algo:mpicoordinator:transmitintersects}). All applicable \textit{transmit} actions are stored in the
+\textit{interferers} set, to be used when computing the probability for packet error. Next, the Coordinator
+iterates through all \textit{listen} actions in the \textit{waiting} queue, and if the time interval of the
+\textit{transmit} action is fully within the time interval of the \textit{listen} action, the \textit{listen}
+action is considered relevant for the \textit{transmit} action, and we compute the probability for the packet
+being received by the listening node (\autoref{mpi:coordinator:pep}). The probability of the packet being
+received is computed using the probability for packet error function $P_p$ (\autoref{eq:pep} in
+\autoref{sec:radiomodel}). The probability for packet error function is called using the source of the
+\textit{listen} action $l$, the source of the \textit{transmit} action $a$, the \textit{interferers} set, the
+size of the packet, as well as the end time of the \textit{transmit} action $a$. Finally, we randomly chose
+whether the packet should be received by using the computed probability $p$
+(\autoref{algo:mpicoordinator:shouldreceive}). If the listening node has been chosen to receive the packet,
+the \textit{listen} action $l$ is removed from the \textit{waiting} queue
+(\autoref{algo:mpicoordinator:removelisten}), and the end time of the \textit{transmit} action $a$, as well as
+the packet is sent to the source of the \textit{listen} node. \smallbreak
+
+Processing a \textit{listen} action (\autoref{algo:mpicoordinator:unblock2}) is trivial, as all the
+Coordinator does is send the end time of the \textit{listen} action and \KwNull to the source of the
+\textit{listen} action. We do this as dequeuing a \textit{listen} action means that no transmission has been
+received by the listening node. When the Coordinator responds to the source of the \textit{listen} action,
+the node is unblocked, and may continue executing its protocol.

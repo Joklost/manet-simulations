@@ -233,7 +233,22 @@
     }
 }
 
-\newcommand{\NodeMatrix}[1]{%
+\newcommand{\NodeMatrix}[2]{%
+    \let\matrixcontent\empty
+    \foreach \j in {start,0,...,#1,end}{%
+            \foreach \i in {start,0,...,#2,end} {%
+                    \begingroup\edef\x{\endgroup\noexpand\gappto\noexpand\matrixcontent{|(\i-\j)| \&}}\x
+                }%
+            \gappto\matrixcontent{\\}%
+        }
+
+    %% Matrix
+    \matrix (matrix) at (0,0) [matrix of nodes, ampersand replacement=\&,very thin,column sep=0.1cm,row sep=0.2cm] {%
+        \matrixcontent%
+    };
+}
+
+\newcommand{\ExecutionMatrix}[1]{%
     \let\matrixcontent\empty
     \foreach \j in {0,...,#1,end}{%
             \foreach \i in {tleft,sep0,\Node{1},sep1,\Node{2},sep2,\Node{3},sep3,\Node{4},sep4,\Node{5},sep5,tright,legend1,legend2} {%
@@ -302,7 +317,7 @@
 
 \newcommand{\CoordinatorFigure}[1]{%
     \begin{tikzpicture}[every node/.style={font=\normalsize,minimum height=0.5cm,minimum width=0.75cm},]
-        \NodeMatrix{20}
+        \ExecutionMatrix{20}
 
         % Horizontal time lines
         \draw [dotted]
