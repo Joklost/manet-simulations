@@ -338,3 +338,4 @@ reports/p10/.vscode/*
 fig*.html
 
 src/logs/*/*
+tools/linkmodel_visualiser/plots/
