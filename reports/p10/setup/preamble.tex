@@ -198,12 +198,20 @@
 %%%>
 \usetikzlibrary{shapes.geometric}
 \usetikzlibrary{matrix}
+\usetikzlibrary{calc}
 \usetikzlibrary{patterns}
 
-% \usepackage{tikz}
-% \usetikzlibrary{positioning}
-% \tikzset{main node/.style={circle,fill=blue!20,draw,minimum size=1cm,inner sep=0pt},}
+\tikzset{
+    between/.style args={#1 and #2}{
+         at = ($(#1)!0.5!(#2)$)
+    }
+}
 
+\tikzset{
+    between base/.style args={#1 and #2}{
+        between=#1.base and #2.base
+    }
+}
 
 \usepackage[ruled, vlined, commentsnumbered, linesnumbered]{algorithm2e}
 \SetArgSty{textnormal}
@@ -219,5 +227,4 @@
 
 
 \usepackage{pgfplots}
-
 \usepackage{optidef}
