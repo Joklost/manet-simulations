@@ -7,6 +7,8 @@ else ()
     set(INSTALL_HTTP TRUE)
 endif ()
 
+set(INSTALL_HTTP FALSE)
+
 project(manetsims VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -49,6 +51,7 @@ add_subdirectory(libs)
 # Add executables
 add_subdirectory(coordinator)
 add_subdirectory(alohanet)
-add_subdirectory(lmheuristics)
+add_subdirectory(lmac)
+#add_subdirectory(lmheuristics)
 
-add_subdirectory(loggen)
+#add_subdirectory(loggen)
