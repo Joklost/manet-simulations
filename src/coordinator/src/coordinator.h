@@ -4,6 +4,8 @@
 #include <random>
 #include <vector>
 #include <map>
+#include <set>
+
 
 #include <common/queue.h>
 #include <common/equality.h>
@@ -37,8 +39,9 @@ class Coordinator {
     std::vector<Node> nodelist{};
     std::map<double, Topology, common::is_less<double>> topologies{};
     std::vector<Action> transmissions{};
-//    std::map<unsigned long, std::vector<Action>> transmissions{};
-    common::PriorityQueue<Action, std::vector<Action>, decltype(&compare_actions)> action_queue{compare_actions};
+    //common::PriorityQueue<Action, std::vector<Action>, decltype(&compare_actions)> action_queue{compare_actions};
+
+    std::set<Action, decltype(&compare_actions)> actions{compare_actions};
 
     /* Helpers */
     bool handshake();

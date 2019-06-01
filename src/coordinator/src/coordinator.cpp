@@ -79,30 +79,43 @@ int Coordinator::enqueue_message(const mpi::Status &status) {
         act.end = act.start + mpilib::compute_transmission_time(BAUDRATE, data.size()).count();
         act.packet = {act.end, data};
 
-        this->action_queue.push(act);
+        this->actions.emplace(act);
+        //this->action_queue.push(act);
         this->transmissions.push_back(act);
         this->nodes[status.source].action_count += 1;
+        this->c->debug("action_add={}", act);
     } else if (status.tag == RX_PKT) {
         Action act{Listen, status.source};
         act.start = mpi::recv<unsigned long>(status.source, RX_PKT);
         act.end = act.start + mpi::recv<unsigned long>(status.source, RX_PKT_DURATION);
 
-        this->action_queue.push(act);
+        this->actions.emplace(act);
+        //this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
+        this->c->debug("action_add={}", act);
     } else if (status.tag == SLEEP) {
         Action act{Sleep, status.source};
         act.start = mpi::recv<unsigned long>(status.source, SLEEP);
         act.end = act.start + mpi::recv<unsigned long>(status.source, SLEEP_DURATION);
 
-        this->action_queue.push(act);
+        this->actions.emplace(act);
+        //this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
+        this->c->debug("action_add={}", act);
     } else if (status.tag == INFORM) {
         Action act{Inform, status.source};
         act.start = act.end = mpi::recv<unsigned long>(status.source, INFORM);
 
-        this->action_queue.push(act);
+        this->actions.emplace(act);
+        //this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
+        this->c->debug("action_add={}", act);
     }
+
+    for (auto &action : this->actions) {
+        this->c->debug("action={}", action);
+    }
+    this->c->debug(" ");
 
     return CSUCCESS;
 }
@@ -113,11 +126,34 @@ static bool has_actions(const std::pair<unsigned long, Node> &rank_node_pair) {
 }
 
 void Coordinator::process_actions(std::mt19937 &gen) {
-    const auto action_count = this->action_queue.size();
+    const auto action_count = this->actions.size();
+    //const auto action_count = this->action_queue.size();
 
     while (std::all_of(this->nodes.cbegin(), this->nodes.cend(), has_actions)) {
-        auto act = this->action_queue.fpop();
-        this->nodes[act.rank].action_count -= 1;
+        //auto act = this->action_queue.fpop();
+
+        auto head = this->actions.begin();
+        if (head == this->actions.end()) {
+            this->c->debug("actions={}, head=end and all_of has actions={}", this->actions.size(),
+                           std::all_of(this->nodes.cbegin(), this->nodes.cend(), has_actions));
+
+            for (const auto &node : this->nodes) {
+                this->c->debug("node={}, action_count={}, dead={}", node.second.rank, node.second.action_count,
+                               node.second.dead);
+            }
+        }
+
+        auto act = *head; /* Copy. */
+        this->actions.erase(head);
+        this->nodes[act.rank].action_count--;
+
+        /* Print action queue. */
+        //this->c->debug(" ");
+        this->c->debug("process={}", act);
+        //for (auto &action : this->actions) {
+        //    this->c->debug("action={}", action);
+        //}
+        //this->c->debug(" ");
 
         if (act.type == Transmission) {
             auto &tx = act;
@@ -141,6 +177,7 @@ void Coordinator::process_actions(std::mt19937 &gen) {
 
                 auto rssi = topology.get_link(tx.rank, tx_i.rank);
                 if (common::is_zero(rssi)) {
+
                     continue;
                 }
 
@@ -148,34 +185,36 @@ void Coordinator::process_actions(std::mt19937 &gen) {
             }
 
             /* Go through possible receivers. */
-            for (auto &action : this->action_queue.get_container()) {
-                if (action.type != Listen) {
+            for (auto it = this->actions.begin(); it != this->actions.end();) { // NOLINT(modernize-loop-convert)
+                if (it->type != Listen) {
+                    it++;
                     continue;
                 }
 
-                auto &rx = action;
-                if (rx.packet.time != 0ul) {
-                    /* Listen action already have a packet. */
-                    continue;
-                }
+                //auto &rx = action;
+//                if (it->packet.time != 0ul) {
+//                    /* Listen action already have a packet. */
+//                    continue;
+//                }
 
-                if (!tx.is_within(rx)) {
+
+                if (!tx.is_within(*it)) {
                     /* Transmit is not within receive interval. */
+                    it++;
                     continue;
                 }
 
-                auto rssi = topology.get_link(rx.rank, tx.rank);
+                auto rssi = topology.get_link(it->rank, tx.rank);
+                //this->c->debug("listen={}, rssi={}", *it, rssi);
+
                 if (common::is_zero(rssi)) {
+                    it++;
                     continue;
                 }
 
                 auto pep = RadioModel::pep(rssi, tx.packet.data.size(), interference);
                 std::bernoulli_distribution d{1.0 - pep};
                 auto should_receive = d(gen);
-
-                if (should_receive) {
-                    rx.packet = tx.packet;
-                }
 
                 if (this->plots) {
                     /* Log RSSI and interference for plots. */
@@ -191,25 +230,48 @@ void Coordinator::process_actions(std::mt19937 &gen) {
                     this->stats.packetloss.emplace_back(
                             should_receive,
                             this->nodes[tx.rank].id,
-                            this->nodes[rx.rank].id,
+                            this->nodes[it->rank].id,
+                            tx.packet.data.size(),
                             rssi,
                             pep,
                             interfering_power,
                             interference.size(),
-                            tx.start
+                            tx.start,
+                            tx.end
                     );
                 }
 
+                if (should_receive) {
+                    //this->c->debug("tx.end:{}", tx.end);
+                    mpi::send(tx.end, it->rank, RX_PKT_END);
+                    mpi::send(tx.packet.data, it->rank, RX_PKT_DATA);
+                    this->c->debug("remove={}", *it);
+                    this->nodes[it->rank].action_count--;
+                    it = this->actions.erase(it);
+                } else {
+                    it++;
+                }
             }
         }
 
         if (act.type == Listen) {
             auto &rx = act;
-            mpi::send(rx.packet.time, rx.rank, RX_PKT_END);
-            mpi::send(rx.packet.data, rx.rank, RX_PKT_DATA);
+            this->c->debug("rx.end:{}", rx.end);
+            mpi::send(rx.end, rx.rank, RX_PKT_END);
+            mpi::send(std::vector<octet>{}, rx.rank, RX_PKT_DATA);
         }
     }
 
+    this->c->debug(" ");
+    for (const auto &node : this->nodes) {
+        this->c->debug("node={}, action_count={}, dead={}", node.second.rank, node.second.action_count,
+                       node.second.dead);
+    }
+    for (auto &action : this->actions) {
+        this->c->debug("action={}", action);
+    }
+    this->c->debug(" ");
+/*
     if (action_count != this->action_queue.size()) {
         const auto &acts = this->action_queue.get_container();
         auto it = std::min_element(acts.cbegin(), acts.cend(), [](const Action &left, const Action &right) {
@@ -228,6 +290,7 @@ void Coordinator::process_actions(std::mt19937 &gen) {
             this->stats.transmissions_sizes.emplace_back(act.end, this->transmissions.size());
         }
     }
+    */
 }
 
 Coordinator::Coordinator(const char *logpath, bool debug, bool plots) : debug(debug), plots(plots) {

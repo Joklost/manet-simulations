@@ -1,6 +1,7 @@
 #ifndef COORDINATOR_ACTION_H
 #define COORDINATOR_ACTION_H
 
+#include <ostream>
 #include "packet.h"
 
 enum Type {
@@ -23,6 +24,8 @@ struct Action {
     bool operator==(const Action &rhs) const;
 
     bool operator!=(const Action &rhs) const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Action &action);
 };
 
 bool compare_actions(const Action &left, const Action &right);
