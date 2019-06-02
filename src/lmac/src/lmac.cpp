@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
             } else {
                 phase_s = to_string(state.phase);
             }
-            hardware::logger->info("{},{},{}", hardware::get_localtime(), id, phase_s);
+            hardware::logger->info("{},{},{}", hardware::get_localtime().count() / 1000.0, id, phase_s);
 //            hardware::logger->info("moving to {} at {}", to_string(state.phase), hardware::get_localtime());
             state.next_phase = nil;
         }

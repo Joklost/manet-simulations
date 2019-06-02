@@ -6,8 +6,6 @@
 #include <map>
 #include <set>
 
-
-#include <common/queue.h>
 #include <common/equality.h>
 #include <mpilib/mpi.h>
 

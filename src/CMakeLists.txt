@@ -1,14 +1,4 @@
-if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
-    cmake_minimum_required(VERSION 3.7.1)
-    set(INSTALL_HTTP FALSE)
-else ()
-    cmake_minimum_required(VERSION 3.8)
-    add_compile_definitions(INSTALL_HTTP)
-    set(INSTALL_HTTP TRUE)
-endif ()
-
-set(INSTALL_HTTP FALSE)
-
+cmake_minimum_required(VERSION 3.8)
 project(manetsims VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -45,12 +35,13 @@ endif ()
 set(MPI_EXECUTABLE_SUFFIX ".mpich")
 find_package(MPI REQUIRED)
 
+set(INSTALL_HTTP FALSE)
 # Add libraries
 add_subdirectory(libs)
 
 # Add executables
 add_subdirectory(coordinator)
-add_subdirectory(alohanet)
+#add_subdirectory(alohanet)
 add_subdirectory(lmac)
 #add_subdirectory(lmheuristics)
 
