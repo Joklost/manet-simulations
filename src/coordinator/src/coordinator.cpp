@@ -83,7 +83,7 @@ int Coordinator::enqueue_message(const mpi::Status &status) {
         //this->action_queue.push(act);
         this->transmissions.push_back(act);
         this->nodes[status.source].action_count += 1;
-        this->c->debug("action_add={}", act);
+//        this->c->debug("add={}", act);
     } else if (status.tag == RX_PKT) {
         Action act{Listen, status.source};
         act.start = mpi::recv<unsigned long>(status.source, RX_PKT);
@@ -92,7 +92,7 @@ int Coordinator::enqueue_message(const mpi::Status &status) {
         this->actions.emplace(act);
         //this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
-        this->c->debug("action_add={}", act);
+//        this->c->debug("add={}", act);
     } else if (status.tag == SLEEP) {
         Action act{Sleep, status.source};
         act.start = mpi::recv<unsigned long>(status.source, SLEEP);
@@ -101,7 +101,7 @@ int Coordinator::enqueue_message(const mpi::Status &status) {
         this->actions.emplace(act);
         //this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
-        this->c->debug("action_add={}", act);
+//        this->c->debug("add={}", act);
     } else if (status.tag == INFORM) {
         Action act{Inform, status.source};
         act.start = act.end = mpi::recv<unsigned long>(status.source, INFORM);
@@ -109,13 +109,13 @@ int Coordinator::enqueue_message(const mpi::Status &status) {
         this->actions.emplace(act);
         //this->action_queue.push(act);
         this->nodes[status.source].action_count += 1;
-        this->c->debug("action_add={}", act);
+//        this->c->debug("add={}", act);
     }
-
-    for (auto &action : this->actions) {
-        this->c->debug("action={}", action);
-    }
-    this->c->debug(" ");
+//
+//    for (auto &action : this->actions) {
+//        this->c->debug("action={}", action);
+//    }
+//    this->c->debug(" ");
 
     return CSUCCESS;
 }
@@ -133,23 +133,16 @@ void Coordinator::process_actions(std::mt19937 &gen) {
         //auto act = this->action_queue.fpop();
 
         auto head = this->actions.begin();
-        if (head == this->actions.end()) {
-            this->c->debug("actions={}, head=end and all_of has actions={}", this->actions.size(),
-                           std::all_of(this->nodes.cbegin(), this->nodes.cend(), has_actions));
-
-            for (const auto &node : this->nodes) {
-                this->c->debug("node={}, action_count={}, dead={}", node.second.rank, node.second.action_count,
-                               node.second.dead);
-            }
-        }
-
         auto act = *head; /* Copy. */
         this->actions.erase(head);
         this->nodes[act.rank].action_count--;
 
         /* Print action queue. */
         //this->c->debug(" ");
-        this->c->debug("process={}", act);
+
+//        if (act.rank == 2 or act.rank == 3) {
+//            this->c->debug("process={}", act);
+//        }
         //for (auto &action : this->actions) {
         //    this->c->debug("action={}", action);
         //}
@@ -256,21 +249,21 @@ void Coordinator::process_actions(std::mt19937 &gen) {
 
         if (act.type == Listen) {
             auto &rx = act;
-            this->c->debug("rx.end:{}", rx.end);
+//            this->c->debug("rx.end:{}", rx.end);
             mpi::send(rx.end, rx.rank, RX_PKT_END);
             mpi::send(std::vector<octet>{}, rx.rank, RX_PKT_DATA);
         }
     }
 
-    this->c->debug(" ");
-    for (const auto &node : this->nodes) {
-        this->c->debug("node={}, action_count={}, dead={}", node.second.rank, node.second.action_count,
-                       node.second.dead);
-    }
-    for (auto &action : this->actions) {
-        this->c->debug("action={}", action);
-    }
-    this->c->debug(" ");
+//    this->c->debug(" ");
+//    for (const auto &node : this->nodes) {
+//        this->c->debug("node={}, action_count={}, dead={}", node.second.rank, node.second.action_count,
+//                       node.second.dead);
+//    }
+//    for (auto &action : this->actions) {
+//        this->c->debug("action={}", action);
+//    }
+//    this->c->debug(" ");
 /*
     if (action_count != this->action_queue.size()) {
         const auto &acts = this->action_queue.get_container();
