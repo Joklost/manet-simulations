@@ -44,6 +44,8 @@ let settings = {
                 " * rainbow.colourAt(edge.rssi)      - returns a colour based on the rssi of edge\n" +
                 " */\n\n" +
                 "edge.status = 0; /* Set to 1 to show edges */\n\n" +
+                "if (edge['timestamp'] < glob_time && edge['timestamp_end'] > glob_time)\n" +
+                "    edge.status = 1;\n\n" +
                 "if(edge.status > 0) {\n" +
                 "    canvas.strokeWeight(3);\n\n" +
                 "    canvas.stroke('#' + rainbow.colourAt(edge.rssi));\n" +
@@ -179,7 +181,9 @@ $(document).ready(function () {
                     p.fill(0, 0, 0);
                     p.stroke(0, 0, 0);
                     p.strokeWeight(0.8);
-                    p.text(node_text_state[id], dot.x - (diam / 3) + 3, dot.y + (diam / 4));
+                    let val = (diam / 3);
+                    val += node_text_state[id].length > 1 ? 1 : -3;
+                    p.text(node_text_state[id], dot.x - val, dot.y + (diam / 4));
                 }
 
                 if (glob_time >= current_data.last_time) {
@@ -365,16 +369,27 @@ $(document).ready(function () {
             let edges = {};
             e.target.result.split('\n').forEach(line => {
                 let split = line.split(',');
-                if (split[0] === 'drop')
+                if (split[0].includes('#') || split[0] === "" || split[0] === 'drop')
                     return;
 
                 let tx_id = parseInt(split[1]);
                 let rx_id = parseInt(split[2]);
-                let tx_start = split[8];
-                let rx_start = split[9];
+                let tx_start = parseFloat(split[8]);
+                let tx_end = parseFloat(split[9]);
 
+                if (!edges.hasOwnProperty(tx_id))
+                    edges[tx_id] = {};
+
+                if (!edges[tx_id].hasOwnProperty(rx_id))
+                    edges[tx_id][rx_id] = [];
+
+                edges[tx_id][rx_id].push({
+                    'timestamp': tx_start,
+                    'timestamp_end': tx_end,
+                    'dest': rx_id
+                });
             });
-
+            current_data.edges = edges;
         });
     });
 });
@@ -660,7 +675,9 @@ function ids_in_link(node1, node2, id1, id2) {
 }
 
 function replay_update_node_text_state(nid) {
-    let keys = Object.keys(protocol_replay_data[nid]).map(val => parseFloat(val));
+    let keys = Object.keys(protocol_replay_data[nid]).map(val => parseFloat(val)).sort(function (a, b) {
+        return a - b;
+    });
     let kl = keys.length;
     if (kl === 1 && keys[0] < glob_time) {
         node_text_state[nid] = protocol_replay_data[nid][keys[0]];
