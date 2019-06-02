@@ -1,0 +1,44 @@
+\section{Experiment data exploration}
+\todo[inline]{introduce the data. WIP}
+To verify that our model for computing path loss gives proper results, we have received data from conducted experiments from the Reachi project. In total we have received data from four experiments. Three experiments was conducted with 33 devices, while the fourth with 330.
+% OMG SO BAAAAAD
+
+
+\todo[inline]{talk about the problems with the data. WIP}
+When we detected odd behaviour, we started to investigate the logs. Specifically the logs from experiments conducted in Marikina and Rude skov. The reason for these two, is that the Rude skov log was not conducted in the middle of a city while the Marikina was, as such the Marikina log should contain more varying signal strength measurements because there is more dense obstructions that can influence the signal. We used the distance dependent fading function \cite{rasmus_paper}, that computes path loss based on the distance of a link, where we compared the measurements with transmission power - path loss computed from the distance fading function.
+
+
+On plot \ref{plot:reachi-experiments:average-distance} the measurements and distance fading function RSSI values can be seen. The measurements have been divided into distance buckets, where the average for each bucket has been computed and plotted.
+
+
+\begin{tikzpicture}\label{plot:reachi-experiments:average-distance}
+    \begin{axis}[
+            title={Average RSSI pr. distance bucket},
+            height=12cm, width=\textwidth,
+            ylabel={RSSI},
+            xlabel={Distance in meters},
+            axis lines*=left,
+            xmin=0, xmax=750,
+            enlargelimits=false,
+            ymin=-120, ymax=-20,
+            xtick={0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750},
+            % ytick={0,20,40,60,80,100,120},
+            % legend pos=north west,
+            ymajorgrids=true,
+            xmajorgrids=true,
+            grid style=dashed,
+        ]
+
+        \addplot[very thick, solid, cyan!50!black, mark=*] coordinates {(20, -28.32345013477089) (40, -44.85830258302583) (60, -52.77323717948718) (80, -60.21201657458563) (100, -66.47435897435898) (120, -69.68905472636816) (140, -71.5976496922216) (160, -73.7866473149492) (180, -75.53428571428572) (200, -76.89289392378991) (220, -77.88135593220339) (240, -77.8035019455253) (260, -77.36784140969164) (280, -77.14030612244898) (300, -77.75299760191847) (320, -79.71686746987952) (340, -79.15481171548117) (360, -79.90728476821192) (380, -81.30909090909091) (400, -81.79746835443038) (420, -81.52272727272727) (440, -79.2) (460, -79.42105263157895) (480, -79.4375) (500, -79.0) (520, -77.91666666666667) (540, -83.0) (560, -81.27272727272727) (580, -83.57142857142857) (600, -86.0) (620, -83.4) (640, -86.5) (660, -81.42857142857143) (680, -79.0) (700, -82.71428571428571) (740, -77.0)};
+        \addlegendentry{measurements};
+
+        \addplot[very thick, dashed, cyan!50!black] coordinates {(20, -26.756649761518972) (40, -43.31329952303794) (60, -52.9983187711004) (80, -59.869949284556895) (100, -65.2) (120, -69.55496853261936) (140, -73.23704196230311) (160, -76.42659904607588) (180, -79.23998778068183) (200, -81.75664976151897) (220, -84.03324744522133) (240, -86.11161829413832) (260, -88.023534138395) (280, -89.79369172382208) (300, -91.44166900958145) (320, -92.98324880759482) (340, -94.43134043732401) (360, -95.7966375422008) (380, -97.08809781392456) (400, -98.31329952303794) (420, -99.47871097188452) (440, -100.5898972067403) (460, -101.65168074248659) (480, -102.66826805565728) (500, -103.64335023848102) (520, -104.58018389991395) (540, -105.48165679026326) (560, -106.350341485341) (580, -107.18853964596155) (600, -107.99831877110037) (620, -108.78154292240396) (640, -109.53989856911377) (660, -110.27491645480276) (680, -110.98799019884297) (700, -111.68039220078413) (740, -113.00774458520368)};
+        \addlegendentry{distance fading function};
+    \end{axis}
+\end{tikzpicture}
+
+
+
+\todo[inline]{show some plots, proving the problems}
+\todo[inline]{talk about the visualiser + youtube link that shows the problems}
+\todo[inline]{shortly mention CVPL and BOPL model that will be introduced in detail later}
