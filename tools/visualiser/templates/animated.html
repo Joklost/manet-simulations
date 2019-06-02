@@ -41,6 +41,13 @@
         </ul>
     </div>
     <div class="top_menu">
+        <span>Protocol</span>
+        <ul class="dropdown-menu">
+            <li><a href="#" onclick="load_protocol_log()">Replay protocol log</a><input type="file" id="load_protocol" style="display:none;"></li>
+            <li><a href="#" onclick="load_communication_log()">Replay communication log</a><input type="file" id="load_communication" style="display:none;"></li>
+        </ul>
+    </div>
+    <div class="top_menu">
         <span>Visualization</span>
         <ul class="dropdown-menu">
             <li><a href="#" onclick="load_style()">Load</a><input type="file" id="style_file" style="display:none;">

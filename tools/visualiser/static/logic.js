@@ -5,21 +5,34 @@ let glob_time = 0;
 let time_slider_active = false;
 let current_data = null;
 let pause = true;
-let canvas_edges_show_rssi_value_on_edge = false;
-let cavas_edges_show_rssi_value_textsize = 11;
 
 let rainbow = new Rainbow();
 rainbow.setSpectrum('red', 'yellow', 'green');
 rainbow.setNumberRange(-110, 0);
 
+let protocol_replay_data;
+let node_text_state;
+let init_node_text_state;
 
 let settings = {
         "style": {
             "node_style":
-                "if(node.mode>0){\n" +
+                "node.mode = 0; // 1 = display nodes, 2 = with replay features\n\n" +
+                "if(node.mode === 1) {\n" +
+                "   canvas.strokeWeight(1);\n" +
+                "   canvas.stroke(0, 0, 0);\n" +
+                "   canvas.fill('rgba(255,255,255, 1)');\n\n" +
+                "} else if (node.mode === 2) {\n" +
                 "    canvas.strokeWeight(1);\n" +
-                "    canvas.stroke(0, 0, 0);\n" +
-                "    canvas.fill('rgba(255,255,255, 1)');\n" +
+                "    canvas.stroke(0, 0, 0);\n\n" +
+                "    let color = {'i': 'rgba(255,255,255,1)', 'w': 'rgba(178,34,34,1)', 'd': 'rgba(30,144,255,1)'}; // LMAC colors\n" +
+                "    let f;\n\n" +
+                "    replay_update_node_text_state(node.id);\n" +
+                "    if (color.hasOwnProperty(node_text_state[node.id]))\n" +
+                "        f = color[node_text_state[node.id]];\n" +
+                "    else\n" +
+                "        f = 'rgba(127,255,0,1)';\n" +
+                "    canvas.fill(f);\n\n" +
                 "} else { \n" +
                 "    canvas.noFill(); canvas.noStroke();\n" +
                 "}\n",
@@ -27,7 +40,7 @@ let settings = {
             "edge_style":
                 "/* usefull functions: \n" +
                 " * ids_in_link(from, to, id1, id2)  - return true of edges has nodes with given ids. id2 is optional\n" +
-                " * map.map.distance(fropm, to)      - returns distance of edge\n" +
+                " * map.map.distance(from, to)      - returns distance of edge\n" +
                 " * rainbow.colourAt(edge.rssi)      - returns a colour based on the rssi of edge\n" +
                 " */\n\n" +
                 "edge.status = 0; /* Set to 1 to show edges */\n\n" +
@@ -73,7 +86,7 @@ $(document).ready(function () {
         p.setup = function () {
             map_canvas = p.createCanvas(p.windowWidth, p.windowHeight - 30);
             map = mappa.tileMap(options);
-            map.overlay(map_canvas)
+            map.overlay(map_canvas);
             map_canvas.fill(200, 100, 100);
 
             // Only redraw the point when the map changes and not every frame.
@@ -138,12 +151,6 @@ $(document).ready(function () {
                         let midy = (odot.y + dot.y) / 2 - ss * Math.min(10, length / 2);
 
 
-                        /* if (canvas_edges_show_rssi_value_on_edge) {
-                            // p.textSize(cavas_edges_show_rssi_value_textsize);
-                            p.fill(0, 0, 0);
-                            p.text(edge.rssi, midx + 2, midy + 2);
-                        }*/
-
                         p.line(dot.x, dot.y, midx, midy);
                         p.line(midx, midy, odot.x, odot.y);
                         ss *= 5;
@@ -157,24 +164,28 @@ $(document).ready(function () {
 
                 for (let id in current_data.nodes) {
                     const data = node_data(id, glob_time);
+
                     if (data === null)
                         continue;
-                    if (data.hasOwnProperty("mode") && data.mode == 0)
-                        continue;
+
                     const dot = map.latLngToPixel(data);
+                    data.id = id;
                     p.noFill();
                     p.noStroke();
+
                     _show_node(p, data, dot);
+
                     p.ellipse(dot.x, dot.y, diam, diam);
                     p.fill(0, 0, 0);
                     p.stroke(0, 0, 0);
-                    p.strokeWeight(1);
-                    p.text(id, dot.x - (diam / 3), dot.y + (diam / 4));
+                    p.strokeWeight(0.8);
+                    p.text(node_text_state[id], dot.x - (diam / 3) + 3, dot.y + (diam / 4));
                 }
 
                 if (glob_time >= current_data.last_time) {
                     $("#stop").click();
                     $("#play").click();
+                    node_text_state = init_node_text_state;
                 }
             }
         };
@@ -332,6 +343,38 @@ $(document).ready(function () {
             settings.simulation_type.gps_data = e.target.result;
             settings.simulation_type.type = "log+rssi";
             execution_handler();
+        });
+    });
+    $("#load_protocol").change(function () {
+        load_file(this, function (e) {
+            protocol_replay_data = {};
+            e.target.result.split('\n').forEach(line => {
+                let split = line.split(',');
+                if (split[0] === "")
+                    return;
+
+                if (!protocol_replay_data.hasOwnProperty(split[1]))
+                    protocol_replay_data[split[1]] = {};
+
+                protocol_replay_data[split[1]][split[0]] = split[2];
+            });
+        });
+    });
+    $("#load_communication").change(function () {
+        load_file(this, function (e) {
+            let edges = {};
+            e.target.result.split('\n').forEach(line => {
+                let split = line.split(',');
+                if (split[0] === 'drop')
+                    return;
+
+                let tx_id = parseInt(split[1]);
+                let rx_id = parseInt(split[2]);
+                let tx_start = split[8];
+                let rx_start = split[9];
+
+            });
+
         });
     });
 });
@@ -530,6 +573,7 @@ function add_models(models) {
 function show_simulation(data) {
     if (data === {})
         return;
+
     $("#speed_slider").attr('min', -100);
     $("#speed_slider").attr('max', 99);
     $("#speed_slider").val(0);
@@ -539,11 +583,18 @@ function show_simulation(data) {
     glob_time = data.first_time;
     current_data = data;
 
+    node_text_state = {};
+    for (let nid in current_data.nodes) {
+        node_text_state[nid] = nid;
+    }
+
+    init_node_text_state = node_text_state;
+
     for (let i = 0; i < current_data.nodes.length; i++) {
         console.log(current_data.nodes[i]);
     }
     settings.simulation_data.push({"time": (new Date()).getTime(), "data": data});
-    var bounds = [[data.min_lat, data.min_lng], [data.max_lat, data.max_lng]];
+    let bounds = [[data.min_lat, data.min_lng], [data.max_lat, data.max_lng]];
     map.map.fitBounds(bounds);
 }
 
@@ -587,6 +638,19 @@ function show_gps_rssi() {
     $("#gps_log_rssi").click();
 }
 
+function load_protocol_log() {
+    if (current_data == null) {
+        alert('No gps log has been loaded');
+        return;
+    }
+
+    $("#load_protocol").click();
+}
+
+function load_communication_log() {
+    $("#load_communication").click();
+}
+
 function ids_in_link(node1, node2, id1, id2) {
     if (typeof id2 !== 'undefined') {
         return (id1 === node1.id || id1 === node2.id) && (id2 === node1.id || id2 === node2.id);
@@ -595,6 +659,24 @@ function ids_in_link(node1, node2, id1, id2) {
     return id1 === node1.id || id1 === node2.id;
 }
 
+function replay_update_node_text_state(nid) {
+    let keys = Object.keys(protocol_replay_data[nid]).map(val => parseFloat(val));
+    let kl = keys.length;
+    if (kl === 1 && keys[0] < glob_time) {
+        node_text_state[nid] = protocol_replay_data[nid][keys[0]];
+        return;
+    }
+
+    for (let i = 0; i < kl; i++) {
+        if (i + 1 === kl && keys[i] < glob_time) {
+            node_text_state[nid] = protocol_replay_data[nid][keys[i]];
+            return;
+        } else if (keys[i] < glob_time && keys[i + 1] > glob_time) {
+            node_text_state[nid] = protocol_replay_data[nid][keys[i]];
+            return;
+        }
+    }
+}
 
 // stolen from https://stackoverflow.com/questions/13405129/javascript-create-and-save-file
 function download(data, filename, type) {
