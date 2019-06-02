@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/common" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/geo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/geo/test/libs/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/http" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/http/libs/cpr" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/http/libs/cpr/opt/curl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/http/libs/cpr/opt/googletest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/http/libs/cpr/opt/mongoose" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/http/libs/json" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/linklayer" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/linklayer/libs/common" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/linklayer/libs/geo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/linklayer/libs/geo/test/libs/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/linklayer/test/libs/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/mpilib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/mpilib/libs/common" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/mpilib/libs/spdlog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims/libs/common" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims/libs/eigen" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims/libs/geo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims/libs/geo/test/libs/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims/test/libs/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims2/libs/eigen" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims2/libs/geo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims2/libs/geo/test/libs/Catch2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/libs/sims2/test/libs/Catch2" vcs="Git" />
+  </component>
+</project>

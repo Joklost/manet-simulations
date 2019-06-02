@@ -339,3 +339,5 @@ fig*.html
 
 src/logs/*/*
 tools/linkmodel_visualiser/plots/
+
+!.idea/

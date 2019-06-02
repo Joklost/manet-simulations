@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="Remote Westmalle (b62ab37b-9962-451e-ab85-5c5ef766064b)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/sims/clion/lmac" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/src/cmake-build-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/src/cmake-build-debug-remote" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

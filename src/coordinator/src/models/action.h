@@ -12,6 +12,8 @@ enum Type {
     Listen = 3
 };
 
+std::string to_string(Type type);
+
 struct Action {
     Type type{};
     int rank{};

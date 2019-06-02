@@ -1,11 +1,11 @@
 #ifndef LMAC_MODELS_H
 #define LMAC_MODELS_H
-
-constexpr auto SLOT_LENGTH = 1000000us; // NOLINT(cert-err58-cpp)
+// 100 000 us (100 ms)
+constexpr auto SLOT_LENGTH = 100000us; // NOLINT(cert-err58-cpp)
 constexpr auto SLOTS = 32ul;
-constexpr auto FRAMES = 10ul;
-constexpr auto MAX_WAIT = 5ul;
-constexpr soctet NO_CHOSEN_SLOT = 0xFF;
+constexpr auto FRAMES = 35ul;
+constexpr auto MAX_WAIT = 3ul;
+constexpr soctet NO_CHOSEN_SLOT = static_cast<soctet>(SLOTS + 1);
 constexpr soctet NO_SLOT = -1;
 constexpr soctet NO_RECEIVER = -1;
 
@@ -17,17 +17,11 @@ enum Phase {
     active
 };
 
-std::unordered_map<Phase, std::string> phase_string{{nil,      "nil"}, // NOLINT(cert-err58-cpp)
-                                                    {init,     "init"},
-                                                    {wait,     "wait"},
-                                                    {discover, "discover"},
-                                                    {active,   "active"}};
-
 struct Node {
     short id{};
-    soctet current_slot{};
-    std::bitset<SLOTS> occupied_slots{};
-    soctet gateway_distance{};
+    soctet current_slot{NO_CHOSEN_SLOT};
+    std::bitset<SLOTS> occupied_slots{0};
+    soctet gateway_distance{-1};
 };
 
 struct State {
@@ -35,8 +29,8 @@ struct State {
     Phase next_phase = nil;
     unsigned long wait_frames = 0ul;
     soctet chosen_slot{NO_CHOSEN_SLOT};
+    soctet next_slot{NO_CHOSEN_SLOT};
     soctet collision_slot{NO_SLOT};
-//    soctet hops{-1};
     std::bitset<SLOTS> occupied_slots{};
     std::unordered_map<short, Node> neighbourhood{};
     std::vector<octet> data_packet{};
