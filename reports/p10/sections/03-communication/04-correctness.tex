@@ -62,28 +62,29 @@ functions that for any action $a$, $a.\mathit{start} \leq a.\mathit{end}$, as sh
 \autoref{sec:hwfuncspseudo}.
 
 \subsection{Methodology}\label{sec:correctnessmethods}
-Suppose that at a point in time $t$ in a real-time execution a \textit{listen} actions ends, and the listening
-node receives a packet with some probability $p$ computed, using the packet error probability function $P_p$.
-We want to show that in a simulation, with asynchronous virtual-time execution, the same listening node would
-receive the packet, with the same computed probability. \autoref{tikz:coordinatormsc0} is a visual
-representation of a real-time execution for an arbitrary wireless communication protocol where five nodes
-communicate through wireless radio broadcasts, without the Coordinator. Vertically, each node has a timeline
-of actions they perform throughout the execution, where each of the actions are represented as a rectangle
-(\textit{listen}, \textit{transmit}, or \textit{sleep}) or a line (\textit{inform}). The rectangles and the
-line represent the start and end time of the actions, where the line has the same start and end time. Each
-action has an identifier, e.g., \T{1}{5}, and an action is the 5-tuple Action
-(\autoref{algo:mpicoordinator:actiontuple} in \autoref{algo:mpicoordinator}). The \T{1}{5} action is a
-\textit{transmit} action where \Node{1} broadcasts some arbitrary data starting at time 2 and ending at time
-5: $\T{1}{5} = (\mathit{transmit}, 1, 2, 5, \mathit{data})$. The horizontal arrows going from the end of a
-\textit{transmit} action to a \textit{listen} action represent a packet received by the listening node. If no
-arrow originates from a \textit{transmit} action, nothing was received of the transmission. In a real
-execution, a node stops listening after the packet has been received. This is presented in the figure by
-the \L{4}{14} action, where \Node{4} receives a packet from \Node{5} at time 12, and stops listening.
+Suppose that at a point in time $t$ in a real execution a \textit{listen} actions ends, and the listening node
+receives a packet with some probability $p$ computed, using the packet error probability function $P_p$. We
+want to show that in a simulation, with asynchronous virtual-time execution (as implemented in
+\autoref{algo:mpicoordinator}), the same listening node would receive the packet, with the same computed
+probability. \autoref{tikz:coordinatormsc0} is a visual representation of a real execution for an
+arbitrary wireless communication protocol where five nodes communicate through wireless radio broadcasts,
+without the Coordinator. Vertically, each node has a timeline of actions they perform throughout the
+execution, where each of the actions are represented as a rectangle (\textit{listen}, \textit{transmit}, or
+\textit{sleep}) or a line (\textit{inform}). The rectangles and the line represent the start and end time of
+the actions, where the line has the same start and end time. Each action has an identifier, e.g., \T{1}{5},
+and an action is the 5-tuple Action (\autoref{algo:mpicoordinator:actiontuple} in
+\autoref{algo:mpicoordinator}). The \T{1}{5} action is a \textit{transmit} action where \Node{1} broadcasts
+some arbitrary data starting at time 2 and ending at time 5: $\T{1}{5} = (\mathit{transmit}, 1, 2, 5,
+\mathit{data})$. The horizontal arrows going from the end of a \textit{transmit} action to a \textit{listen}
+action represent a packet received by the listening node. If no arrow originates from a \textit{transmit}
+action, nothing was received of the transmission. In a real execution, a node stops listening after the packet
+has been received. This is presented in the figure by the \L{4}{14} action, where \Node{4} receives a packet
+from \Node{5} at time 12, and stops listening.
 \medbreak
 
 The following is the result of processing each of the $\mathit{transmit}$ actions from
 \autoref{tikz:coordinatormsc0}, and serve as the timeline of the processing of the $\mathit{transmit}$ actions
-throughout both the real-time execution, and the simulation:
+throughout both the real execution, and the simulation:
 %
 \begin{description}[leftmargin=2em,style=nextline]
     \item[\T{4}{3}] The packet originating from \Node{4} (\T{4}{3}) was dropped by \Node{3} (\L{3}{6}) due to
@@ -98,8 +99,10 @@ throughout both the real-time execution, and the simulation:
           to interference from \Node{1}.
     \item[\T{5}{12}] The packet originating from \Node{5} (\T{5}{12}) was received by \Node{4} (\L{4}{14}) at
           time 12, but dropped by \Node{2} (\L{2}{14}) due to distance.
-    \item[\T{3}{16}] The packet originating from \Node{3} (\T{3}{16}) was dropped by \Node{1} (\L{1}{18}) due
-          to interference from \Node{4} (\T{4}{17}).
+    \item[\T{3}{16}] The transmission from \Node{3} (\T{3}{16}) was not received by any listening nodes, as
+    \Node{1} (\L{1}{18}) started listening too late.
+    %The packet originating from \Node{3} (\T{3}{16}) was dropped by \Node{1} (\L{1}{18}) due
+    %      to interference from \Node{4} (\T{4}{17}).
     \item[\T{4}{17}] The packet originating from \Node{4} (\T{4}{17}) was dropped by \Node{1} (\L{1}{18}) due
           to interference from \Node{2} (\T{2}{18}), \Node{3} (\T{3}{16}), and \Node{5} (\T{5}{18}).
     \item[\T{2}{18}] The packet originating from \Node{2} (\T{2}{18}) was dropped by \Node{1} (\L{1}{18}) due
@@ -110,7 +113,7 @@ throughout both the real-time execution, and the simulation:
 \end{description}
 
 With the invariants outlined above, we want to prove that the packet would be received with the same
-probability in a virtual-time execution, as it would in a real-time execution. Due to the asynchronous nature
+probability in a virtual-time execution, as it would in a real execution. Due to the asynchronous nature
 of executing a wireless communication protocol using an \gls{mpi}, it is not as simple as presenting a single
 slice of the execution. Instead, to illustrate snapshots of a given point in the execution of the Coordinator
 we introduce the concept of a cut: A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine.
@@ -133,19 +136,21 @@ the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ s
         \draw[pattern=north west lines, pattern color=gray] (\Node{4}-12.west) rectangle (\Node{4}-14.east);
 
     }
-    \caption{Real-time execution of an arbitrary protocol with five nodes.}\label{tikz:coordinatormsc0}
+    \caption{Real execution of an arbitrary protocol with five nodes.}\label{tikz:coordinatormsc0}
 \end{figure}
 
 \subsection{Simulated Execution}
-Throughout this section we present a simulated, virtual-time, version of the real-time execution from
-\autoref{tikz:coordinatormsc0}. In simulated execution, the nodes communicate through the Coordinator, rather
-than communicate directly with each other. Throughout the figures in this section, it is assumed that all
-nodes interact with the Coordinator implicitly. We utilise cuts to present different different possible
-scenarios of the Coordinator: No action can be processed, processing a $\mathit{transmit}$, processing an
-$\mathit{inform}$ action, processing a $\mathit{listen}$ action, and finally, processing a $\mathit{sleep}$
-action. For each of the different scenarios we start with a concrete example, basing it on the accompanying
-figure, and ending with a generalisation of the scenario. When processing each of the \textit{transmit}
-actions we follow the descriptions listed in \autoref{sec:correctnessmethods}.
+\todo[inline]{try to shorten some of the arguments}
+Throughout this section we present a simulated, virtual-time, version of the real execution from
+\autoref{tikz:coordinatormsc0} using the Coordinator from \autoref{algo:mpicoordinator}. In a simulated
+execution, the nodes communicate through the Coordinator, rather than directly with each other.
+Throughout the figures in this section, it is assumed that all nodes interact with the Coordinator implicitly.
+We utilise cuts to present different different possible scenarios of the Coordinator: No action can be
+processed, processing a $\mathit{transmit}$, processing an $\mathit{inform}$ action, processing a
+$\mathit{listen}$ action, and finally, processing a $\mathit{sleep}$ action. For each of the different
+scenarios we start with a concrete example, basing it on the accompanying figure, and ending with a
+generalisation of the scenario. When processing each of the \textit{transmit} actions we follow the
+descriptions listed in \autoref{sec:correctnessmethods}.
 
 \subsubsection{Cut 1: Nothing can be processed}
 For the first cut we have a scenario where nothing may be processed. Recall that the condition for Part 3 of
@@ -162,10 +167,10 @@ cut. \Node{1}, \Node{2}, and \Node{5} are not able to submit more actions to the
 \textit{listen} actions they have submitted have been processed.
 
 \begin{figure}[H]
-    \caption{Waiting for \Node{4} to submit an action.}\label{tikz:coordinatormsc1}
+    \caption{Waiting for \Node{3} to submit an action.}\label{tikz:coordinatormsc1}
     % Diagram
     \CoordinatorFigure{\LineLegend\Processed{(sep0-2.center) -- (sep2-2.center) -- (sep2-1.center) --
-            (sep3-1.center) -- (sep4-1.center) -- (sep4-3.center) -- (sep5-3.center)}
+            (sep3-1.center) -- (sep4-1.center) -- (sep4-4.center) -- (sep5-4.center)}
         \Submitted{(sep0-18.center) -- (sep1-18.center) -- (sep1-5.center) -- (sep2-5.center) --
             (sep2-1.center) -- (sep3-1.center) -- (sep3-8.center) -- (sep4-8.center) -- (sep4-9.center) --
             (sep5-9.center) -- (sep5-9.center)}} \par
@@ -173,13 +178,14 @@ cut. \Node{1}, \Node{2}, and \Node{5} are not able to submit more actions to the
     \begin{minipage}[h]{14.5cm}
         The content of the \textit{waiting} queue and \textit{transmits} set as of this cut is: \smallbreak
 
-        $\mathit{waiting} \leftarrow \Big\langle \T{4}{3}, \I{5}{3}, \T{1}{5}, \L{2}{5}, \S{5}{6}, \S{4}{8},
-            \L{5}{9}, \T{1}{10}, \I{1}{12}, \S{1}{14}, \L{1}{18} \Big\rangle$
+        $\mathit{waiting} \leftarrow \Big\langle \T{4}{3}, \I{5}{4}, \T{1}{5}, \L{2}{5}, \S{5}{6}, \S{4}{8},
+            \L{5}{9}, \T{1}{10}, \I{1}{12}, \S{1}{15}, \L{1}{18} \Big\rangle$
 
         $\mathit{transmits} \leftarrow \Big\{ \T{4}{3}, \T{1}{5}, \T{1}{10} \Big\}$ \smallbreak
 
         The \textit{waiting} queue is a priority queue where actions are ordered by end time, and
-        \textit{transmit} actions must be before \textit{listen} actions, if the end time is the same.
+        \textit{sleep} and \textit{inform} action must be before \textit{transmit} actions, which must be
+        before \textit{listen} actions, if the end time is the same.
     \end{minipage}
 \end{figure}
 
@@ -196,16 +202,15 @@ both with start = 1) nothing can be removed. Next, the Coordinator can begin pro
     \caption{Processing a \textit{transmit} action.}\label{tikz:coordinatormsc2}
     % Diagram
     \CoordinatorFigure{\LineLegend\Processed{(sep0-2.center) -- (sep2-2.center) -- (sep2-1.center) --
-            (sep3-1.center) -- (sep4-1.center) -- (sep4-3.center) -- (sep5-3.center)}
+            (sep3-1.center) -- (sep4-1.center) -- (sep4-4.center) -- (sep5-4.center)}
         \Submitted{(sep0-18.center) -- (sep1-18.center) -- (sep1-5.center) -- (sep2-5.center) --
             (sep2-6.center) -- (sep3-6.center) -- (sep3-8.center) -- (sep4-8.center) -- (sep4-9.center) --
             (sep5-9.center) -- (sep5-9.center)}} \par
 
     \begin{minipage}[h]{14.5cm}
         The content of the \textit{waiting} queue and \textit{transmits} set as of this cut is: \smallbreak
-
-        $\mathit{waiting} \leftarrow \Big\langle \T{4}{3}, \I{5}{3}, \T{1}{5}, \L{2}{5}, \S{5}{6}, \L{3}{6},
-            \S{4}{8}, \L{5}{9}, \T{1}{10}, \I{1}{12}, \S{1}{14}, \L{1}{18} \Big\rangle$
+        $\mathit{waiting} \leftarrow \Big\langle \T{4}{3}, \I{5}{4}, \T{1}{5}, \L{2}{5}, \S{5}{6}, \L{3}{6},
+            \S{4}{8}, \L{5}{9}, \T{1}{10}, \I{1}{12}, \S{1}{15}, \L{1}{18} \Big\rangle$
 
         $\mathit{transmits} \leftarrow \Big\{ \T{4}{3}, \T{1}{6}, \T{1}{10} \Big\}$
     \end{minipage}
@@ -213,15 +218,16 @@ both with start = 1) nothing can be removed. Next, the Coordinator can begin pro
 
 The first action in the \textit{waiting} queue is the \textit{transmit} action \T{4}{3}. Recall that when
 processing a \textit{transmit} action, the Coordinator iterates through the \textit{transmits} set to find
-other \textit{transmit} actions with intersecting time intervals. In this case, only the \T{1}{5} action
-intersects with the \T{4}{3} action, so the source of that action is included in the \textit{interferers} set.
-Next, the Coordinator iterates through all \textit{listen} actions in the \textit{waiting} queue, and only if
-the time interval for the \textit{transmit} action is fully within the time interval of any \textit{listen}
-action, we compute the probability for packet error on a transmission between the source of the
-\textit{listen} action ($\L{3}{6}.\mathit{source}$) and the source of the \textit{transmit} action
-($\T{4}{3}.\mathit{source}$). With the probability for packet error, \autoref{eq:pep} in
-\autoref{sec:radiomodel}, $p = P_p(\L{3}{6}.\mathit{source}, \T{4}{3}.\mathit{source}, \{
-    \T{1}{5}.\mathit{source} \}, |\T{4}{3}.\mathit{packet}|, \T{4}{3}.\mathit{end})$, we can randomly choose
+other \textit{transmit} actions with intersecting time intervals, and that invariant 3 ensures that any
+\textit{transmit} action with an intersecting time interval will be in the \textit{transmits} set. In this
+case, only the \T{1}{5} action intersects with the \T{4}{3} action, so the source of that action is included
+in the \textit{interferers} set. Next, the Coordinator iterates through all \textit{listen} actions in the
+\textit{waiting} queue, and only if the time interval for the \textit{transmit} action is fully within the
+time interval of any \textit{listen} action, we compute the probability for packet error on a transmission
+between the source of the \textit{listen} action ($\L{3}{6}.\mathit{source}$) and the source of the
+\textit{transmit} action ($\T{4}{3}.\mathit{source}$). With the probability for packet error, \autoref{eq:pep}
+in \autoref{sec:radiomodel}, $p = P_p(\L{3}{6}.\mathit{source}, \T{4}{3}.\mathit{source},
+\{\T{1}{5}.\mathit{source} \}, |\T{4}{3}.\mathit{packet}|, \T{4}{3}.\mathit{end})$, we can randomly choose
 whether the transmission should be received, or dropped, and either finish processing the \textit{listen}
 action by sending the packet to the source of the action, or move on to the next \textit{listen} action. For
 the \T{4}{3} action, we assume the packet to be dropped by the listening node. \smallbreak
@@ -237,36 +243,36 @@ processing actions as the \textit{waiting} queue still contains at least one act
 
 This holds in general, as every \textit{listen} action will be after any \textit{transmit} action $t$ on the
 \textit{waiting} queue, and every \textit{transmit} action that could possibly interfere with $t$ is in the
-\textit{transmits} set. Let us assume that a node $n$ submitted the \textit{transmit} action $t$, and that $t$
-is at the head of the \textit{waiting} queue. When processing $t$, we want to compute the probability for any
-node $m$ listening in the time interval of the \textit{transmit} action $t$ to receive the packet transmitted
-by $n$. When this is the case, the \textit{listen} action is relevant to $t$. To do this, we need to make sure
-that any \textit{listen} action, that is relevant for the processing of $t$ is on the \textit{waiting} queue,
-and any \textit{transmit} actions that could possibly interfere with $t$ is in the \textit{transmits} set,
-when processing $t$. \smallbreak
+\textit{transmits} set, as stated by invariant 3. Let us assume that a node $n$ submitted the
+\textit{transmit} action $t$, and that $t$ is at the head of the \textit{waiting} queue. When processing $t$,
+we want to compute the probability for any node $m$ listening in the time interval of the \textit{transmit}
+action $t$ to receive the packet transmitted by $n$. When this is the case, the \textit{listen} action is
+relevant to $t$. To do this, we need to make sure that any \textit{listen} action, that is relevant for the
+processing of $t$ is on the \textit{waiting} queue, and any \textit{transmit} actions that could possibly
+interfere with $t$ is in the \textit{transmits} set, when processing $t$. \smallbreak
 
-First, we know that every \textit{listen} action $l$ that could possibly receive the
-\textit{transmit} action $t$ is on the \textit{waiting} queue, as the end time of any $l$ on the
-\textit{waiting} queue, when processing $t$, has to be greater than, or equal to, the end time of $t$. Recall
-that due to the ordering of the \textit{waiting} queue, we always process any \textit{transmit} action before
-processing a \textit{listen} action. In addition to this, when processing $t$, we know that for all
-\textit{listen} actions $l$, where the time interval of $t$ is fully within the time interval for $l$, the
-source node $m$ of $l$ will have only the $l$ action on the \textit{waiting} queue. We know this as any action
-$a$ from node $m$ would have an end time earlier than the start time of $l$, $a.\mathit{end} \leq
-l.\mathit{start}$, which means that the $a$ action would already have been processed, before we process $t$.
-Additionally, invariant 2 states that if a node has a \textit{listen} action in the \textit{waiting} queue, no
-other actions may be present after this. Finally, as we know that the condition for processing actions in the
-\textit{waiting} queue is satisfied when we begin processing the \textit{transmit} action $t$, any node $m$
-that does not have a \textit{listen} action that is relevant to $t$, is unable to submit a \textit{listen}
-action that could become relevant to $t$, as any future action submitted from $m$ would have a start time
-greater than, or equal to, the end time of the previous action submitted from $m$, which we know is greater 
-than the end time of the action $t$ that is currently being processed. \smallbreak
+First, we know that every \textit{listen} action $l$ that could possibly receive the \textit{transmit} action
+$t$ is on the \textit{waiting} queue, as the end time of any $l$ on the \textit{waiting} queue, when
+processing $t$, has to be greater than, or equal to, the end time of $t$. Recall that due to the ordering of
+the \textit{waiting} queue, we always process any \textit{transmit} action before processing a \textit{listen}
+action. In addition to this, when processing $t$, we know that for all \textit{listen} actions $l$, where the
+time interval of $t$ is fully within the time interval for $l$, the source node $m$ of $l$ will have only the
+$l$ action on the \textit{waiting} queue. We know this as any action $a$ from node $m$ would have an end time
+earlier than the start time of $l$, $a.\mathit{end} \leq l.\mathit{start}$, as stated by invariant 1, which
+means that the $a$ action would already have been processed, before we process $t$. Additionally, invariant 2
+states that if a node has a \textit{listen} action in the \textit{waiting} queue, no other actions may be
+present after this. Finally, as we know that the condition for processing actions in the \textit{waiting}
+queue is satisfied when we begin processing the \textit{transmit} action $t$, any node $m$ that does not have
+a \textit{listen} action that is relevant to $t$, is unable to submit a \textit{listen} action that could
+become relevant to $t$, as any future action submitted from $m$ would have a start time greater than, or equal
+to, the end time of the previous action submitted from $m$, which we know is greater than the end time of the
+action $t$ that is currently being processed. \smallbreak
 
-Secondly, invariant 3 states that every \textit{transmit} action submitted to the Coordinator (discovered
-actions) that could possibly interfere with any \textit{transmit} action on the \textit{waiting} queue must be
-present in the \textit{transmits} set. This means that when we process the \textit{transmit} action $t$ we can
-be we certain that any discovered \textit{transmit} actions that interfere with $t$, will be in the
-\textit{transmits} set. \todo[inline]{what about non-discovered?} \smallbreak
+%Secondly, invariant 3 states that every \textit{transmit} action submitted to the Coordinator (discovered
+%actions) that could possibly interfere with any \textit{transmit} action on the \textit{waiting} queue must be
+%present in the \textit{transmits} set. This means that when we process the \textit{transmit} action $t$ we can
+%be we certain that any discovered \textit{transmit} actions that interfere with $t$, will be in the
+%\textit{transmits} set. \todo[inline]{what about non-discovered?} \smallbreak
 
 With these two points, when processing a \textit{transmit} action $t$, we can safely compute the
 probability for any \textit{listen} action $l$ relevant to $t$, including the interference from any
@@ -276,7 +282,7 @@ interfering \textit{transmit} actions in the \textit{transmits} set.
 The next cut is a snapshot of the Coordinator directly after the \T{4}{3} action has been processed and
 removed from the \textit{waiting} queue. The condition for processing actions remains satisfied, as there is
 still at least action from each node in the \textit{waiting} queue. At the head of the \textit{waiting} queue
-is the \textit{inform} action \I{5}{3}. Processing an \textit{inform} action is trivial, as no processing is
+is the \textit{inform} action \I{5}{4}. Processing an \textit{inform} action is trivial, as no processing is
 needed for this action. The action is simply removed from the \textit{waiting} queue, and the Coordinator may
 move on to the next action, if the condition is still satisfied. This holds in general for any \textit{inform}
 action. %\smallbreak
@@ -285,7 +291,7 @@ action. %\smallbreak
     \caption{Processing an \textit{inform} action.}\label{tikz:coordinatormsc3}
     % Diagram
     \CoordinatorFigure{\LineLegend\Processed{(sep0-2.center) -- (sep2-2.center) -- (sep2-1.center) --
-            (sep3-1.center) -- (sep3-3.center) -- (sep4-3.center) -- (sep5-3.center)}
+            (sep3-1.center) -- (sep3-3.center) -- (sep4-3.center) -- (sep4-4.center) -- (sep5-4.center)}
         \Submitted{(sep0-18.center) -- (sep1-18.center) -- (sep1-5.center) -- (sep2-5.center) --
             (sep2-6.center) -- (sep3-6.center) -- (sep3-8.center) -- (sep4-8.center) -- (sep4-9.center) --
             (sep5-9.center) -- (sep5-9.center)}} \par
@@ -293,18 +299,18 @@ action. %\smallbreak
     \begin{minipage}[h]{14.5cm}
         The content of the \textit{waiting} queue and \textit{transmits} set as of this cut is: \smallbreak
 
-        $\mathit{waiting} \leftarrow \Big\langle \I{5}{3}, \T{1}{5}, \L{2}{5}, \S{5}{6}, \L{3}{6}, \S{4}{8},
-            \L{5}{9}, \T{1}{10}, \I{1}{12}, \S{1}{14}, \L{1}{18} \Big\rangle$
+        $\mathit{waiting} \leftarrow \Big\langle \I{5}{4}, \T{1}{5}, \L{2}{5}, \S{5}{6}, \L{3}{6}, \S{4}{8},
+            \L{5}{9}, \T{1}{10}, \I{1}{12}, \S{1}{15}, \L{1}{18} \Big\rangle$
 
         $\mathit{transmits} \leftarrow \Big\{ \T{4}{3}, \T{1}{6}, \T{1}{10} \Big\}$
     \end{minipage}
 \end{figure}
 
-Note that the only change in the \textit{waiting} queue, from the previous cut, is the removal of the \T{4}{3}
-action, which still remains in the \textit{transmits} set, as the end time of the \T{4}{3} action is still
-greater than, or equal to, the start time of the \L{3}{6} action, and causes interference for the \T{1}{5}
-action (the next action in the queue). Additionally, no new actions have been submitted between the 2nd and
-3rd cuts, as a new action is received only if the condition for processing actions is no longer satisfied.
+%Note that the only change in the \textit{waiting} queue, from the previous cut, is the removal of the \T{4}{3}
+%action, which still remains in the \textit{transmits} set, as the end time of the \T{4}{3} action is still
+%greater than, or equal to, the start time of the \L{3}{6} action, and causes interference for the \T{1}{5}
+%action (the next action in the queue). Additionally, no new actions have been submitted between the 2nd and
+%3rd cuts, as a new action is received only if the condition for processing actions is no longer satisfied.
 %\medbreak
 
 \subsubsection{Cut 4: \textit{listen} action}
@@ -315,7 +321,7 @@ interesting points to note. First, when a \textit{listen} action is at the head 
 it means that no packet has been received during this transmission. When this is the case, the action is
 removed, and \KwNull is sent to the source of the \textit{listen} action. Second, the \L{4}{14} action has
 already been processed, and removed from the \textit{waiting} queue, even though the action could not have
-been processed before the \T{3}{16} action had been submitted. The \textit{listen} action has removed from the
+been processed before the \T{3}{16} action had been submitted. The \L{4}{14} action was removed from the
 \textit{waiting} queue early, as the node had received a packet when processing the \T{5}{12} action.
 \medbreak
 
@@ -325,10 +331,10 @@ This holds in general, as no \textit{transmit} action can be fully within the ti
 \textit{transmit} actions are ordered before \textit{listen} actions in the \textit{waiting} queue. Let us
 assume that a node $n$ submitted the \textit{listen} action $l$, and that $l$ is at head of the
 \textit{waiting} queue. When processing the $l$ action, no actions from node $n$ before, or after, $l$ is
-present in the \textit{waiting} queue, as all previous actions have been processed, and invariant 2 states
-that no action may be present after a \textit{listen} action. Additionally, no \textit{transmit} actions from
-any other node $m$ can be present on the \textit{waiting} queue, with end time less than, or equal to, the end
-time of the $l$ action, as these would already have been processed, due to the ordering of the priority queue.
+present in the \textit{waiting} queue, as all previous actions have been processed. Additionally, no
+\textit{transmit} actions from any other node $m$ can be present on the \textit{waiting} queue, with end time
+less than, or equal to, the end time of the $l$ action, as these would already have been processed, due to the
+ordering of the priority queue.
 
 \begin{figure}[H]
     \caption{Processing a \textit{listen} action.}\label{tikz:coordinatormsc4}
@@ -342,7 +348,7 @@ time of the $l$ action, as these would already have been processed, due to the o
     \begin{minipage}[h]{14.5cm}
         The content of the \textit{waiting} queue and \textit{transmits} set as of this cut is: \smallbreak
 
-        $\mathit{waiting} \leftarrow \Big\langle \L{2}{14}, \S{1}{14}, \T{3}{16}, \T{4}{17}, \T{5}{18},
+        $\mathit{waiting} \leftarrow \Big\langle \L{2}{14}, \S{1}{15}, \T{3}{16}, \T{4}{17}, \T{5}{18},
             \L{1}{18}, \L{4}{20} \Big\rangle$
 
         $\mathit{transmits} \leftarrow \Big\{ \T{1}{10}, \T{2}{10}, \T{5}{12}, \T{3}{16}, \T{4}{17}, \T{5}{18}
@@ -355,13 +361,13 @@ The final cut is a snapshot of the Coordinator directly after the \T{2}{18} acti
 Coordinator. The \T{2}{18} action was submitted by \Node{2} after the \L{2}{14} action had been processed
 without the node receiving any data, and the \textit{transmit} action enabled the Coordinator to continue
 processing actions from the \textit{waiting} queue. The head of the \textit{waiting} queue is the
-\textit{sleep} action \S{1}{14}, which, similarly to an \textit{inform} action, is trivial to process, as no
+\textit{sleep} action \S{1}{15}, which, similarly to an \textit{inform} action, is trivial to process, as no
 processing is needed for the Coordinator. Again, similarly to an \textit{inform} action, this holds in general
 for any \textit{sleep} action. \smallbreak
 
 After removing the \L{2}{14} action from the \textit{waiting} queue, the Coordinator were able to remove the
 \T{1}{10}, \T{2}{10}, and \T{5}{12} actions from the \textit{transmits} set, as the new earliest start time is
-now the start time of the \S{1}{14} action.
+now the start time of the \S{1}{15} action.
 
 \begin{figure}[H]
     \caption{Processing a \textit{sleep} action.}\label{tikz:coordinatormsc5}
@@ -375,10 +381,13 @@ now the start time of the \S{1}{14} action.
     \begin{minipage}[h]{14.5cm}
         The content of the \textit{waiting} queue and \textit{transmits} set as of this cut is: \smallbreak
 
-        $waiting \leftarrow \Big\langle \S{1}{14}, \T{3}{16}, \T{4}{17}, \T{5}{18}, \T{2}{18}, \L{1}{18},
+        $waiting \leftarrow \Big\langle \S{1}{15}, \T{3}{16}, \T{4}{17}, \T{5}{18}, \T{2}{18}, \L{1}{18},
             \L{4}{20} \Big\rangle$
 
         %\T{1}{10}, \T{2}{10}, \T{5}{12}, (removed)
         $transmits \leftarrow \Big\{ \T{3}{16}, \T{4}{17}, \T{2}{18}, \T{5}{18} \Big\}$
     \end{minipage}
 \end{figure}
+
+\subsection{Summary}\label{sec:summary}
+\todo[inline]{finish with a conclusion, summarise that we have analysed all the cases and generalised the scenarios.}

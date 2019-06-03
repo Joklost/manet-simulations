@@ -1,5 +1,7 @@
-\clearpage
 \section{Coordinator}\label{sec:coordinator}
+\todo[inline]{bibliographical remark: a lot of changes from Controller}
+\todo[inline]{first 3 paragraphs, not logical order. refer back to hardware section \autoref{sec:hwfuncspseudo}}
+
 To facilitate communication between nodes using the hardware interface, we introduce the Coordinator. The
 Coordinator works by gathering actions (\textit{transmit}, \textit{listen}, \textit{sleep}, and
 \textit{inform}) sent from nodes using an \gls{mpi}. The pseudo code description of the Coordinator can be
@@ -53,27 +55,6 @@ case, the Coordinator dequeues a single action (\autoref{algo:mpicoordinator:deq
 have to be present in the \textit{waiting} queue, to satisfy the condition of the loop. Only the
 \textit{transmit} and \textit{listen} actions need processing by the Coordinator. \smallbreak
 
-% \paragraph{Part 3} \
-
-% \begin{itemize}
-%     \item The \textit{sleep} and \textit{inform} actions are handled implicitly as we simply dequeue the
-%           actions at \autoref{algo:mpicoordinator:dequeue}. No further processing is needed, as the actions
-%           only have to be present on the $\mathit{waiting}$ queue, to satisfy the condition at
-% %           \autoref{algo:mpicoordinator:whileactions}.
-%     \item As \textit{transmit} actions always are processed before \textit{listen} actions, we can safely
-%           remove \textit{listen} actions from the queue when processing a \textit{transmit} action, and
-%           process the \textit{listen} action by sending the end time and packet of the \textit{transmit}
-%           action to the source of the \textit{listen} action, should the packet be received by the node at
-%           \autoref{algo:mpicoordinator:shouldreceive}.
-%     \item If we dequeue a \textit{listen} action at \autoref{algo:mpicoordinator:dequeue}, we know that no
-%           packets were received for the action, and we can send \KwNull to the $\mathit{source}$ of the listen
-%           action at \autoref{algo:mpicoordinator:sendnull}.
-%     \item It is assumed that a \textit{transmit} action will interfere entirely with another \textit{transmit}
-%           action if the time intervals of the two actions intersect at any point in time
-%           (\autoref{algo:mpicoordinator:transmitintersects}), rather than interfering only for the
-%           intersecting time.
-% \end{itemize}
-
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FCoordinator}{Coordinator}
@@ -83,7 +64,8 @@ have to be present in the \textit{waiting} queue, to satisfy the condition of th
     \;
 
     \Fn{\FCoordinator{}}{
-        $\mathit{waiting}$ $\leftarrow$ priority queue of Action objects, ordered by $\mathit{end}$, \textit{transmit} before \textit{listen}\;
+        $\mathit{waiting}$ $\leftarrow$ priority queue of Action objects, ordered by $\mathit{end}$ time, \;
+        \hspace{18.5mm}\textit{sleep} and \textit{inform} before \textit{transmit}, \textit{transmit} before \textit{listen}\;
         $\mathit{discovered} \leftarrow$ empty set of Action objects\; \label{algo:mpicoordinator:discovered}
         $\mathit{transmits}$ $\leftarrow$ empty set of Action objects\;
         \;

@@ -1,0 +1,46 @@
+\section{Interface}\label{sec:interface}
+\todo[inline]{section title?}
+\todo[inline]{talk about structure, explain local time, asynchronous mpi}
+\todo[inline]{introduce two-phase interface for hardware, include hardware functions}
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FBroadcast}{Broadcast}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FBroadcast{packet}}{
+        %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        %duration $\leftarrow$ transmission-time(|packet|)\;
+        %end $\leftarrow$ localtime $+$ duration\;
+        %a $\leftarrow$ (transmit, id, localtime, end, packet)\;
+        %\KwSend a \KwTo Coordinator\;
+        %localtime $\leftarrow$ end\;
+        %clock $\leftarrow$ \KwNow\;
+    }
+
+    \caption{The \texttt{Broadcast} Function.}
+    \label{algo:2phase-broadcast}
+\end{algorithm}
+
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{A packet or \KwNull}
+    \SetKwFunction{FReceive}{Receive}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FReceive{duration}}{
+        %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        %a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
+        %\KwSend a \KwTo coordinator\;
+        %localtime $\leftarrow$ \KwAwait end \KwFrom Coordinator\; \label{algo:hwfuncslisten:awaitend}
+        %packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
+        %\tcp{The packet returned from Coordinator may be \KwNull}
+        %clock $\leftarrow$ \KwNow\;
+        \KwRet packet\;
+    }
+    
+    \caption{The \texttt{Listen} Function.}
+    \label{algo:2phase-receive}
+\end{algorithm}

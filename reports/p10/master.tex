@@ -1,19 +1,18 @@
 \input{setup/preamble.tex}% package inclusion and set up of the document
 \input{setup/hyphenations.tex}%
 \input{setup/macros.tex}% my new macros
-
-\input{setup/Glossary.tex}
+\input{setup/glossary.tex}
 
 \begin{document}
-%frontmatter
+\pgfplotsset{compat=1.16}
 
 \pagestyle{empty} %disable headers and footers
-\pagenumbering{roman} %use roman page numbering in the frontmatter
+\pagenumbering{roman} %use roman page numbering
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/00-Front-Matter/01-frontpage.tex}
-%\input{sections/00-Front-Matter/02-colophon.tex}
-%\input{sections/00-Front-Matter/03-titlepages.tex}
+\input{sections/00-Front-Matter/01-frontpage.tex}
+\input{sections/00-Front-Matter/02-colophon.tex}
+\input{sections/00-Front-Matter/03-titlepages.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\cleardoublepage
@@ -23,7 +22,7 @@
 \tableofcontents
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/00-Front-Matter/04-preface.tex}
+\input{sections/00-Front-Matter/04-preface.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %mainmatter
@@ -34,39 +33,31 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/02-radiophysics/00-main.tex}
+\input{sections/02-radiophysics/00-main.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/03-reachihardware/00-main.tex}
+\input{sections/03-communication/00-main.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/04-interface/00-main.tex}
+\input{sections/04-experiments/00-main.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/05-coordinator/00-main.tex}
+\input{sections/05-conclusion/00-main.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/06-conclusion/00-main.tex}
+\listoftodos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\input{sections/xx-mpi/02-linkmodel.tex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\listoftodos
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\nocite{*}
+%\nocite{*}
 \bibliography{bib/mybib}
 \label{bib:mybiblio}
 
-%\appendix
-%\printnoidxglossaries
-%\input{sections/99-Appendix/00-main.tex}
+\appendix
+\printnoidxglossaries
+\input{sections/99-Appendix/00-main.tex}
 
 \end{document}

@@ -1,1 +1,53 @@
 \section{Related Work}\label{sec:relatedworks}
+\todo[inline]{bibliographical remark: no changes yet}
+% Work that propose a different method to solve the same problem
+% Work that uses the same proposed method to solve a different problem
+% A method that is similar to your method that solves a relatively similar problem
+% A discussion of a set of related problems that covers your problem domain.
+
+%\todo[inline]{See comments}
+
+%\href{Modeling and Evaluation of Wireless Sensor Network Protocols by Stochastic Timed Automata}{https://www.sciencedirect.com/science/article/pii/S1571066113000479},
+%\href{Modeling and Efficient Verification of Broadcasting Actors}{https://link.springer.com/chapter/10.1007/978-3-319-24644-4_5}
+
+In \doublequote{Modeling and Efficient Verification of Broadcasting Actors}~\cite{DBLP:conf/fsen/YousefiGK15}
+the authors present an extension to the actor-based modelling language Rebeca~\cite{Sirjani2004ModelingAV},
+that enable broadcast communication between actors (nodes), in order to allow modelling of \gls{manet}s. The
+authors provide a framework to model \gls{manet}s for a static topology, with no support for mobility. The
+same authors further extend Rebeca to add key features of wireless ad hoc networking, such as mobility
+(dynamic topologies), local broadcasting within a transmission range, and energy consumption in
+\doublequote{Modeling and efficient verification of wireless ad hoc
+networks}~\cite{DBLP:journals/fac/YousefiGK17}. The modelling language lacks features such as lossy
+transmissions (packet loss) and non-deterministic behaviour, and generally abstracts away from wireless
+communication, in order to focus on modelling and verification of \gls{manet} protocols. Our approach is
+generally more un-restrictive, as we allow protocol implementations in C++, whereas the paper is restricted to
+a fixed formalism. One of the major advantages of using Rebeca is that the modelling language makes it
+possible model check and verify \gls{manet} protocol implementations, and explore the full state space for the
+model of a protocol.\medbreak
+
+The paper \doublequote{Modeling and Evaluation of Wireless Sensor Network Protocols by Stochastic Timed
+Automata}~\cite{article:maeofwsnpbsta} proposes a method to analyse and evaluate \gls{wsn} protocols using
+Stochastic Timed Automata, along with the non-deterministic behaviour of \gls{wsn}s, such as lossy
+transmission and dynamic topologies. The authors utilise statistical model checking to evaluate the
+performance of \gls{wsn} protocols, as well as checking the correctness of the protocols. This approach is
+somewhat similar to the approach in \cite{DBLP:conf/fsen/YousefiGK15} and
+\cite{DBLP:journals/fac/YousefiGK17}, but the protocols evaluated are instead modelled using the UPPAAL model
+checker, and does include non-deterministic behaviour. They show in the paper that their method is able to
+model and evaluate network topologies of up to 100 nodes by using statistical model checking in UPPAAL.
+\medbreak
+
+In the paper \doublequote{Simulating MANETS: A Study using Satellites with AODV and AntHocNet}~\cite{7813192},
+the authors present a network simulator for satellite networks called SatSim. The authors argue that a
+satellite constellation can be thought of as an extreme example of a \gls{manet}. SatSim includes features
+such as a bit error rate, determined for each packet using a representative link budget, where packets are
+randomly dropped if the bit error rate exceeds a specific threshold. This approach is similar to ours in that
+we also use a link budget (the link \gls{pathloss} model) to compute the probability for packet errors. Our
+approach differs, in that we expand upon this by also simulating collisions, caused by interfering
+transmitters.
+
+% Compare our approach with others; mention both strengths and weaknesses
+
+% Should answer the following questions:
+    % Where do the ideas come from?
+    % Have similar ideas been published/proposed earlier?
+    % What is really new in the paper?

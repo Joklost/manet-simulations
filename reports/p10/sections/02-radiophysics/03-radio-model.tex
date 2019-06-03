@@ -1,23 +1,60 @@
-\section{Packet Error Probability}\label{sec:radiomodel}
+\section{Radio Model}\label{sec:radiomodel}
+\bibtodo{slight changes from original}
+To simulate loss of packets during radio communication, we introduce the packet error probability. The packet
+error probability is the probability for any form of error occurring during the transmission and reception of
+a packet through wireless radio communication. The probability for packet error is calculated using the
+\gls{rssi} on a link between two nodes, the size of the packet, as well as the \gls{snr}, including
+interference from nearby transmitting nodes. The computations in this section are derived from
+\cite{massoud2007digital}, as well as personal communication with the author of \cite{paper:linkmodel}.
 
-To simulate loss of packets during radio communication, we introduce the packet error probability. The probability for any form of error occurring during the transmission and reception of a packet through wireless radio communication. The probability for packet error is calculated using the \gls{rssi} on a link between two nodes, the size of the packet, as well as the \gls{snr}. The computations in this section are derived from ..
-
-\medbreak
-
-The function $\text{RSSI}_{\text{dBm}}(n, m, t)$ returns the \gls{rssi} on the link between two nodes, $n$ and $m$, at time $t$, where a higher value (a value closer to 0) is better.
+\subsection{Probability for Packet Error}\label{sec:pep}
+The first step for computing the probability for packet error is to compute the level of background noise
+affecting the wireless communication, the noise power $P_{N,\mathit{dB}}$. This noise is calculated with the
+thermal noise and noise figure $P_{N,\mathit{dB}} = \mathit{thermalnoise} + \mathit{noisefigure}$. For the
+Reachi devices we assume that the $\mathit{thermalnoise} = -119.66$ \acrshort{db} and the
+$\mathit{noisefigure} = 4.2$ \acrshort{db}. Next, we need to add the noise from interfering transmissions
+happening at the same time. This is done by adding the sum of the \gls{rssi} from interfering transmitters to
+the noise power $P_{N,\mathit{dB}}$, giving us the noise power with interference $P_{NI,\mathit{dB}}$ on the
+specific link between a receiving node $n_r$ and a transmitting node $n_t$ at a given time $t$. The set of
+currently transmitting and interfering nodes are denoted by $\mathit{nodes}_t$ and the the function
+$\mathit{RSSI}_{\mathit{dBm}}(n, m, t)$ denotes the \gls{rssi}, in \acrshort{dbm}, on the link between nodes
+$n$ and $m$ at time $t$.
 
 \begin{eq}\label{eq:noisepower}
-    P_{NI,\text{dB}}(n_r, m_t, \text{nodes}_t, t) = 10 \log_{10}\left( 10^{\frac{P_{N,\text{dB}}}{10}} + \mathlarger{\sum}\limits_{m \in \text{nodes}_t}  10^{\frac{\text{RSSI}_{\text{dBm}}(n_r, m, t)}{10}} \right)
+    P_{NI,\mathit{dB}}(n_r, m_t, \mathit{nodes}_t, t) = 10 \log_{10}\left( 10^{\frac{P_{N,\mathit{dB}}}{10}} +
+    \mathlarger{\sum}\limits_{m \in \mathit{nodes}_t}  10^{\frac{\mathit{RSSI}_{\mathit{dBm}}(n_r, m, t)}{10}}
+    \right)
 \end{eq}
 
-\begin{eq}
-    \gamma_{\text{dB}}(n_r, m_t, \text{nodes}_t, t) = \text{RSSI}_{\text{dBm}}(n_r, m_t, t) - P_{NI,\text{dB}}(n_r, m_t, \text{nodes}_t, t)
-\end{eq}
+Note that as both the noise power $P_{N,\mathit{dB}}$ and the \gls{rssi} is in \acrshort{db} (a logarithmic
+scale), we first need to convert the values to a linear scale, before we can compute the sum of the background
+noise and the interfering noise, and then finally convert the value back into a logarithmic scale. \medbreak
+
+With the noise and interference power $P_{NI,\mathit{dB}}$, we can compute the \gls{snir},
+$\gamma_{\mathit{dB}}$. The \gls{snir} compares the \gls{rssi} of the signal to the level of the background
+noise, as well as the noise from interfering transmitters. The ratio is computed by subtracting the noise
+power $P_{NI,\mathit{dB}}$ from the \gls{rssi} of a link.
 
 \begin{eq}
-    P_b(n_r, m_t, \text{nodes}_t, t) = \frac{1}{2}\text{erfc} \left( \sqrt{ \left( \frac{10^{\frac{\gamma_{\text{dB}}(n_r, m_t, \text{nodes}_t, t)}{10}}}{2} \right)} \right)
+    \gamma_{\mathit{dB}}(n_r, m_t, \mathit{nodes}_t, t) = \mathit{RSSI}_{\mathit{dBm}}(n_r, m_t, t) -
+    P_{NI,\mathit{dB}}(n_r, m_t, \mathit{nodes}_t, t)
 \end{eq}
+
+We use the \gls{snir} $\gamma_{\mathit{dB}}$ to compute the bit error probability $P_b$:
+
+\begin{eq}
+    P_b(n_r, m_t, \mathit{nodes}_t, t) = \frac{1}{2}\mathit{erfc} \left( \sqrt{ \left(
+    \frac{10^{\frac{\gamma_{\mathit{dB}}(n_r, m_t, \mathit{nodes}_t, t)}{10}}}{2} \right)} \right)
+\end{eq}
+
+Finally, with the bit error probability $P_b$, we can compute the packet error probability $P_p$. The packet
+error probability is the probability that we experience a bit error for any of the bits in the transmitted
+packet.
 
 \begin{eq}\label{eq:pep}
-    P_p(n_r, m_t, \text{nodes}_t, \text{packetsize}, t) = 1 - \left( 1 - P_b(n_r, m_t, \text{nodes}_t, t) \right) ^{\text{packetsize}}
+    P_p(n_r, m_t, \mathit{nodes}_t, \mathit{packetsize}, t) = 1 - \left( 1 - P_b(n_r, m_t, \mathit{nodes}_t,
+    t) \right) ^{\mathit{packetsize}}
 \end{eq}
+
+\todo[inline]{should we include an example similar to the one from last semester?}
+\todo[inline]{include the plots?}

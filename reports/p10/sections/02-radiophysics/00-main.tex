@@ -1,15 +1,36 @@
 \chapter{Radio Physics}
-\todo[inline]{rssi, pep, transmission time (baudrate)}
+\bibtodo{from original report}
+The goal of this chapter is to be able to estimate the probability, based on the topology of a wireless
+network, of how likely it is that packet loss will happen during a transmission between two nodes.
 
+%\autoref{sec:linkmodel} presents the method for simulating the link model in a \gls{manet}, \autoref{sec:pep}
+%presents the method for computing the packet loss probability during a transmission, and
+%\autoref{sec:optimization} proposes two ways for optimising the computational time required to compute the
+%link model.
 
-\section{Hardware}\label{sec:hardwarephysics}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.7\textwidth]{figures/manet_with_terrain.png}
+    \caption{A wireless network topology.}
+    \label{figure:manetwithter}
+\end{figure}
 
-\todo[inline]{temp}
-\begin{eq}\label{eq:transmission-time}
-    \text{transmission-time}(\text{packetsize}) = \frac{1000000}{f_s} \cdot \left( \text{packetsize} \cdot 8 \right)
-\end{eq}
+\autoref{figure:manetwithter} shows a sample wireless network topology for a \acrfull{manet}. The network
+consists of mobile devices (nodes), and the communication between these (links). Nodes are
+\doublequote{linked} with other nodes when they are able to communicate wirelessly. Wireless communication
+relies on the transmission and reception of electromagnetic waves~\cite[p.~10]{paper:linkmodel} (radio
+signals), and the strength, or quality, of a wireless link is described by the signal loss occurring when
+propagating the signal from transmitter to receiver, and is measured by the \gls{rssi} (a negative value,
+where a value close to 0 is better). In \cite{paper:linkmodel}, the term \gls{pathloss} is used to describe
+this signal loss, and is determined in part by the physical distance between transmitter and receiver, but
+also by physical objects and terrain, like buildings or forests. A major consideration for mobile networks is
+that the topology is dynamic. Nodes move around, causing links to disappear, or new links to appear, thus 
+changing the topology of the network.
 
-\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds, based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$ bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s = 34800$ Hz.
+%\autoref{sec:linkmodel} will elaborate
+%further on the \gls{pathloss} of a link, as well as present a method for simulating the \gls{pathloss} for a
+%mobile network topology. 
 
-
+\input{sections/02-radiophysics/01-hardware.tex}
+\input{sections/02-radiophysics/02-reachi-experiments.tex}
 \input{sections/02-radiophysics/03-radio-model.tex}

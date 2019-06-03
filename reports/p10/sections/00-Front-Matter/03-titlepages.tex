@@ -1,55 +1,66 @@
 \cleardoublepage
 {\selectlanguage{english}
-\pdfbookmark[0]{English title page}{label:titlepage_en}
-\aautitlepage{%
-  \englishprojectinfo{
-    Message Passing Interface for\\ Massive Simulations of Mobile Ad-hoc Networks %title
-  }{%
-    Distributed Systems %theme
-  }{%
-    Spring Semester 2019 %project period
-  }{%
-  ds901e18 % project group
-  }{%
-    %list of group members
-    Charlie Dittfeld Byrdam\smallbreak
-    Jonas Kloster Jacobsen
-  }{%
-    %list of supervisors
-    Jiri Srba\smallbreak
-    Peter Gjøl Jensen
-  }{%
-    3 % number of printed copies
-  }{%
-    \today % date of completion
-  }%
-}{%department and address
-  \textbf{Software Engineering}\smallbreak
-  Aalborg University\smallbreak
-  \href{Department of Computer Science}{http://www.cs.aau.dk/}
-}{% the abstract
+    \pdfbookmark[0]{English title page}{label:titlepage_en}
+    \aautitlepage{%
+        \englishprojectinfo{
+            Message Passing Interface for Massive\\Simulations of Mobile Ad-hoc Networks %title
+        }{%
+            Distributed Systems %theme
+        }{%
+            Spring Semester 2019 %project period
+        }{%
+            ds101f19 % project group
+        }{%
+            %list of group members
+            Charlie Dittfeld Byrdam\smallbreak
+            Jonas Kloster Jacobsen
+        }{%
+            %list of supervisors
+            Jiri Srba\smallbreak
+            Peter Gjøl Jensen
+        }{%
+            3 % number of printed copies
+        }{%
+            \today % date of completion
+        }%
+    }{%department and address
+        \textbf{Software Engineering}\smallbreak
+        Aalborg University\smallbreak
+        \href{Department of Computer Science}{http://www.cs.aau.dk/}
+    }{% the abstract 
+        \todo[inline]{bibliographical remark: no changes yet}
+        A Mobile Ad-hoc Network is a decentralised wireless network that requires no pre-existing
+        infrastructure to function. Nodes communicate in the network using radio, and require networking protocols to
+        provide energy efficient communication. The aim of this project is to simulate the protocols, and to provide
+        an alternative to real-life testing, as scaling a real-life test requires a significant amount of effort and
+        investment of both money and time. The goal is to be able to perform repeatable experiments in a control
+        topology environment with up to 1000 devices, faster than a real-life scenario.
 
-% http://users.ece.cmu.edu/~koopman/essays/abstract.html
-% Motivation,
+        We propose a C++ library for writing, and running, simulations of mobile ad-hoc networking protocols, using
+        MPI. With this library, it is possible to write C++ implementations of communication protocols for mobile
+        ad-hoc networks, such as ALOHA or LMAC, and perform repeatable experiments on these using our library, where
+        we emulate the physical hardware, and simulate the radio communication between the emulated hardware with
+        state-of-the-art modelling of link path loss, packet error and collisions.
 
-%something something virtual time
-% Conclusions
-}}
+        We introduce the notion of virtual time, where we are able to skip long periods of inactivity when simulating
+        wireless networking protocols.
+        % http://users.ece.cmu.edu/~koopman/essays/abstract.html
+    }}
 \clearpage
 
 \vspace{\baselineskip}\hfill Aalborg University, June, 2019
 \vfill\noindent
 \begin{minipage}[b]{0.45\textwidth}
- \centering
- \rule{\textwidth}{0.5pt}\smallbreak
-  Charlie Dittfeld Byrdam\smallbreak
- {\footnotesize <cbyrda14@student.aau.dk>}
+    \centering
+    \rule{\textwidth}{0.5pt}\smallbreak
+    Charlie Dittfeld Byrdam\smallbreak
+    {\footnotesize <cbyrda14@student.aau.dk>}
 \end{minipage}
 \hfill
 \vspace{3\baselineskip}
 \begin{minipage}[b]{0.45\textwidth}
- \centering
- \rule{\textwidth}{0.5pt}\smallbreak
-  Jonas Kloster Jacobsen\smallbreak
- {\footnotesize <jkja14@student.aau.dk>}
+    \centering
+    \rule{\textwidth}{0.5pt}\smallbreak
+    Jonas Kloster Jacobsen\smallbreak
+    {\footnotesize <jkja14@student.aau.dk>}
 \end{minipage}
