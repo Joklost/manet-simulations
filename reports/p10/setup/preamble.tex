@@ -136,11 +136,11 @@
 % Add the command \pageref{LastPage} which refers to the
 % page number of the last page
 \usepackage[
-%  disable, %turn off todonotes
+  %  disable, %turn off todonotes
   colorinlistoftodos, %enable a coloured square in the list of todos
   textwidth=\marginparwidth, %set the width of the todonotes
   textsize=scriptsize, %size of the text in the todonotes
-  ]{todonotes}
+]{todonotes}
 
 \usepackage[T1]{fontenc}
 
@@ -160,17 +160,17 @@
 % last packages
 \usepackage{hyperref}
 \hypersetup{%
-	plainpages=false,%
-	pdfauthor={Charlie Dittfeld Byrdam \& Jonas Kloster Jacobsen},%
-	pdftitle={MassiveSimulations2},%
-	pdfsubject={Project Report},%
-	bookmarksnumbered=true,%
-	colorlinks,%
-	citecolor=aaublue,%
-	filecolor=aaublue,%
-	linkcolor=aaublue,% you should probably change this to black before printing
-	urlcolor=aaublue,%
-	pdfstartview=FitH%
+  plainpages=false,%
+  pdfauthor={Charlie Dittfeld Byrdam \& Jonas Kloster Jacobsen},%
+  pdftitle={MassiveSimulations2},%
+  pdfsubject={Project Report},%
+  bookmarksnumbered=true,%
+  colorlinks,%
+  citecolor=aaublue,%
+  filecolor=aaublue,%
+  linkcolor=aaublue,% you should probably change this to black before printing
+  urlcolor=aaublue,%
+  pdfstartview=FitH%
 }
 
 \usepackage{courier}
@@ -202,14 +202,14 @@
 \usetikzlibrary{patterns}
 
 \tikzset{
-    between/.style args={#1 and #2}{
-         at = ($(#1)!0.5!(#2)$)
+  between/.style args={#1 and #2}{
+      at = ($(#1)!0.5!(#2)$)
     }
 }
 
 \tikzset{
-    between base/.style args={#1 and #2}{
-        between=#1.base and #2.base
+  between base/.style args={#1 and #2}{
+      between=#1.base and #2.base
     }
 }
 
@@ -227,4 +227,12 @@
 
 
 \usepackage{pgfplots}
+\pgfplotsset{
+  compat=1.15,
+  /pgf/declare function={
+        bopl(\x) = (42.5 * log10(\x) + 2);
+        cvpl(\x) = (48.5 * (ln(\x) / ln(77)) + 37.5);
+    },
+}
+
 \usepackage{optidef}
