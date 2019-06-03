@@ -8,8 +8,13 @@
     \DontPrintSemicolon
     \SetKwFunction{FBroadcast}{Broadcast}
     \SetKwProg{Fn}{Function}{}{}
-    
+    \textit{delay} $\leftarrow$ short delay to allow receiver to start listening\;
+
     \Fn{\FBroadcast{packet}}{
+        header $\leftarrow$ construct header packet with $|\text{packet}|$\;
+        Transmit(header)\;
+        Sleep(delay)\;
+        Transmit(packet)\;
         %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
         %duration $\leftarrow$ transmission-time(|packet|)\;
         %end $\leftarrow$ localtime $+$ duration\;
@@ -29,8 +34,13 @@
     \KwResult{A packet or \KwNull}
     \SetKwFunction{FReceive}{Receive}
     \SetKwProg{Fn}{Function}{}{}
+    \textit{delay} $\leftarrow$ short delay between first and second transmission\;
     
     \Fn{\FReceive{duration}}{
+        header $\leftarrow$ Listen(duration)\;
+        packetsize $\leftarrow$ extract packet size from header\;
+        duration$'$ $\leftarrow$ transmission-time(packetsize)\;
+        packet $\leftarrow$ Listen(duration$'$ + 5)\;
         %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
         %a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
         %\KwSend a \KwTo coordinator\;
