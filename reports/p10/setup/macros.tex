@@ -411,11 +411,29 @@
     \end{tikzpicture}
 }
 
+\newcommand{\bibtodo}[1]{\todo[inline]{bibliographical remark: #1}}
+
+\tikzset{
+  between/.style args={#1 and #2}{
+      at = ($(#1)!0.5!(#2)$)
+    }
+}
+
+\tikzset{
+  between base/.style args={#1 and #2}{
+      between=#1.base and #2.base
+    }
+}
+
+\pgfplotsset{
+  compat=1.15,
+  /pgf/declare function={
+        bopl(\x) = (42.5 * log10(\x) + 2);
+        cvpl(\x) = (48.5 * (ln(\x) / ln(77)) + 37.5);
+    },
+}
 
 % #1 = mean, #2 = standard deviation
 \pgfmathdeclarefunction{gauss}{2}{%
   \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
 }
-
-
-\newcommand{\bibtodo}[1]{\todo[inline]{bibliographical remark: #1}}

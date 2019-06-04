@@ -201,18 +201,6 @@
 \usetikzlibrary{calc}
 \usetikzlibrary{patterns}
 
-\tikzset{
-  between/.style args={#1 and #2}{
-      at = ($(#1)!0.5!(#2)$)
-    }
-}
-
-\tikzset{
-  between base/.style args={#1 and #2}{
-      between=#1.base and #2.base
-    }
-}
-
 \usepackage[ruled, vlined, commentsnumbered, linesnumbered]{algorithm2e}
 \SetArgSty{textnormal}
 \SetFuncArgSty{textnormal}
@@ -225,14 +213,5 @@
 \AtBeginDocument{\setlength\abovedisplayskip{4pt}}
 \AtBeginDocument{\setlength\belowdisplayskip{4pt}}
 
-
 \usepackage{pgfplots}
-\pgfplotsset{
-  compat=1.15,
-  /pgf/declare function={
-        bopl(\x) = (42.5 * log10(\x) + 2);
-        cvpl(\x) = (48.5 * (ln(\x) / ln(77)) + 37.5);
-    },
-}
-
 \usepackage{optidef}

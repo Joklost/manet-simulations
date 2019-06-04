@@ -1,14 +1,18 @@
 \section{Interface}\label{sec:interface}
-\todo[inline]{section title?}
+\todo[inline]{describe interface}
 \todo[inline]{talk about structure, explain local time, asynchronous mpi}
 \todo[inline]{introduce two-phase interface for hardware, include hardware functions}
+
+Reasoning: Embedded systems with limited memory capabilities. Memory has to be pre-allocated. When listening,
+a device will not be able to efficiently allocate the memory for an arbitrary length packet, which is why we
+instead allocate memory for a fixed length header packet, that includes the size of the following packet.
 
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FBroadcast}{Broadcast}
     \SetKwProg{Fn}{Function}{}{}
-    \textit{delay} $\leftarrow$ short delay to allow receiver to start listening\;
+    \textit{delay} $\leftarrow$ short delay to allow receiver to start listening before packet is sent\;
 
     \Fn{\FBroadcast{packet}}{
         header $\leftarrow$ construct header packet with $|\text{packet}|$\;
@@ -37,10 +41,13 @@
     \textit{delay} $\leftarrow$ short delay between first and second transmission\;
     
     \Fn{\FReceive{duration}}{
-        header $\leftarrow$ Listen(duration)\;
+        data $\leftarrow$ Listen(duration)\;
+        \If{data $\neq$ header packet}{
+            \KwRet \KwNull\;
+        }
         packetsize $\leftarrow$ extract packet size from header\;
         duration$'$ $\leftarrow$ transmission-time(packetsize)\;
-        packet $\leftarrow$ Listen(duration$'$ + 5)\;
+        packet $\leftarrow$ Listen($\mathit{duration}' + \mathit{delay} * 2$)\;
         %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
         %a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
         %\KwSend a \KwTo coordinator\;
@@ -48,6 +55,7 @@
         %packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
         %\tcp{The packet returned from Coordinator may be \KwNull}
         %clock $\leftarrow$ \KwNow\;
+        \tcp{The packet returned from Listen may be \KwNull}
         \KwRet packet\;
     }
     

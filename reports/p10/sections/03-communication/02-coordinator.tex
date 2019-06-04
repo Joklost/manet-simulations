@@ -53,7 +53,7 @@ part, where the \textit{waiting} queue has to contain at least one action from e
 case, the Coordinator dequeues a single action (\autoref{algo:mpicoordinator:dequeue}) from the
 \textit{waiting} queue. Any \textit{sleep} or \textit{inform} actions are processed implicitly, as they only
 have to be present in the \textit{waiting} queue, to satisfy the condition of the loop. Only the
-\textit{transmit} and \textit{listen} actions need processing by the Coordinator. \smallbreak
+\textit{transmit} and \textit{listen} actions need processing by the Coordinator. \par %\smallbreak 
 
 \begin{algorithm}[H]
     \DontPrintSemicolon
@@ -150,3 +150,141 @@ Coordinator does is send the end time of the \textit{listen} action and \KwNull 
 \textit{listen} action. We do this as dequeuing a \textit{listen} action means that no transmission has been
 received by the listening node. When the Coordinator responds to the source of the \textit{listen} action,
 the node is unblocked, and may continue executing its protocol.
+
+\subsection{Hardware}\label{sec:hwfuncspseudo}
+\bibtodo{changed according to new functionality}
+The hardware functions listed in this section depend on the following local state. The local state is unique
+for each node.\smallbreak
+
+clock $\leftarrow$ \KwNow
+
+localtime $\leftarrow$ 0
+
+id $\leftarrow$ unique identifier \smallbreak
+
+In the hardware functions we utilise a special keyword \KwNow, which represents the real-time hardware clocks
+of a node. It is assumed that all clocks run at the same speed. The clock variable is used to measure the
+real-time spent by the node between calls to hardware functions. Initially, we store the current time in the
+clock variable, and use the clock to compute the real-time difference between the calling of hardware
+functions and add the difference to the localtime variable (e.g., localtime $\leftarrow$ (\KwNow $-$ clock)
+$+$ localtime).
+
+The unique identifier (id) of a node is meant to function as the address of a node for passing messages
+between nodes and the Coordinator. The identifier of the Coordinator = $0$, and the identifier of the nodes
+are in the range $\{ 1, 2, 3, \ldots, N \}$ for $N$ nodes.
+
+\todo[inline]{for any action $a$, $a.start \leq a.end$}
+
+%Common for all four hardware functions is that we initially update the localtime variable, and set the clock variable to \KwNow before returning from the function, such that the execution time spent communicating with the Coordinator is not included in the duration of the action.
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FTransmit}{Transmit}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FTransmit{packet}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        duration $\leftarrow$ transmission-time(|packet|)\;
+        end $\leftarrow$ localtime $+$ duration\;
+        a $\leftarrow$ (transmit, id, localtime, end, packet)\;
+        \KwSend a \KwTo Coordinator\;
+        localtime $\leftarrow$ end\;
+        clock $\leftarrow$ \KwNow\;
+    }
+
+    \caption{The Transmit Function.}
+    \label{algo:hwfuncstransmit}
+\end{algorithm}
+
+The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent
+to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to
+neighbouring nodes listening for packets. The duration of a transmission is computed based on the
+\gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as
+well as the size of the packet, using \autoref{eq:transmission-time} found in \autoref{sec:hardwarephysics}.
+% or our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz, 
+
+After computing the duration, the transmit action is sent to the Coordinator, the localtime variable is set to
+the end time and the clock is set to \KwNow, before the function returns. \medbreak
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \KwResult{A packet or \KwNull}
+    \SetKwFunction{FListen}{Listen}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FListen{duration}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
+        \KwSend a \KwTo coordinator\;
+        localtime $\leftarrow$ \KwAwait end \KwFrom Coordinator\; \label{algo:hwfuncslisten:awaitend}
+        packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
+        \tcp{The packet returned from Coordinator may be \KwNull}
+        clock $\leftarrow$ \KwNow\;
+        \KwRet packet\;
+    }
+    
+    \caption{The \texttt{Listen} Function.}
+    \label{algo:hwfuncslisten}
+\end{algorithm}
+
+The \texttt{Listen} (\autoref{algo:hwfuncslisten}) functions takes a duration as input and sends a listen
+action to the Coordinator. After sending its action, the function waits for a response from the Coordinator at
+\autoref{algo:hwfuncslisten:awaitend}. The \KwAwait keyword is blocking, which means that no other functions
+can be called from a node while the node is listening for a packet. When the Coordinator processes a listen
+action, two messages will be sent to the node. The first is the end time, which is assigned to the localtime
+variable, and the second is the packet received (if any). If no packet has been received, the end time
+received from the Coordinator will be the same as the end time in the action sent to the Coordinator
+(localtime $+$ duration), and the packet received will be \KwNull. If a packet has been received, the
+Coordinator will send the time when the packet was received, with the packet following right after.
+
+At most a single packet may be received on a call to the \texttt{Listen} function, but depending on the number
+of transmissions in the same time interval, no packet could be received, as multiple transmissions either will
+provide interference for each other, creating collisions, or no transmissions may have happened in the time
+interval.
+
+After receiving a response from the Coordinator, the function will set the clock variable to \KwNow, and
+return either the packet or \KwNull. \medbreak
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FSleep}{Sleep}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FSleep{duration}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        end $\leftarrow$ localtime $+$ duration\;
+        a $\leftarrow$ (sleep, id, localtime, end, \KwNull)\;
+        \KwSend a \KwTo Coordinator\;
+        localtime $\leftarrow$ end\;
+        clock $\leftarrow$ \KwNow\;
+    }
+    
+    \caption{The \texttt{Sleep} Function.}
+    \label{algo:hwfuncssleep}
+\end{algorithm}
+
+The \texttt{Sleep} (\autoref{algo:hwfuncssleep}) takes a duration as input and sends a sleep action to the
+Coordinator. As no response is expected of the Coordinator, the function sets the localtime and clock
+variables immediately after sending the action. \medbreak
+
+\begin{algorithm}[ht]
+    \DontPrintSemicolon
+    \SetKwFunction{FInformLocalTime}{InformLocalTime}
+    \SetKwProg{Fn}{Function}{}{}
+    
+    \Fn{\FInformLocalTime{}}{
+        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
+        a $\leftarrow$ (inform, id, localtime, localtime, \KwNull)\;
+        \KwSend a \KwTo Coordinator\;
+        clock $\leftarrow$ \KwNow\;
+    }
+    
+    \caption{The \texttt{InformLocaltime} Function.}
+    \label{algo:hwfuncsupdatelocaltime}
+\end{algorithm}
+
+The \texttt{InformLocalTime} function is equivalent to the \texttt{Sleep} function in the sense that it
+behaves like the \texttt{Sleep} function with the duration set to 0. The function is included in the case
+there none of the other hardware functions are applicable, e.g., in the case where the node is performing
+longer computations,. Regularly informing the Coordinator of a nodes localtime will allow the Coordinator to
+continually process actions from other nodes.
