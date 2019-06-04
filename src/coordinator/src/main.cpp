@@ -1,7 +1,5 @@
 #include "coordinator.h"
 
-#include <iostream>
-
 int main(int argc, char *argv[]) {
     bool debug{};
     bool plots{};
@@ -22,7 +20,13 @@ int main(int argc, char *argv[]) {
     }
 
     Coordinator coordr{log.c_str(), debug, plots};
+
+    auto start = std::chrono::high_resolution_clock::now();
     coordr.run();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    coordr.c->info("Elapsed time: {} ms", elapsed_time);
 
     return 0;
 }

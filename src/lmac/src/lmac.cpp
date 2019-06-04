@@ -28,10 +28,6 @@ int main(int argc, char *argv[]) {
     auto id = static_cast<short>(hardware::get_id());
     auto rank = hardware::get_world_rank();
 
-//    if (rank == 2 || rank == 3) {
-//        hardware::logger->set_level(spdlog::level::debug);
-//    }
-
     std::random_device rd{};
     std::default_random_engine eng{rd()};
     std::uniform_int_distribution<unsigned long> dist{1ul, MAX_WAIT};
@@ -46,13 +42,19 @@ int main(int argc, char *argv[]) {
         state.occupied_slots[0] = true;
     }
 
+    auto sensor = false;
+    std::vector<octet> sensor_data{};
+    if (rank == 16) {
+        sensor = true;
+        sensor_data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00,
+                       0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01,
+                       0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0xFF, 0xFF, 0xFF};
+    }
+
+    hardware::logger->info("{},{},{}", 0.0, id, to_string(state.phase));
+
     auto slot_count = 1;
-
     for (auto frame = 1ul; frame <= FRAMES; ++frame) {
-//        if (gateway) {
-//            hardware::logger->info("frame: {}", frame);
-//        }
-
         /* If waiting, decrement the number of frames before moving on to discover phase. */
         if (state.phase == wait) {
             if (state.wait_frames > 0ul) {
@@ -71,6 +73,7 @@ int main(int argc, char *argv[]) {
 
             if (state.next_phase == active) {
                 state.chosen_slot = state.next_slot;
+                state.occupied_slots[state.chosen_slot] = true;
                 state.next_slot = NO_CHOSEN_SLOT;
             }
 
@@ -81,21 +84,18 @@ int main(int argc, char *argv[]) {
             } else {
                 phase_s = to_string(state.phase);
             }
+
+            /* Log state change. */
             hardware::logger->info("{},{},{}", hardware::get_localtime().count() / 1000.0, id, phase_s);
-//            hardware::logger->info("moving to {} at {}", to_string(state.phase), hardware::get_localtime());
             state.next_phase = nil;
         }
 
         for (auto slot = 0ul; slot < SLOTS; ++slot) {
-//            auto time = hardware::get_localtime();
-//            hardware::logger->info("start time {}", time.count());
-
             if (slot == state.chosen_slot) {
                 if (state.phase == init) {
                     /* Send initial synchronisation signal. */
                     hardware::sleep(2ms);
-//                    hardware::logger->info("sending init signal at slot:{}, frame:{}", slot, frame);
-                    ControlPacket ctrl{id, state.chosen_slot, state.occupied_slots, -1, -1, -1, 0};
+                    ControlPacket ctrl{id, state.chosen_slot, state.occupied_slots, 0, -1, -1, 0};
                     hardware::transmit(mpilib::serialise(ctrl));
 
                     if (gateway) {
@@ -104,110 +104,108 @@ int main(int argc, char *argv[]) {
                         state.next_phase = wait;
                     }
                 } else {
+                    if (sensor) {
+                        state.data_packet = sensor_data;
+                    }
+
                     /* We are in the active phase, as we have chosen a slot. */
                     short receiver = NO_RECEIVER;
-                    soctet gateway_distance = -1;
+                    octet gateway_distance;
                     /* Add data size and routing information if we have a packet. */
                     octet data_size = 0;
-                    if (!state.data_packet.empty()) {
+
+                    if (gateway) {
+                        state.gateway_distance = 0;
+                    } else if (!state.data_packet.empty()) {
                         data_size = static_cast<octet>(state.data_packet.size());
 
                         /* Find receiver (for routing). */
-                        receiver = state.neighbourhood.begin()->first;
+                        std::vector<short> possible_receivers{};
                         gateway_distance = state.neighbourhood.begin()->second.gateway_distance;
                         for (auto &neighbour : state.neighbourhood) {
                             auto &node = neighbour.second;
                             if (node.gateway_distance < gateway_distance) {
-                                receiver = neighbour.first;
+                                possible_receivers.clear();
+                                possible_receivers.push_back(node.id);
                                 gateway_distance = node.gateway_distance;
+                            } else if (node.gateway_distance == gateway_distance) {
+                                possible_receivers.push_back(node.id);
                             }
                         }
-                        gateway_distance += 1;
+
+                        std::uniform_int_distribution<unsigned long> selector(0ul, possible_receivers.size() - 1ul);
+                        receiver = possible_receivers[selector(eng)];
                     }
 
                     /* Create synchronisation signal. */
                     ControlPacket ctrl{id, state.chosen_slot,
-                                       state.occupied_slots, gateway_distance,
+                                       state.occupied_slots, state.gateway_distance,
                                        state.collision_slot, receiver, data_size};
-
-                    if (state.collision_slot != NO_SLOT) {
-                        state.collision_slot = NO_SLOT;
-                    }
+//                    hardware::logger->info("send: {}", ctrl);
+                    state.collision_slot = NO_SLOT;
 
                     /* Send initial synchronisation signal. */
-                    hardware::sleep(2ms);
-//                    hardware::logger->info("sending sync signal at slot:{}, frame:{}", slot, frame);
+                    hardware::sleep(3ms);
                     hardware::transmit(mpilib::serialise(ctrl));
 
                     /* Send packet, if any. */
                     if (data_size != 0) {
                         hardware::sleep(10ms);
-                        hardware::logger->info("sending data packet");
+//                        hardware::logger->info("%{}: sending data packet to {}, gateway_distance={}", id, receiver, gateway_distance);
                         hardware::transmit(state.data_packet);
                         state.data_packet.clear();
                     }
                 }
             } else if (state.phase != wait) {
+                bool collision{};
+                short expected_id = -1;
+                for (auto &neighbour : state.neighbourhood) {
+                    if (neighbour.second.selected_slot == slot) {
+                        if (expected_id != -1) {
+//                            hardware::logger->info("neighbour_id={}, expected_id={}", neighbour.first, expected_id);
+                            collision = true;
+                        }
+                        expected_id = neighbour.first;
+                    }
+                }
+
                 /* Listen for synchronisation signal. */
-//                hardware::logger->info("receive for sync signal at slot:{}, frame:{}", slot, frame);
-                auto ctrl_data = hardware::receive(15ms);
+                auto ctrl_data = hardware::receive(20ms);
                 if (!ctrl_data.empty()) {
                     auto ctrl = mpilib::deserialise<ControlPacket>(ctrl_data);
-//                    hardware::logger->info("received sync signal at slot:{}, frame:{} from:{}", slot, frame, ctrl.id);
+//                    hardware::logger->info("recv: {}", ctrl);
+
+                    if (expected_id != -1 && expected_id != ctrl.id) {
+//                        hardware::logger->info("received_id={}, expected_id={}", ctrl.id, expected_id);
+                        collision = true;
+                    }
+
+//                    auto gateway_distance = ctrl.gateway_distance + 1;
 
                     auto &node = state.neighbourhood[ctrl.id]; /* Will construct Node in none exists. */
-                    if (node.id == 0 || node.gateway_distance == -1) {
+                    if (node.id == 0 || node.gateway_distance == 0xFF) {
                         /* Node was just constructed. */
                         node.id = ctrl.id;
                         node.gateway_distance = ctrl.gateway_distance;
                     }
-                    node.current_slot = ctrl.current_slot;
+                    node.selected_slot = ctrl.current_slot;
                     node.occupied_slots = ctrl.occupied_slots;
-                    if (node.gateway_distance > ctrl.gateway_distance) {
-                        /* Update routing information. */
-                        node.gateway_distance = ctrl.gateway_distance;
+
+                    if (ctrl.gateway_distance + 1 < state.gateway_distance) {
+                        state.gateway_distance = ctrl.gateway_distance + 1;
                     }
 
                     /* Update occupied time slots in second order neighbourhood. */
-                    state.occupied_slots |= node.occupied_slots;
-
-//                    auto neighbour = state.neighbourhood.find(ctrl.id);
-//                    if (neighbour == state.neighbourhood.end()) {
-//                        /* Add node to neighbourhood information. */
-//                        Node n{ctrl.id, ctrl.current_slot, ctrl.occupied_slots, ctrl.gateway_distance};
-//                        state.neighbourhood[ctrl.id] = n;
-//
-//                    } else {
-//                        /* Update information on neighbour. */
-//                        auto &node = neighbour->second;
-//                        node.current_slot = ctrl.current_slot;
-//                        node.occupied_slots = ctrl.occupied_slots;
-//                        if (node.gateway_distance > ctrl.gateway_distance) {
-//                            /* Update routing information. */
-//                            node.gateway_distance = ctrl.gateway_distance;
-//                        }
-//
-//                        state.occupied_slots |= node.occupied_slots;
-//                    }
+                    state.occupied_slots[slot] = true;
 
                     if (ctrl.collision_slot == state.chosen_slot) {
                         state.phase = wait;
-                        hardware::logger->info("moving to {} due to collision", to_string(state.phase));
+//                        hardware::logger->info("moving {} to {} due to collision", id, to_string(state.phase));
+                        hardware::logger->info("{},{},{}", hardware::get_localtime().count() / 1000.0, id,
+                                               to_string(state.phase));
                         state.wait_frames = gen_wait();
                         state.chosen_slot = NO_CHOSEN_SLOT;
-                    } else {
-//                        auto colliding_slots = ctrl.occupied_slots & state.occupied_slots;
-//                        if (colliding_slots.count()) {
-//                            hardware::logger->info("{}, {}", ctrl.occupied_slots, state.occupied_slots);
-//                            hardware::logger->info("collision detected: {}", colliding_slots);
-//                            for (soctet i = 0; i < colliding_slots.size(); ++i) {
-//                                if (colliding_slots[i]) {
-//                                    state.collision_slot = i;
-//                                }
-//                            }
                     }
-
-//                        state.occupied_slots |= ctrl.occupied_slots;
 
                     if (state.phase == init) {
                         state.next_phase = wait;
@@ -216,11 +214,25 @@ int main(int argc, char *argv[]) {
                             /* Listen for packet. */
                             auto data = hardware::receive(70ms);
                             if (!data.empty()) {
-                                hardware::logger->info("received data packet");
-                                state.data_packet = data;
+//                                hardware::logger->info("%{}: received data packet", id);
+                                if (gateway) {
+                                    hardware::logger->info("%{}: received data packet", id);
+                                } else {
+                                    state.data_packet = data;
+                                }
                             }
                         }
                     }
+                } else {
+                    if (expected_id != -1) {
+//                        hardware::logger->info("nothing received, expected_id={}", expected_id);
+                        /* We expected to receive a packet from someone in this time slot. Possible collision. */
+//                        collision = true;
+                    }
+                }
+
+                if (collision) {
+                    state.collision_slot = slot;
                 }
             }
             /* Sleep for the remainder of the time slot. */
@@ -239,16 +251,28 @@ int main(int argc, char *argv[]) {
                 hardware::logger->info("no neighbours detected!");
                 state.next_phase = init;
             } else {
-                std::vector<soctet> available_slots{};
+//                hardware::logger->info("%{} picking      : {}", id, state.occupied_slots);
+                std::bitset<SLOTS> neighbourhood_slots{};
+                for (auto &neighbour : state.neighbourhood) {
+                    auto &node = neighbour.second;
+//                    hardware::logger->info("%{}              : {}", node.id, node.occupied_slots);
+                    neighbourhood_slots |= node.occupied_slots;
+                }
 
-                for (soctet i = 0; i < state.occupied_slots.size(); ++i) {
-                    if (!state.occupied_slots[i]) {
+//                hardware::logger->info("%{} neighbourhood: {}", id, neighbourhood_slots);
+
+                std::vector<soctet> available_slots{};
+                for (soctet i = 0; i < neighbourhood_slots.size(); ++i) {
+                    if (!neighbourhood_slots[i]) {
                         available_slots.push_back(i);
                     }
                 }
 
                 std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
-                auto slot = selector(eng);
+                auto slot = available_slots[selector(eng)];
+
+//                hardware::logger->info("%{} picked: {}", id, slot);
+
                 state.next_phase = active;
                 state.next_slot = slot;
             }

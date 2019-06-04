@@ -26,7 +26,6 @@ target_include_directories(coordinator PRIVATE ${MPI_CXX_INCLUDE_PATH})
 target_compile_options(coordinator PRIVATE ${MPI_CXX_COMPILE_FLAGS})
 target_link_libraries(coordinator ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS} mpilib pthread common geo)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/logs/2nodes_rssi.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/logs/gpslog_rssi.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/logs/gridlog_2x2_rssi.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/logs/gridlog_4x4_rssi.txt ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)

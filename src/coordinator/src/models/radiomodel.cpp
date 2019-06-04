@@ -2,7 +2,7 @@
 #include "radiomodel.h"
 
 double RadioModel::lin(const double log) {
-    return std::pow(10, log / 10);;
+    return std::pow(10, log / 10);
 }
 
 double RadioModel::log(const double lin) {

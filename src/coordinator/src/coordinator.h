@@ -22,7 +22,6 @@ class Coordinator {
     /* Debug */
     bool debug = false;
     bool plots = false;
-    std::shared_ptr<spdlog::logger> c;
 
     Statistics stats{};
 
@@ -56,6 +55,8 @@ public:
     explicit Coordinator(const char *logpath, bool debug = false, bool plots = false);
 
     void run();
+
+    std::shared_ptr<spdlog::logger> c;
 };
 
 
