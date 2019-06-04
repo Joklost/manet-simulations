@@ -1,5 +1,8 @@
 #ifndef LMAC_MODELS_H
 #define LMAC_MODELS_H
+
+#include <common/queue.h>
+
 // 100 000 us (100 ms)
 //constexpr auto SLOT_LENGTH = 20000us; // NOLINT(cert-err58-cpp)
 constexpr auto SLOT_LENGTH = 100000us; // NOLINT(cert-err58-cpp)
@@ -18,6 +21,23 @@ enum Phase {
     active
 };
 
+std::string to_string(Phase phase) {
+    switch (phase) {
+        case nil:
+            return std::string{"nil"};
+        case init:
+            return std::string{"i"};
+        case wait:
+            return std::string{"w"};
+        case discover:
+            return std::string{"d"};
+        case active:
+            return std::string{"a"};
+        default:
+            return std::string{};
+    }
+}
+
 struct Node {
     short id{};
     soctet selected_slot{NO_CHOSEN_SLOT};
@@ -26,6 +46,7 @@ struct Node {
 };
 
 struct State {
+    short id{};
     Phase phase{init};
     Phase next_phase{nil};
     unsigned long wait_frames{0ul};
@@ -35,8 +56,35 @@ struct State {
     octet gateway_distance{0xFF};
     std::bitset<SLOTS> occupied_slots{};
     std::unordered_map<short, Node> neighbourhood{};
+    std::bitset<SLOTS> neighbourhood_slots{};
     std::vector<octet> data_packet{};
+    common::Queue<std::vector<octet>> packet_queue{};
+
+    /* Model 4: If nothing have been received in a frame, choose a new slot. */
+    bool nothing_received{true};
+    /* Model 6: Has yet to send its first message. */
+    bool sent_first_message{false};
+    /* Model 8: If nothing has been heard for two frame lengths, the node is alone. */
+    int disconnected_counter{};
+
+    std::string phase_string();
+
+    void log_state_change();
 };
+
+std::string State::phase_string() {
+    std::string phase_s;
+    if (this->phase == active) {
+        phase_s = std::to_string(this->chosen_slot);
+    } else {
+        phase_s = to_string(this->phase);
+    }
+    return phase_s;
+}
+
+void State::log_state_change() {
+    hardware::logger->info("{},{},{}", hardware::get_localtime().count() / 1000.0, this->id, this->phase_string());
+}
 
 struct ControlPacket {
     short id{};
