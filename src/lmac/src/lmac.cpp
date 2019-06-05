@@ -107,8 +107,8 @@ int main(int argc, char *argv[]) {
                     if (sensor) {
 //                        const auto& packet = sensor_data;
 //                        state.packet_queue.push(packet);
-//                        state.data_packet = sensor_data;
-                        state.packet_queue.push(sensor_data);
+                        state.data_packet = sensor_data;
+//                        state.packet_queue.push(sensor_data);
                         sensor_data[0] = ++seq_num;
                     }
 
@@ -116,17 +116,18 @@ int main(int argc, char *argv[]) {
                     short receiver = NO_RECEIVER;
                     octet gateway_distance;
                     octet data_size = 0;
-                    std::vector<octet> packet{};
-                    if (!state.packet_queue.empty()) {
-                        packet = state.packet_queue.front();
-                        state.packet_queue.pop();
-                        data_size = packet.size();
-                    }
+//                    std::vector<octet> packet{};
+//                    if (!state.packet_queue.empty()) {
+//                        packet = state.packet_queue.front();
+//                        state.packet_queue.pop();
+//                        data_size = packet.size();
+//                    }
 
                     if (gateway) {
                         state.gateway_distance = 0;
-                    } else if (!packet.empty() && !state.neighbourhood.empty()) {
+                    } else if (!state.data_packet.empty() && !state.neighbourhood.empty()) {
 //                        data_size = state.packet_queue.head().size();
+                        data_size = state.data_packet.size();
 
                         /* Find receiver (for routing). */
                         std::vector<short> possible_receivers{};
@@ -158,12 +159,12 @@ int main(int argc, char *argv[]) {
                     state.sent_first_message = true;
 
                     /* Send packet, if any. */
-                    if (!packet.empty()) {
+                    if (!state.data_packet.empty()) {
 //                        auto data_packet = state.packet_queue.pop();
                         hardware::sleep(10ms);
 //                        hardware::transmit(data_packet);
-                        hardware::transmit(packet);
-//                        state.data_packet.clear();
+                        hardware::transmit(state.data_packet);
+                        state.data_packet.clear();
                     }
 
                     /* Model 3: Reset all neighbourhood information after sending. */
@@ -247,9 +248,8 @@ int main(int argc, char *argv[]) {
                                     seq_num = *data.begin();
                                     hardware::logger->info("%{}: received data packet {}", id, seq_num);
                                 } else {
-                                    state.packet_queue.push(data);
-//                                    state.data_packet = data;
 //                                    state.packet_queue.push(data);
+                                    state.data_packet = data;
                                 }
                             }
                         }
