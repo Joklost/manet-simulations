@@ -25,7 +25,9 @@ int main(int argc, char *argv[]) {
         state.chosen_slot = 0;
         state.next_slot = 0;
         state.occupied_slots[0] = true;
+        hardware::logger->info("world_size:{}", world_size);
     }
+
 
     auto sensor = false;
     octet seq_num = 0;
@@ -147,7 +149,7 @@ int main(int argc, char *argv[]) {
                         std::uniform_int_distribution<unsigned long> selector(0ul, possible_receivers.size() - 1ul);
                         auto selected = selector(eng);
                         if (selected >= possible_receivers.size()) {
-                            hardware::logger->info("selected receiver >= possible_receivers. {}, {}", selected,
+                            hardware::logger->info("#{} selected receiver >= possible_receivers. {}, {}", id, selected,
                                                    possible_receivers.size());
                         }
                         receiver = possible_receivers.at(selected);
@@ -291,7 +293,7 @@ int main(int argc, char *argv[]) {
                     std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
                     auto selected = selector(eng);
                     if (selected >= available_slots.size()) {
-                        hardware::logger->info("selected slot >= available_slots. {}, {}", selected,
+                        hardware::logger->info("#{} selected slot >= available_slots. {}, {}", id, selected,
                                                available_slots.size());
                     }
                     auto slot = available_slots.at(selected);
@@ -306,6 +308,8 @@ int main(int argc, char *argv[]) {
 //                state.next_phase = wait;
 //            }
 //        }
+
+        hardware::sleep(DELAY);
     }
 
 

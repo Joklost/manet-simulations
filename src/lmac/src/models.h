@@ -7,9 +7,10 @@
 // 100 000 us (100 ms)
 //constexpr auto SLOT_LENGTH = 20000us; // NOLINT(cert-err58-cpp)
 constexpr auto SLOT_LENGTH = 100000us; // NOLINT(cert-err58-cpp)
+constexpr auto DELAY = 14s; // NOLINT(cert-err58-cpp)
 constexpr auto SLOTS = 32ul;
-constexpr auto FRAMES = 120ul;
-constexpr auto MAX_WAIT = 6ul;
+constexpr auto FRAMES = 200ul;
+constexpr auto MAX_WAIT = 7ul;
 constexpr soctet NO_CHOSEN_SLOT = static_cast<soctet>(SLOTS + 1);
 constexpr soctet NO_SLOT = -1;
 constexpr soctet NO_RECEIVER = -1;
