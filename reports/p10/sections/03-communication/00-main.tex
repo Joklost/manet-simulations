@@ -1,5 +1,12 @@
-\chapter{Communication}
-\todo[inline]{Start with introduction; what is the setup}
+\chapter{Communication}\label{ch:communication}
+In this chapter, we introduce the \acrfull{mpi} for emulating the radio functionality of wireless nodes. The
+interface consists of three parts: An interface for nodes to communicate, emulating radio hardware
+functionality, a Coordinator to coordinate the communication between nodes, and a set of low-level hardware
+functions for transmitting, listening, and sleeping, used by the interface. The hardware interface is
+introduced in \autoref{sec:interface}, the Coordinator is presented in \autoref{sec:coordinator}, and the
+hardware functions are presented in \autoref{sec:hwfuncspseudo}. Finally \autoref{sec:correctness} will
+present a proof of correctness for our interface and the Coordinator, where we show that a simulated
+execution, using \gls{mpi}, will behave the same as a real execution. \medbreak
 
 \input{sections/03-communication/01-interface.tex}
 \input{sections/03-communication/02-coordinator.tex}

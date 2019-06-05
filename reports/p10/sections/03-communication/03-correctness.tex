@@ -1,5 +1,10 @@
-\section{Correctness}
-\todo[inline]{introduction}
+\section{Correctness}\label{sec:correctness}
+In this section, we present our correctness proof for the \gls{mpi} interface and the Coordinator. We start
+the section by introducing a set of three invariants for the Coordinator, and show why they hold in
+\autoref{sec:coordinator-invariants}. Next, we go over the methodology for our proof in
+\autoref{sec:correctnessmethods} and an example of a real execution. In
+\autoref{sec:simulated-execution} we show how a simulated execution of an arbitrary protocol behaves similarly
+to a real execution. Finally, we summarise the proof of correctness in \autoref{sec:summary}.
 
 \subsection{Invariants}\label{sec:coordinator-invariants}
 
@@ -139,8 +144,7 @@ the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ s
     \caption{Real execution of an arbitrary protocol with five nodes.}\label{tikz:coordinatormsc0}
 \end{figure}
 
-\subsection{Simulated Execution}
-\todo[inline]{try to shorten some of the arguments}
+\subsection{Simulated Execution}\label{sec:simulated-execution}
 Throughout this section we present a simulated, virtual-time, version of the real execution from
 \autoref{tikz:coordinatormsc0} using the Coordinator from \autoref{algo:mpicoordinator}. In a simulated
 execution, the nodes communicate through the Coordinator, rather than directly with each other.

@@ -1,37 +1,67 @@
-\section{Interface}\label{sec:interface}
-\todo[inline]{describe interface}
-\todo[inline]{talk about structure, explain local time, asynchronous mpi}
-\todo[inline]{introduce two-phase interface for hardware, include hardware functions}
+\section{Hardware Interface}\label{sec:interface}
+\bibtodo{some of 3.1.1 from old report has been included here}
+In this section we introduce the hardware interface we use to emulate the radio hardware for a wireless node.
+When emulating radio communication it is essential that we factor in time. 
+%, and the fact that a radio is part of an embedded system with limited memory and processing
+%capabilities~\citationneeded. 
+Time is a large part of a \gls{mac} protocol, as is the case with the Slotted
+ALOHA~\cite{Roberts:1975:APS:1024916.1024920} and LMAC~\cite{paper:lmac_protocol} protocols that rely heavily
+on time slots to be accurate to a point where packets are not dropped because a node starts listening for a
+synchronisation packet too early or too late. Additionally, as we use an \acrshort{mpi} for the emulation of
+the radio hardware, we need to account for the asynchronous nature of the \acrshort{mpi}. For example, running
+a simulation with 50 nodes on a machine with 8 cores, would start 51 individual processes, and the operating
+system would have to schedule accordingly, meaning that not every process (node) would be able to work at all
+times. Furthermore, as some protocols are designed to conserve power, as the radio hardware might be batter
+powered, the nodes will spend a large amount of time sleeping, which can create time periods where nothing
+happens during a simulation. To aid with this, we introduce the notion of virtual time. Virtual time helps us
+with coordinating the communication between the nodes, as rather than communicating directly with each other
+using the \gls{mpi}, nodes communicate through the Coordinator.
 
-Reasoning: Embedded systems with limited memory capabilities. Memory has to be pre-allocated. When listening,
-a device will not be able to efficiently allocate the memory for an arbitrary length packet, which is why we
-instead allocate memory for a fixed length header packet, that includes the size of the following packet.
+\subsection{Virtual Time}\label{sec:virtual-time}
+For our simulations, virtual time is, essentially, the real time a node spends during the execution of a
+\gls{mac} protocol, plus the time spent on transmitting, listening or sleeping. As we emulate the radio,
+transmitting or receiving packets is a matter of sending messages with the \gls{mpi}, and we have no need to
+power down the hardware to sleep. To track the virtual time, each node keeps a local real time clock,
+measuring the real time spent during the simulation, and a local time variable. Every time a node either
+transmits, listens, or sleeps for a duration, the time difference measured by the real time clock since the
+node last performed an action, as well as the duration of the transmission, listen, or sleep is added to the
+local time. This way, any action the node does can be completed almost instantly, and the node may continue
+executing the simulation, rather than, for example, have to sleep for 10 seconds in real time, where the
+process does nothing.
 
+%\todo[inline]{describe interface}
+%\todo[inline]{talk about structure, explain local time, asynchronous mpi}
+%\todo[inline]{introduce two-phase interface for hardware, include hardware functions}
+
+\subsection{Broadcasting and Receiving}\label{sec:2pcomm}
+As mentioned in \autoref{sec:hardwarephysics}, the time required for transmitting a packet is dependent on the
+size of the packet. To aid with the timing of transmitting and listening, we introduce a two-phase system. The
+two-phase system consists of two functions, Broadcast (\autoref{algo:2phase-broadcast}) and Receive
+(\autoref{algo:2phase-receive}). 
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FBroadcast}{Broadcast}
     \SetKwProg{Fn}{Function}{}{}
-    \textit{delay} $\leftarrow$ short delay to allow receiver to start listening before packet is sent\;
-
-    \Fn{\FBroadcast{packet}}{
-        header $\leftarrow$ construct header packet with $|\text{packet}|$\;
-        Transmit(header)\;
-        Sleep(delay)\;
-        Transmit(packet)\;
-        %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        %duration $\leftarrow$ transmission-time(|packet|)\;
-        %end $\leftarrow$ localtime $+$ duration\;
-        %a $\leftarrow$ (transmit, id, localtime, end, packet)\;
-        %\KwSend a \KwTo Coordinator\;
-        %localtime $\leftarrow$ end\;
-        %clock $\leftarrow$ \KwNow\;
+    \textit{delay} $\leftarrow$ short delay between first and second transmission\;
+    \;
+    \Fn{\FBroadcast{\textit{packet}}}{
+        \textit{header} $\leftarrow$ construct header packet with $|\mathit{packet}|$\;\label{algo:2phase-broadcast:constructheader}
+        Transmit(\textit{header})\;\label{algo:2phase-broadcast:transmitheader}
+        Sleep(\textit{delay})\;
+        Transmit(\textit{packet})\;
     }
 
-    \caption{The \texttt{Broadcast} Function.}
+    \caption{The Broadcast function.}
     \label{algo:2phase-broadcast}
 \end{algorithm}
 
+The Broadcast function takes a \textit{packet} of arbitrary data as input. With the packet of data, the
+function constructs a header packet that includes the size of the input \textit{packet}
+(\autoref{algo:2phase-broadcast:constructheader}). The header packet is transmitted via a call to the Transmit
+function, after which the function sleeps for a pre-defined \textit{delay}. This delay allows for any
+listening nodes to start listening for the actual packet, after receiving the header packet, before the actual
+packet is being transmitted. The pre-defined delay is a global value, known by all nodes.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -39,15 +69,16 @@ instead allocate memory for a fixed length header packet, that includes the size
     \SetKwFunction{FReceive}{Receive}
     \SetKwProg{Fn}{Function}{}{}
     \textit{delay} $\leftarrow$ short delay between first and second transmission\;
-    
-    \Fn{\FReceive{duration}}{
-        data $\leftarrow$ Listen(duration)\;
-        \If{data $\neq$ header packet}{
+    \;
+    \Fn{\FReceive{\textit{duration}}}{
+        \textit{data} $\leftarrow$ Listen(\textit{duration})\;\label{algo:2phase-receive:listen1}
+        \If{\textit{data} $\neq$ header packet}{\label{algo:2phase-receive:isheader}
             \KwRet \KwNull\;
         }
-        packetsize $\leftarrow$ extract packet size from header\;
-        duration$'$ $\leftarrow$ transmission-time(packetsize)\;
-        packet $\leftarrow$ Listen($\mathit{duration}' + \mathit{delay} * 2$)\;
+        $\mathit{packetsize} \leftarrow$ extract size of packet from header \textit{data}\;
+        $d^\prime \leftarrow \mathit{transmissiontime}(\mathit{packetsize})$\;
+        $\mathit{packet} \leftarrow \text{Listen}(d^\prime + \mathit{delay} \cdot 2)$\;
+        %\textit{packet} $\leftarrow$ Listen($\mathit{duration}' + \mathit{delay} \cdot 2$)\;
         %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
         %a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
         %\KwSend a \KwTo coordinator\;
@@ -55,10 +86,21 @@ instead allocate memory for a fixed length header packet, that includes the size
         %packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
         %\tcp{The packet returned from Coordinator may be \KwNull}
         %clock $\leftarrow$ \KwNow\;
-        \tcp{The packet returned from Listen may be \KwNull}
-        \KwRet packet\;
+        \tcp{The \textit{packet} returned from Listen may be \KwNull}
+        \KwRet \textit{packet}\;
     }
     
-    \caption{The \texttt{Listen} Function.}
+    \caption{The Receive function.}
     \label{algo:2phase-receive}
 \end{algorithm}
+
+The Receive function takes a \textit{duration} as input, and begins listening for the duration
+(\autoref{algo:2phase-receive:listen1}). A node stops listening the moment a packet has been received, or
+after the duration if nothing was received. The Listen function either returns a packet of data, if anything
+was received, or \KwNull. The Receive function checks if the received data is a header packet
+(\autoref{algo:2phase-receive:isheader}), and returns \KwNull if the received packet was not a header packet.
+Otherwise, the size of the incoming packet is extracted from the header packet, and the expected transmission
+time is calculated using \autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}, after which the
+functions starts listening, but adds two times the delay to the listening duration, to ensure that the entire
+packet can be received in the listening window. Finally, the function returns either the received packet, if
+any, or \KwNull.

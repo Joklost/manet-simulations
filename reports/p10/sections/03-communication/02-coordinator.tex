@@ -1,11 +1,14 @@
 \section{Coordinator}\label{sec:coordinator}
 \todo[inline]{bibliographical remark: a lot of changes from Controller}
-\todo[inline]{first 3 paragraphs, not logical order. refer back to hardware section \autoref{sec:hwfuncspseudo}}
-
-To facilitate communication between nodes using the hardware interface, we introduce the Coordinator. The
+To coordinate the communication between nodes using the hardware interface, we introduce the Coordinator. The
 Coordinator works by gathering actions (\textit{transmit}, \textit{listen}, \textit{sleep}, and
-\textit{inform}) sent from nodes using an \gls{mpi}. The pseudo code description of the Coordinator can be
-seen in \autoref{algo:mpicoordinator}. \smallbreak
+\textit{inform}) sent from nodes using the hardware functions from \autoref{sec:hwfuncspseudo}. The pseudo
+code description of the Coordinator can be seen in \autoref{algo:mpicoordinator}. \medbreak
+
+The pseudo code of the Coordinator is separated into three parts, where each of the parts is repeatedly
+executed in sequence, until the protocol terminates. The first part takes care of receiving actions from
+nodes, the second part maintains and cleans the $\mathit{transmits}$ set of \textit{transmit} actions, and the
+third part processes, and removes, actions from the $\mathit{waiting}$ queue. \medbreak
 
 The Coordinator works by continuously awaiting actions from any node
 (\autoref{algo:mpicoordinator:action-await}). The \KwAwait keyword is blocking, and blocks until any node
@@ -19,12 +22,7 @@ type of the action, and is one of either \textit{transmit}, \textit{listen}, \te
 action to the Coordinator. The $\mathit{start}$ and $\mathit{end}$ elements are timestamps for points of time
 in the execution, where $\mathit{start} \leq \mathit{end}$. Finally, the $\mathit{packet}$ element is the data
 packet sent during a transmission, or \KwNull for any action where $\mathit{type} \neq \mathit{transmit}$.
-\smallbreak
-
-The pseudo code of the Coordinator is separated into three parts, where each of the parts is repeatedly
-executed in sequence, until the protocol terminates. The first part takes care of receiving actions from
-nodes, the second part maintains and cleans the $\mathit{transmits}$ set of \textit{transmit} actions, and the
-third part processes, and removes, actions from the $\mathit{waiting}$ queue. \smallbreak
+\medbreak
 
 Whenever an action is submitted to the Coordinator (\autoref{algo:mpicoordinator:action-await}), the action is
 enqueued in the $\mathit{waiting}$ queue, and added to the \textit{discovered} set. The $\mathit{waiting}$
@@ -36,7 +34,7 @@ irrelevant. If the received action is a \textit{transmit} action, the action is 
 $\mathit{transmits}$ set (\autoref{algo:mpicoordinator:message-transmit}). Note that any action we receive
 from a particular node during this part will always have a start time greater than or equal to the end time of
 the last action received from that node. After receiving an action, the Coordinator continues to the second
-part. \smallbreak
+part. \medbreak
 
 The $\mathit{transmits}$ set is used to gather any \textit{transmit} actions that may cause interference when
 processing \textit{transmit} actions in the third part of the Coordinator. In order to make sure that the size
@@ -45,7 +43,7 @@ interfere with future \textit{transmit} actions. To do this we check that the $\
 contains at least one action from each node (\autoref{algo:mpicoordinator:ifactions}). Next, we find the
 earliest start time of all actions in the $\mathit{waiting}$ queue. With this we can remove any
 \textit{transmit} actions where the end time is strictly less that then earliest start time found in the
-$\mathit{waiting}$ queue (\autoref{algo:mpicoordinator:cleantransmits}). \smallbreak
+$\mathit{waiting}$ queue (\autoref{algo:mpicoordinator:cleantransmits}). \medbreak
 
 Finally, in the third part of the Coordinator, we process actions from the \textit{waiting} queue. The
 Coordinator only processes actions when the \textit{waiting} queue fulfils the same condition as in the second
@@ -53,7 +51,33 @@ part, where the \textit{waiting} queue has to contain at least one action from e
 case, the Coordinator dequeues a single action (\autoref{algo:mpicoordinator:dequeue}) from the
 \textit{waiting} queue. Any \textit{sleep} or \textit{inform} actions are processed implicitly, as they only
 have to be present in the \textit{waiting} queue, to satisfy the condition of the loop. Only the
-\textit{transmit} and \textit{listen} actions need processing by the Coordinator. \par %\smallbreak 
+\textit{transmit} and \textit{listen} actions need processing by the Coordinator. \medbreak 
+
+When processing a \textit{transmit} action, the Coordinator first gathers all \textit{transmit} actions from
+the \textit{transmits} set, that interfere with the \textit{transmit} action being processed
+(\autoref{algo:mpicoordinator:foreachinterfere}). A \textit{transmit} actions causes interference with
+another, if at any point in time their time intervals intersect
+(\autoref{algo:mpicoordinator:transmitintersects}). All applicable \textit{transmit} actions are stored in the
+\textit{interferers} set, to be used when computing the probability for packet error. Next, the Coordinator
+iterates through all \textit{listen} actions in the \textit{waiting} queue, and if the time interval of the
+\textit{transmit} action is fully within the time interval of the \textit{listen} action, the \textit{listen}
+action is considered relevant for the \textit{transmit} action, and we compute the probability for the packet
+being received by the listening node (\autoref{mpi:coordinator:pep}). The probability of the packet being
+received is computed using the probability for packet error function $P_p$ (\autoref{eq:pep} in
+\autoref{sec:radiomodel}). The probability for packet error function is called using the source of the
+\textit{listen} action $l$, the source of the \textit{transmit} action $a$, the \textit{interferers} set, the
+size of the packet, as well as the end time of the \textit{transmit} action $a$. Finally, we randomly chose
+whether the packet should be received by using the computed probability $p$
+(\autoref{algo:mpicoordinator:shouldreceive}). If the listening node has been chosen to receive the packet,
+the \textit{listen} action $l$ is removed from the \textit{waiting} queue
+(\autoref{algo:mpicoordinator:removelisten}), and the end time of the \textit{transmit} action $a$, as well as
+the packet is sent to the source of the \textit{listen} node. \medbreak
+
+Processing a \textit{listen} action (\autoref{algo:mpicoordinator:unblock2}) is trivial, as all the
+Coordinator does is send the end time of the \textit{listen} action and \KwNull to the source of the
+\textit{listen} action. We do this as dequeuing a \textit{listen} action means that no transmission has been
+received by the listening node. When the Coordinator responds to the source of the \textit{listen} action,
+the node is unblocked, and may continue executing its protocol. \medbreak
 
 \begin{algorithm}[H]
     \DontPrintSemicolon
@@ -68,7 +92,7 @@ have to be present in the \textit{waiting} queue, to satisfy the condition of th
         \hspace{18.5mm}\textit{sleep} and \textit{inform} before \textit{transmit}, \textit{transmit} before \textit{listen}\;
         $\mathit{discovered} \leftarrow$ empty set of Action objects\; \label{algo:mpicoordinator:discovered}
         $\mathit{transmits}$ $\leftarrow$ empty set of Action objects\;
-        \;
+        %\;
 
         \Repeat{\textit{protocol terminates}}{
             \tcp{Part 1. Handle incoming message.}
@@ -121,123 +145,98 @@ have to be present in the \textit{waiting} queue, to satisfy the condition of th
             }
         }
     }
-    \caption{The \texttt{Coordinator} procedure.}
+    \caption{The Coordinator procedure.}
     \label{algo:mpicoordinator}
 \end{algorithm}
 
-When processing a \textit{transmit} action, the Coordinator first gathers all \textit{transmit} actions from
-the \textit{transmits} set, that interfere with the \textit{transmit} action being processed
-(\autoref{algo:mpicoordinator:foreachinterfere}). A \textit{transmit} actions causes interference with
-another, if at any point in time their time intervals intersect
-(\autoref{algo:mpicoordinator:transmitintersects}). All applicable \textit{transmit} actions are stored in the
-\textit{interferers} set, to be used when computing the probability for packet error. Next, the Coordinator
-iterates through all \textit{listen} actions in the \textit{waiting} queue, and if the time interval of the
-\textit{transmit} action is fully within the time interval of the \textit{listen} action, the \textit{listen}
-action is considered relevant for the \textit{transmit} action, and we compute the probability for the packet
-being received by the listening node (\autoref{mpi:coordinator:pep}). The probability of the packet being
-received is computed using the probability for packet error function $P_p$ (\autoref{eq:pep} in
-\autoref{sec:radiomodel}). The probability for packet error function is called using the source of the
-\textit{listen} action $l$, the source of the \textit{transmit} action $a$, the \textit{interferers} set, the
-size of the packet, as well as the end time of the \textit{transmit} action $a$. Finally, we randomly chose
-whether the packet should be received by using the computed probability $p$
-(\autoref{algo:mpicoordinator:shouldreceive}). If the listening node has been chosen to receive the packet,
-the \textit{listen} action $l$ is removed from the \textit{waiting} queue
-(\autoref{algo:mpicoordinator:removelisten}), and the end time of the \textit{transmit} action $a$, as well as
-the packet is sent to the source of the \textit{listen} node. \smallbreak
-
-Processing a \textit{listen} action (\autoref{algo:mpicoordinator:unblock2}) is trivial, as all the
-Coordinator does is send the end time of the \textit{listen} action and \KwNull to the source of the
-\textit{listen} action. We do this as dequeuing a \textit{listen} action means that no transmission has been
-received by the listening node. When the Coordinator responds to the source of the \textit{listen} action,
-the node is unblocked, and may continue executing its protocol.
-
 \subsection{Hardware}\label{sec:hwfuncspseudo}
 \bibtodo{changed according to new functionality}
-The hardware functions listed in this section depend on the following local state. The local state is unique
-for each node.\smallbreak
+In this section, we present the four hardware functions nodes use to communicate with the Coordinator. Common
+for all four hardware functions is that they all construct an Action object
+(\autoref{algo:mpicoordinator:actiontuple} in \autoref{algo:mpicoordinator}) and send it to the Coordinator
+using the \gls{mpi}. Note that for any action $a$ sent by any node, $a.\mathit{start} \leq a.\mathit{end}$.
+The hardware functions depend on the following local state. The local state is unique for each node.
+\smallbreak
 
-clock $\leftarrow$ \KwNow
+\textit{clock} $\leftarrow$ \KwNow
 
-localtime $\leftarrow$ 0
+\textit{localtime} $\leftarrow$ 0
 
-id $\leftarrow$ unique identifier \smallbreak
+\textit{id} $\leftarrow$ unique identifier \smallbreak
 
 In the hardware functions we utilise a special keyword \KwNow, which represents the real-time hardware clocks
-of a node. It is assumed that all clocks run at the same speed. The clock variable is used to measure the
-real-time spent by the node between calls to hardware functions. Initially, we store the current time in the
-clock variable, and use the clock to compute the real-time difference between the calling of hardware
-functions and add the difference to the localtime variable (e.g., localtime $\leftarrow$ (\KwNow $-$ clock)
-$+$ localtime).
+of a node. It is assumed that all clocks run at the same speed. The \textit{clock} variable is used to measure
+the real-time spent by the node between calls to hardware functions. Initially, we store the current time in
+the \textit{clock} variable, and use the \textit{clock} to compute the real-time difference between the
+calling of hardware functions and add the difference to the \textit{localtime} variable (e.g.,
+\textit{localtime} $\leftarrow$ (\KwNow $-$ \textit{clock}) $+$ \textit{localtime}).
 
-The unique identifier (id) of a node is meant to function as the address of a node for passing messages
-between nodes and the Coordinator. The identifier of the Coordinator = $0$, and the identifier of the nodes
-are in the range $\{ 1, 2, 3, \ldots, N \}$ for $N$ nodes.
-
-\todo[inline]{for any action $a$, $a.start \leq a.end$}
-
-%Common for all four hardware functions is that we initially update the localtime variable, and set the clock variable to \KwNow before returning from the function, such that the execution time spent communicating with the Coordinator is not included in the duration of the action.
+The unique identifier (\textit{id}) of a node is meant to function as the address of a node for passing
+messages between nodes and the Coordinator. The identifier of the Coordinator = $0$, and the identifier of the
+nodes are in the range $\{ 1, 2, 3, \ldots, N \}$ for $N$ nodes.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
     \SetKwFunction{FTransmit}{Transmit}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FTransmit{packet}}{
-        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        duration $\leftarrow$ transmission-time(|packet|)\;
-        end $\leftarrow$ localtime $+$ duration\;
-        a $\leftarrow$ (transmit, id, localtime, end, packet)\;
-        \KwSend a \KwTo Coordinator\;
-        localtime $\leftarrow$ end\;
-        clock $\leftarrow$ \KwNow\;
+    \Fn{\FTransmit{\textit{packet}}}{
+        $\mathit{localtime} \leftarrow (\KwNow - \mathit{clock}) + \mathit{localtime}$\;
+        $duration \leftarrow \mathit{transmissiontime}(|\mathit{packet}|)$\;
+        $\mathit{end} \leftarrow \mathit{localtime} + \mathit{duration}$\;
+        $a \leftarrow (\mathit{transmit}, \mathit{id}, \mathit{localtime}, \mathit{end}, \mathit{packet})$\;
+        \KwSend $a$ \KwTo Coordinator\;
+        $\mathit{localtime} \leftarrow \mathit{end}$\;
+        $\mathit{clock} \leftarrow$ \KwNow\;
     }
 
-    \caption{The Transmit Function.}
+    \caption{The Transmit function.}
     \label{algo:hwfuncstransmit}
 \end{algorithm}
 
-The \texttt{Broadcast} (\autoref{algo:hwfuncstransmit}) function broadcasts a data packet. The packet is sent
+The Transmit (\autoref{algo:hwfuncstransmit}) function transmits a data packet. The packet is sent
 to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to
 neighbouring nodes listening for packets. The duration of a transmission is computed based on the
 \gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as
 well as the size of the packet, using \autoref{eq:transmission-time} found in \autoref{sec:hardwarephysics}.
 % or our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz, 
 
-After computing the duration, the transmit action is sent to the Coordinator, the localtime variable is set to
-the end time and the clock is set to \KwNow, before the function returns. \medbreak
+After computing the duration, the transmit action is sent to the Coordinator, the \textit{localtime} variable
+is set to the end time and the clock is set to \KwNow, before the function returns. \medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
-    \KwResult{A packet or \KwNull}
+    \KwResult{A \textit{packet} or \KwNull}
     \SetKwFunction{FListen}{Listen}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FListen{duration}}{
-        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
-        \KwSend a \KwTo coordinator\;
-        localtime $\leftarrow$ \KwAwait end \KwFrom Coordinator\; \label{algo:hwfuncslisten:awaitend}
-        packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
-        \tcp{The packet returned from Coordinator may be \KwNull}
-        clock $\leftarrow$ \KwNow\;
-        \KwRet packet\;
+    \Fn{\FListen{\textit{duration}}}{
+        $\mathit{localtime} \leftarrow (\KwNow - \mathit{clock}) + \mathit{localtime}$\;
+        $a \leftarrow (\mathit{listen}, \mathit{id}, \mathit{localtime}, \mathit{localtime} + \mathit{duration}, \KwNull)$\;
+        \KwSend $a$ \KwTo Coordinator\;
+        $\mathit{localtime} \leftarrow$ \KwAwait $\mathit{end}$ \KwFrom Coordinator\; \label{algo:hwfuncslisten:awaitend}
+        $\mathit{packet} \leftarrow$ \KwAwait $\mathit{packet}$ \KwFrom Coordinator\;
+        \tcp{The \textit{packet} returned from Coordinator may be \KwNull}
+        \textit{clock} $\leftarrow$ \KwNow\;
+        \KwRet \textit{packet}\;
     }
     
-    \caption{The \texttt{Listen} Function.}
+    \caption{The Listen function.}
     \label{algo:hwfuncslisten}
 \end{algorithm}
 
-The \texttt{Listen} (\autoref{algo:hwfuncslisten}) functions takes a duration as input and sends a listen
-action to the Coordinator. After sending its action, the function waits for a response from the Coordinator at
+The Listen (\autoref{algo:hwfuncslisten}) function takes a duration as input and sends a listen action to the
+Coordinator. After sending its action, the function waits for a response from the Coordinator at
 \autoref{algo:hwfuncslisten:awaitend}. The \KwAwait keyword is blocking, which means that no other functions
 can be called from a node while the node is listening for a packet. When the Coordinator processes a listen
-action, two messages will be sent to the node. The first is the end time, which is assigned to the localtime
-variable, and the second is the packet received (if any). If no packet has been received, the end time
-received from the Coordinator will be the same as the end time in the action sent to the Coordinator
-(localtime $+$ duration), and the packet received will be \KwNull. If a packet has been received, the
-Coordinator will send the time when the packet was received, with the packet following right after.
+action, two messages will be sent to the node. The first is the end time, which is assigned to the
+\textit{localtime} variable, and the second is the packet received (if any). If no packet has been received,
+the end time received from the Coordinator will be the same as the end time in the action sent to the
+Coordinator (\textit{localtime} $+$ \textit{duration}), and the packet received will be \KwNull. If a packet
+has been received, the Coordinator will send the time when the packet was received, with the packet following
+right after.
 
-At most a single packet may be received on a call to the \texttt{Listen} function, but depending on the number
+At most a single packet may be received on a call to the Listen function, but depending on the number
 of transmissions in the same time interval, no packet could be received, as multiple transmissions either will
 provide interference for each other, creating collisions, or no transmissions may have happened in the time
 interval.
@@ -250,41 +249,41 @@ return either the packet or \KwNull. \medbreak
     \SetKwFunction{FSleep}{Sleep}
     \SetKwProg{Fn}{Function}{}{}
     
-    \Fn{\FSleep{duration}}{
-        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        end $\leftarrow$ localtime $+$ duration\;
-        a $\leftarrow$ (sleep, id, localtime, end, \KwNull)\;
-        \KwSend a \KwTo Coordinator\;
-        localtime $\leftarrow$ end\;
-        clock $\leftarrow$ \KwNow\;
+    \Fn{\FSleep{\textit{duration}}}{
+        \textit{localtime} $\leftarrow$ (\KwNow $-$ \textit{clock}) $+$ \textit{localtime}\;
+        \textit{end} $\leftarrow$ \textit{localtime} $+$ \textit{duration}\;
+        $a$ $\leftarrow$ (\textit{sleep}, \textit{id}, \textit{localtime}, \textit{end}, \KwNull)\;
+        \KwSend $a$ \KwTo Coordinator\;
+        \textit{localtime} $\leftarrow$ \textit{end}\;
+        \textit{clock} $\leftarrow$ \KwNow\;
     }
     
-    \caption{The \texttt{Sleep} Function.}
+    \caption{The Sleep function.}
     \label{algo:hwfuncssleep}
 \end{algorithm}
 
-The \texttt{Sleep} (\autoref{algo:hwfuncssleep}) takes a duration as input and sends a sleep action to the
-Coordinator. As no response is expected of the Coordinator, the function sets the localtime and clock
-variables immediately after sending the action. \medbreak
+The Sleep (\autoref{algo:hwfuncssleep}) function takes a duration as input and sends a \textit{sleep} action to the
+Coordinator. As no response is expected of the Coordinator, the function sets the \textit{localtime} and
+\textit{clock} variables immediately after sending the action. \medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
-    \SetKwFunction{FInformLocalTime}{InformLocalTime}
+    \SetKwFunction{FInformLocalTime}{Inform}
     \SetKwProg{Fn}{Function}{}{}
     
     \Fn{\FInformLocalTime{}}{
-        localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        a $\leftarrow$ (inform, id, localtime, localtime, \KwNull)\;
-        \KwSend a \KwTo Coordinator\;
-        clock $\leftarrow$ \KwNow\;
+        \textit{localtime} $\leftarrow$ (\KwNow $-$ \textit{clock}) $+$ \textit{localtime}\;
+        $a$ $\leftarrow$ (\textit{inform}, \textit{id}, \textit{localtime}, \textit{localtime}, \KwNull)\;
+        \KwSend $a$ \KwTo Coordinator\;
+        \textit{clock} $\leftarrow$ \KwNow\;
     }
     
-    \caption{The \texttt{InformLocaltime} Function.}
+    \caption{The Inform function.}
     \label{algo:hwfuncsupdatelocaltime}
 \end{algorithm}
 
-The \texttt{InformLocalTime} function is equivalent to the \texttt{Sleep} function in the sense that it
-behaves like the \texttt{Sleep} function with the duration set to 0. The function is included in the case
-there none of the other hardware functions are applicable, e.g., in the case where the node is performing
-longer computations,. Regularly informing the Coordinator of a nodes localtime will allow the Coordinator to
-continually process actions from other nodes.
+The Inform function is equivalent to the Sleep function in the sense that it behaves like a call to the Sleep
+function with the duration set to 0. The function is included in the case there none of the other hardware
+functions are applicable, e.g., in the case where the node is performing longer computations,. Regularly
+informing the Coordinator of a nodes \textit{localtime} will allow the Coordinator to continually process actions from
+other nodes.

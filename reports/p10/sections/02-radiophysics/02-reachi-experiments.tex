@@ -7,12 +7,12 @@ was conducted with 33 devices, while the fourth with 330.
 
 \todo[inline]{talk about the problems with the data. WIP}
 When we detected odd behaviour, we started to investigate the logs. Specifically the logs from experiments
-conducted in Marikina and Rude skov. The reason for these two, is that the Rude skov log was not conducted in
+conducted in Marikina and Rude Skov. The reason for these two, is that the Rude Skov log was not conducted in
 the middle of a city while the Marikina was, as such the Marikina log should contain more varying signal
 strength measurements because there is more dense obstructions that can influence the signal. We used the
-distance dependent fading function from \cite{paper:linkmodel}, that computes path loss based on the distance of a
-link, where we compared the measurements with transmission power - path loss computed from the distance fading
-function.
+distance dependent fading function from \cite{paper:linkmodel}, that computes path loss based on the distance
+of a link, where we compared the measurements with transmission power - path loss computed from the distance
+fading function.
 
 On plot \ref{plot:reachi-experiments:average-distance} the measurements and distance fading function RSSI
 values can be seen. The measurements have been divided into distance buckets, where the average for each
@@ -45,7 +45,7 @@ bucket has been computed and plotted.
             \addlegendentry{distance path loss function};
         \end{axis}
     \end{tikzpicture}
-    \caption{Average RSSI pr. distance}%\label{plot:reachi-experiments:average-distance}
+    \caption{Average RSSI pr. distance}\label{plot:reachi-experiments:average-distance}
 \end{figure}
 
 
@@ -119,9 +119,15 @@ bucket has been computed and plotted.
 
 \section{Line of Sight Model (LoSModel)}
 \todo[inline]{ref to section where field experiments problems discussed}
-To facilitate the problems mentioned in \ref{sec:}, we have developed our own model for computing path loss. The model, called \gls{losmodel}, computes path loss based on the distance of the link and the percentage of the link that contains building. The idea is that large obstructions, like buildings, cause more severe loss of signal strength compared to pure distance. Our model only consider buildings as an obstruction, and is therefore to be taking as a proof of concept.\medbreak
+To facilitate the problems mentioned in \ref{sec:}, we have developed our own model for computing path loss.
+The model, called \gls{losmodel}, computes path loss based on the distance of the link and the percentage of
+the link that contains building. The idea is that large obstructions, like buildings, cause more severe loss
+of signal strength compared to pure distance. Our model only consider buildings as an obstruction, and is
+therefore to be taking as a proof of concept.\medbreak
 
-To do the computation, we introduce two deterministic functions for computing path loss. \gls{bopl} computes path loss for 100\% building obstruction. \gls{cvpl} computes path loss for 0\% building obstruction. They are combined with the following formula:
+To do the computation, we introduce two deterministic functions for computing path loss. \gls{bopl} computes
+path loss for 100\% building obstruction. \gls{cvpl} computes path loss for 0\% building obstruction. They are
+combined with the following formula:
 \begin{eq}
     pl(link, bp) = (cvpl(\theta(link)) * (100 - bp)) + (bopl(\theta(link)) * bp)
 \end{eq}
@@ -130,57 +136,82 @@ To do the computation, we introduce two deterministic functions for computing pa
 
 
 
-To compute the building percentage, one could utilize 3D models of area and develop a complex model for determing the building percentage. However such a solution is computationally expensive, and this projects scope is scalability. Therefore we propose a simpler solution. The idea is to generate an image of an area from a map and look at the colour of the pixel, then compute the percentage of total pixels of the link and the amount of pixels that were coloured as a building.
+To compute the building percentage, one could utilize 3D models of area and develop a complex model for
+determining the building percentage. However such a solution is computationally expensive, and this projects
+scope is scalability. Therefore we propose a simpler solution. The idea is to generate an image of an area
+from a map and look at the colour of the pixel, then compute the percentage of total pixels of the link and
+the amount of pixels that were coloured as a building.
 
 
 \begin{eq}
-    cvpl(distance) = (48.5 * (ln(distance) / ln(77)) + 37.5);
+    \mathit{cvpl}(l) = (48.5 * (\ln(d(l)) / \ln(77)) + 37.5);
 \end{eq}
 
 \begin{eq}
-    bopl(distance) = (67 * (ln(distance) / ln(57)) + 11.5);
+    \mathit{bopl}(l) = (67 * (\ln(d(l)) / \ln(57)) + 11.5);
 \end{eq}
 
 
 
 \begin{algorithm}[H]
     \DontPrintSemicolon
-    \SetKwFunction{FLoSModelCompute}{Compute}
+    \SetKwFunction{FLoSModelCompute}{ComputePathloss}
     \SetKwProg{Fn}{Function}{}{}
 
-    Link = $(\mathit{id},\ \mathit{node_1},\ \mathit{node_2})$\;
-    PixelPos = $(\mathit{x},\ \mathit{y})$\;\;
+    %Link = $(\mathit{id},\ n_1,\ n_2)$\;
+    %PixelPos = $(\mathit{x},\ \mathit{y})$\;\;
     
-    $\mathit{building\_colours}\ \leftarrow$ A set of colours that represent a building in the image\;
-    $\mathit{map} \leftarrow$ A loaded map of an area\;
-
-    \Fn{\FLoSModelCompute{link}}{
-        $\mathit{pos_1} \leftarrow$ gps\_to\_pixel(link.node_1)\;
-
-        $\mathit{pos_2} \leftarrow$ gps\_to\_pixel(link.node_2)\;\;
-        
-        $\mathit{bearing} \leftarrow$ compute the bearing from the line created from pos1 and pos2\;
-        $\mathit{tp} \leftarrow 0$\;
-        $\mathit{bp} \leftarrow 0$\;\;
-
-        $\mathit{x},\ \markit{y}\ \leftarrow \mathit{pos_2}$\;
-        \While{$\mathit{x} >= \mathit{pos_1.x}\ \KwAnd\ \mathit{y} >= \mathit{pos_1.y}$}{
-            $\mathit{colour} \leftarrow\ map.get\_colour(\mathit{x},\ \mathit{y})$\;
-            \If{$\mathit{colour} \in \mathit{building\_colours}$}{
-                $\mathit{bp} \leftarrow \mathit{bp}\ +\ 1$\;
+    %$\mathit{building\_colours}\ \leftarrow$ A set of colours that represent a building in the image\;
+    $\mathit{map} \leftarrow$ A map of an area\; %should contain link
+    \;
+    \Fn{\FLoSModelCompute{$l$}}{
+        $n_1, n_2 \leftarrow \mathit{nodes}(l)$\;
+        $p_1 \leftarrow$ compute pixel position on $\mathit{map}$ for $n_1$\;
+        $p_2 \leftarrow$ compute pixel position on $\mathit{map}$ for $n_2$\;
+        $\mathit{bearing} \leftarrow$ compute bearing between $p_1$ and $p_2$\;
+        $\mathit{pixels} \leftarrow 0$\;
+        $\mathit{buildings} \leftarrow 0$\;
+        $x \leftarrow p_{2,x}$\;
+        $y \leftarrow p_{2,y}$\;
+        \;
+        \While{$x \geq p_{1,x}$ \KwAnd $y \geq p_{1,y}$}{
+            $\mathit{colour} \leftarrow$ get colour of $(x, y)$ on $\mathit{map}$\;
+            \If{$\mathit{colour}$ \KwIs building}{
+                $\mathit{buildings} \leftarrow \mathit{buildings} + 1$\;
             }
-            $\mathit{x} \leftarrow \mathit{x}\ -\ 1$\;
-            $\mathit{y} \leftarrow \mathit{y} \-\ (1 \cdot \mathit{bearing})$\;
-            $\mathit{tp} \leftarrow \mathit{tp}\ +\ 1$\;
+            $x \leftarrow x - 1$\;
+            $y \leftarrow y - \mathit{bearing}$\;
+            $\mathit{pixels} \leftarrow \mathit{pixels} + 1$\;
         }
-        $\mathit{pct} \leftarrow (100 \cdot \mathit{bp})\ /\ \mathit{tp}$\;
-        $\mathit{distance} \leftarrow\ \d(link)$\;\;
-        $\mathit{pl_{cv}} \leftarrow cvpl(\mathit{distance}) \cdot (100 - pct)$\;
-        $\mathit{pl_{bo}} \leftarrow bopl(\mathit{distance}) \cdot pct$\;\;
+        \;
+        $\mathit{pct} \leftarrow \mathit{buildings} / \mathit{pixels}$\;
+        $\mathit{pl}_l \leftarrow (\mathit{cvpl}(l) \cdot 1 - pct) + (\mathit{bopl}(l) \cdot pct)$\;
+    
+        \KwRet $\mathit{pl_l}$\;
+        
+        
+        % $\mathit{bearing} \leftarrow$ compute the bearing from the line created from pos1 and pos2\;
+        % $\mathit{tp} \leftarrow 0$\;
+        % $\mathit{bp} \leftarrow 0$\;\;
 
-        \KwRet $\mathit{pl_{cv}} + \mathit{pl_{bo}}$\;
+        % $\mathit{x},\ \mathit{y}\ \leftarrow \mathit{pos_2}$\;
+        % \While{$\mathit{x} >= \mathit{pos_1.x}\ \KwAnd\ \mathit{y} >= \mathit{pos_1.y}$}{
+        %     $\mathit{colour} \leftarrow\ map.get\_colour(\mathit{x},\ \mathit{y})$\;
+        %     \If{$\mathit{colour} \in \mathit{building\_colours}$}{
+        %         $\mathit{bp} \leftarrow \mathit{bp}\ +\ 1$\;
+        %     }
+        %     $\mathit{x} \leftarrow \mathit{x}\ -\ 1$\;
+        %     $\mathit{y} \leftarrow \mathit{y} \-\ (1 \cdot \mathit{bearing})$\;
+        %     $\mathit{tp} \leftarrow \mathit{tp}\ +\ 1$\;
+        % }
+        % $\mathit{pct} \leftarrow (100 \cdot \mathit{bp})\ /\ \mathit{tp}$\;
+        % $\mathit{distance} \leftarrow\ d(link)$\;\;
+        % $\mathit{pl_{cv}} \leftarrow cvpl(\mathit{distance}) \cdot (100 - pct)$\;
+        % $\mathit{pl_{bo}} \leftarrow bopl(\mathit{distance}) \cdot pct$\;\;
+
+        % \KwRet $\mathit{pl_{cv}} + \mathit{pl_{bo}}$\;
     }
-    \caption{The \texttt{LoSModel} compute function.}
+    \caption{The ComputePathloss function.}
     \label{algo:}
 \end{algorithm}
 
