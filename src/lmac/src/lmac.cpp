@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
                         auto selected = selector(eng);
                         if (selected >= possible_receivers.size()) {
                             hardware::logger->info("selected receiver >= possible_receivers. {}, {}", selected,
-                                                   possible_receivers);
+                                                   possible_receivers.size());
                         }
                         receiver = possible_receivers.at(selected);
                     }
@@ -288,7 +288,7 @@ int main(int argc, char *argv[]) {
                 auto selected = selector(eng);
                 if (selected >= available_slots.size()) {
                     hardware::logger->info("selected slot >= available_slots. {}, {}", selected,
-                                           available_slots);
+                                           available_slots.size());
                 }
                 auto slot = available_slots.at(selected);
                 state.next_phase = active;
