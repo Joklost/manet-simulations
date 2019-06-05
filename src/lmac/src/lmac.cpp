@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
     hardware::init(debug);
     auto id = static_cast<short>(hardware::get_id());
     auto rank = hardware::get_world_rank();
+    auto world_size = hardware::get_world_size();
 
     std::random_device rd{};
     std::default_random_engine eng{rd()};
@@ -29,7 +30,7 @@ int main(int argc, char *argv[]) {
     auto sensor = false;
     octet seq_num = 0;
     std::vector<octet> sensor_data{};
-    if (rank == 16) {
+    if (rank == world_size) {
         sensor = true;
         sensor_data = {
                 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00,
