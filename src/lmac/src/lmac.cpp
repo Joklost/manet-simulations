@@ -278,21 +278,26 @@ int main(int argc, char *argv[]) {
                     neighbourhood_slots |= node.occupied_slots;
                 }
 
-                std::vector<soctet> available_slots{};
-                for (soctet i = 0; i < neighbourhood_slots.size(); ++i) {
-                    if (!neighbourhood_slots[i]) {
-                        available_slots.push_back(i);
+                if (neighbourhood_slots.all()) {
+                    hardware::logger->info("#{}, no available time slots in second order neighbourhood!", id);
+                    state.next_phase = init;
+                } else {
+                    std::vector<soctet> available_slots{};
+                    for (soctet i = 0; i < neighbourhood_slots.size(); ++i) {
+                        if (!neighbourhood_slots[i]) {
+                            available_slots.push_back(i);
+                        }
                     }
+                    std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
+                    auto selected = selector(eng);
+                    if (selected >= available_slots.size()) {
+                        hardware::logger->info("selected slot >= available_slots. {}, {}", selected,
+                                               available_slots.size());
+                    }
+                    auto slot = available_slots.at(selected);
+                    state.next_phase = active;
+                    state.next_slot = slot;
                 }
-                std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
-                auto selected = selector(eng);
-                if (selected >= available_slots.size()) {
-                    hardware::logger->info("selected slot >= available_slots. {}, {}", selected,
-                                           available_slots.size());
-                }
-                auto slot = available_slots.at(selected);
-                state.next_phase = active;
-                state.next_slot = slot;
             }
         }
 
