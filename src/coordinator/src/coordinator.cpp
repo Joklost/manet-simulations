@@ -141,6 +141,7 @@ void Coordinator::process_actions(std::mt19937 &gen) {
         auto act = *head; /* Copy. */
         this->actions.erase(head);
         this->nodes[act.rank].action_count--;
+        this->c->debug("process={}", act);
 
         if (act.type == Transmission) {
             auto &tx = act;

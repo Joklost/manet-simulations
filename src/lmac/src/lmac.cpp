@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
                         }
 
                         std::uniform_int_distribution<unsigned long> selector(0ul, possible_receivers.size() - 1ul);
-                        receiver = possible_receivers[selector(eng)];
+                        receiver = possible_receivers.at(selector(eng));
                     }
 
                     /* Create synchronisation signal. */
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
                     }
                     node.selected_slot = ctrl.current_slot;
                     node.occupied_slots = ctrl.occupied_slots;
-                    state.neighbourhood_slots |= node.occupied_slots;
+//                    state.neighbourhood_slots |= node.occupied_slots;
 
                     if (ctrl.gateway_distance + 1 < state.gateway_distance) {
                         state.gateway_distance = ctrl.gateway_distance + 1;
@@ -208,26 +208,6 @@ int main(int argc, char *argv[]) {
                     /* Update occupied time slots in first order neighbourhood. */
                     state.occupied_slots[slot] = true;
 
-                    /* Model 6: If a node has chosen a slot, and it is active, but has not yet sent its
-                     * first message, and if it receives from a neighbour that it's slot is occupied by
-                     * a second order neighbour, then pick a new slot. */
-//                    if (state.phase == active && !state.sent_first_message) {
-//                        /* Neighbour do not yet know about this nodes chosen slot. */
-//                        if (state.neighbourhood_slots[state.chosen_slot]) {
-//                            state.phase = wait;
-//                            state.wait_frames = gen_wait();
-//                            state.chosen_slot = NO_CHOSEN_SLOT;
-//                            state.log_state_change();
-//                        }
-
-                    /* Model 9: If active node hears nothing before its first transmission, it is disconnected. */
-//                        else if (state.nothing_received) {
-//                            state.phase = nil;
-//                            state.next_phase = init;
-//                            state.chosen_slot = NO_CHOSEN_SLOT;
-//                        }
-//                    }
-//
                     if (ctrl.collision_slot == state.chosen_slot) {
                         state.phase = wait;
                         state.wait_frames = gen_wait();
@@ -286,21 +266,21 @@ int main(int argc, char *argv[]) {
                     state.disconnected_counter = 0;
                 }
             } else {
-//                std::bitset<SLOTS> neighbourhood_slots{};
-//                for (auto &neighbour : state.neighbourhood) {
-//                    auto &node = neighbour.second;
-//                    neighbourhood_slots |= node.occupied_slots;
-//                }
+                std::bitset<SLOTS> neighbourhood_slots{};
+                for (auto &neighbour : state.neighbourhood) {
+                    auto &node = neighbour.second;
+                    neighbourhood_slots |= node.occupied_slots;
+                }
 
                 std::vector<soctet> available_slots{};
-                for (soctet i = 0; i < state.neighbourhood_slots.size(); ++i) {
-                    if (!state.neighbourhood_slots[i]) {
+                for (soctet i = 0; i < neighbourhood_slots.size(); ++i) {
+                    if (!neighbourhood_slots[i]) {
                         available_slots.push_back(i);
                     }
                 }
 
                 std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
-                auto slot = available_slots[selector(eng)];
+                auto slot = available_slots.at(selector(eng));
                 state.next_phase = active;
                 state.next_slot = slot;
             }
