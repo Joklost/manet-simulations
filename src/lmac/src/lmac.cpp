@@ -131,6 +131,7 @@ int main(int argc, char *argv[]) {
 
                         /* Find receiver (for routing). */
                         std::vector<short> possible_receivers{};
+                        possible_receivers.push_back(state.neighbourhood.begin()->first);
                         gateway_distance = state.neighbourhood.begin()->second.gateway_distance;
                         for (auto &neighbour : state.neighbourhood) {
                             auto &node = neighbour.second;
