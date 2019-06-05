@@ -117,6 +117,25 @@ static bool has_actions(const std::pair<unsigned long, Node> &rank_node_pair) {
 void Coordinator::process_actions(std::mt19937 &gen) {
     const auto action_count = this->actions.size();
 
+    if (std::all_of(this->nodes.cbegin(), this->nodes.cend(), has_actions)) {
+        auto it = std::min_element(this->actions.cbegin(), this->actions.cend(),
+                                   [](const Action &left, const Action &right) {
+                                       return left.start < right.start;
+                                   });
+
+        auto &start_time = it->start;
+        auto &txs = this->transmissions;
+        txs.erase(std::remove_if(txs.begin(), txs.end(), [start_time](const Action &tx) {
+            return tx.end < start_time;
+        }), txs.end());
+
+        if (this->plots) {
+            const auto &act = *this->actions.begin();
+            this->stats.queue_sizes.emplace_back(act.end, this->actions.size());
+            this->stats.transmissions_sizes.emplace_back(act.end, this->transmissions.size());
+        }
+    }
+
     while (std::all_of(this->nodes.cbegin(), this->nodes.cend(), has_actions)) {
         auto head = this->actions.begin();
         auto act = *head; /* Copy. */
@@ -221,35 +240,6 @@ void Coordinator::process_actions(std::mt19937 &gen) {
         }
     }
 
-//    this->c->debug(" ");
-//    for (const auto &node : this->nodes) {
-//        this->c->debug("node={}, action_count={}, dead={}", node.second.rank, node.second.action_count,
-//                       node.second.dead);
-//    }
-//    for (auto &action : this->actions) {
-//        this->c->debug("action={}", action);
-//    }
-//    this->c->debug(" ");
-/*
-    if (action_count != this->action_queue.size()) {
-        const auto &acts = this->action_queue.get_container();
-        auto it = std::min_element(acts.cbegin(), acts.cend(), [](const Action &left, const Action &right) {
-            return left.start < right.start;
-        });
-
-        auto &start_time = it->start;
-        auto &txs = this->transmissions;
-        txs.erase(std::remove_if(txs.begin(), txs.end(), [start_time](const Action &tx) {
-            return tx.end < start_time;
-        }), txs.end());
-
-        if (this->plots) {
-            const auto &act = this->action_queue.top();
-            this->stats.queue_sizes.emplace_back(act.end, this->action_queue.size());
-            this->stats.transmissions_sizes.emplace_back(act.end, this->transmissions.size());
-        }
-    }
-    */
 }
 
 Coordinator::Coordinator(const char *logpath, bool debug, bool plots) : debug(debug), plots(plots) {

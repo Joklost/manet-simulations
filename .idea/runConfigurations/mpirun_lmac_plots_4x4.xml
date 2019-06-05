@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="mpirun lmac plots 4x4" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-n 1 coordinator/coordinator --plots coordinator/gridlog_4x4_rssi.txt : -n 16 lmac/lmac" WORKING_DIR="file://$PROJECT_DIR$/../../../sims/clion/lmac/src/cmake-build-debug-remote" PASS_PARENT_ENVS_2="true" PROJECT_NAME="manetsims" TARGET_NAME="lmac" CONFIG_NAME="Debug-Remote" RUN_PATH="/usr/bin/mpiexec">
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

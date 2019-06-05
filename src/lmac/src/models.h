@@ -1,12 +1,13 @@
 #ifndef LMAC_MODELS_H
 #define LMAC_MODELS_H
 
-#include <common/queue.h>
+//#include <common/queue.h>
+#include <queue>
 
 // 100 000 us (100 ms)
 //constexpr auto SLOT_LENGTH = 20000us; // NOLINT(cert-err58-cpp)
 constexpr auto SLOT_LENGTH = 100000us; // NOLINT(cert-err58-cpp)
-constexpr auto SLOTS = 8ul;
+constexpr auto SLOTS = 16ul;
 constexpr auto FRAMES = 90ul;
 constexpr auto MAX_WAIT = 6ul;
 constexpr soctet NO_CHOSEN_SLOT = static_cast<soctet>(SLOTS + 1);
@@ -58,7 +59,9 @@ struct State {
     std::unordered_map<short, Node> neighbourhood{};
     std::bitset<SLOTS> neighbourhood_slots{};
     std::vector<octet> data_packet{};
-    common::Queue<std::vector<octet>> packet_queue{};
+//    common::Queue<std::vector<octet>> packet_queue{};
+
+    std::queue<std::vector<octet>> packet_queue{};
 
     /* Model 4: If nothing have been received in a frame, choose a new slot. */
     bool nothing_received{true};
