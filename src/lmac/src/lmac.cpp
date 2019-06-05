@@ -145,7 +145,12 @@ int main(int argc, char *argv[]) {
                         }
 
                         std::uniform_int_distribution<unsigned long> selector(0ul, possible_receivers.size() - 1ul);
-                        receiver = possible_receivers.at(selector(eng));
+                        auto selected = selector(eng);
+                        if (selected >= possible_receivers.size()) {
+                            hardware::logger->info("selected receiver >= possible_receivers. {}, {}", selected,
+                                                   possible_receivers);
+                        }
+                        receiver = possible_receivers.at(selected);
                     }
 
                     /* Create synchronisation signal. */
@@ -279,9 +284,13 @@ int main(int argc, char *argv[]) {
                         available_slots.push_back(i);
                     }
                 }
-
                 std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
-                auto slot = available_slots.at(selector(eng));
+                auto selected = selector(eng);
+                if (selected >= available_slots.size()) {
+                    hardware::logger->info("selected slot >= available_slots. {}, {}", selected,
+                                           available_slots);
+                }
+                auto slot = available_slots.at(selected);
                 state.next_phase = active;
                 state.next_slot = slot;
             }
