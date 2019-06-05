@@ -1,56 +1,152 @@
 \chapter{Introduction}
+\bibtodo{minor changes}
+A \gls{manet} is a decentralised wireless network that requires no pre-existing infrastructure, such as
+routers or access points~\cite{inproceedings:routingsurvery}. Instead, each node in the ad-hoc network are
+battery powered, and communicates directly with each-other using a radio. Due to this, \gls{manet}s rely on
+wireless networking protocols to provide energy efficient communication in the network. Because of the ad-hoc
+nature of \gls{manet}s, common applications consist of enabling communication in emergency situations such as
+natural disasters, or for military conflicts.\smallbreak
 
-\todo[inline]{write introduction}
-% \clearpage
+% Outline the goal
+The goal of this project is to simulate wireless network protocols for communication in a mobile setting.
+Ideally the capabilities of a wireless network protocol are tested in a real-life scenario, using physical
+devices for radio communication. This poses interesting challenges such as scalability, and repeatability.
+Scaling a real-life test requires a significant amount of effort and investment of both money and time, and
+repeating the same test over and over becomes near impossible, the larger the scale. Our goal is to be able to
+perform repeatable experiments in a control topology environment with up to 1000 devices, faster than a
+real-life scenario.\smallbreak
 
-% \newcommand{\Size}{15}
-% \begin{tikzpicture}[every node/.style={font=\normalsize,minimum height=0.5cm,minimum width=0.75cm},]
-%     \NodeMatrix{\Size}{\Size}
+Our project proposes a \gls{mpi} C++ library for writing, and running, simulations of the network protocol
+behind the mesh communication in a \gls{manet}, modelling link \gls{pathloss} to simulate packet loss and
+collisions caused by interfering transmitters, where the physical devices, and the communication between
+these, are emulated entirely using software. With our library, it is be possible to write a C++ implementation
+of communication protocols, such as \gls{lmac}~\cite{paper:lmac_protocol} or Slotted
+ALOHA~\cite{Roberts:1975:APS:1024916.1024920}, using a simple interface header file resembling a traditional
+hardware interface, and perform simulations with these, where each physical device is emulated in real-time by
+different CPUs on the MCC compute cluster at AAU~\cite{website:mccaau}. \smallbreak
 
-%     \foreach \j in {0,...,\Size} {
-%             \draw [dotted,opacity=0.5] (0-\j.center) node[above=0.2cm] {\j} -- (\Size-\j.center);
-%             \draw [dotted,opacity=0.5] (\j-0.center) node[left] {\j} -- (\j-\Size.center);
-%         }
+% Outline contributions
+The primary contribution of this project is the Coordinator that facilitate wireless communication
+between the emulated physical devices. The Coordinator allow us to simulate wireless communication
+in virtual time, where the controller is able to skip periods of inactivity, reducing the time required to run
+real-time simulations.
 
-%     \filldraw[fill=white!20] (1-1.north west) rectangle (1-3.south east) node[midway] {\acrshort{gps} Logs};
-%     \filldraw[fill=white!20] (0-5.south west) rectangle (2-9.north east) node[midway] {LinkModel Tool};
-%     \filldraw[fill=white!20] (1-11.north west) rectangle (1-14.south east) node[midway] {\acrshort{gps} Logs + \acrshort{rssi}};
+\todo[inline]{new contributions: building pathloss model, extension to visualiser}
 
-%     \filldraw[fill=white!20] (4-5.south west) rectangle (6-9.north east) node[midway] {Coordinator};
+\clearpage
+\todo[inline]{place visualiser and add arrows from logs; add legend}
+\begin{figure}[H]
+    %\caption{Processing an \textit{inform} action.}\label{tikz:coordinatormsc3}
+    % Diagram
 
-% %    \filldraw[fill=white!20] (8-2.south east) rectangle (10-4.north west) node[midway] {1};
-% %    \filldraw[fill=white!20] (8-4.south east) rectangle (10-6.north west) node[midway] {2};
-% %    \filldraw[fill=white!20] (8-6.south east) rectangle (10-8.north west) node[midway] {3};
-%     \filldraw[fill=white!20] (10-2.east) rectangle (11-4.south west) node[midway] {$1$};
-%     \filldraw[fill=white!20] (10-4.east) rectangle (11-6.south west) node[midway] {$2$};
-%     \filldraw[fill=white!20] (10-6.east) rectangle (11-8.south west) node[midway] {$3$};
-    
-    
-%     \node [between=11-7 and 11-11] (dots) {\textbf{\dots}};
+    \begin{tikzpicture}[node distance=.8cm,start chain=going below,]
+        \node[punktchain,rounded corners] (fieldmeasurements) {Field Measurements};
 
-%     \filldraw[fill=white!20] (9-9.north east) rectangle (8-13.west) node[midway] {Hardware};    
+        \begin{scope}[start branch=venstre,every join/.style={->, thick, shorten <=1pt}, ]
+            \node[punktchain, on chain=going left,rounded corners] (generateddata) {Random Walk Generated Topologies};
+        \end{scope}
 
-%     \filldraw[fill=white!20] (9-10.north west) rectangle (9-12.south east) node[midway] {Reachi};    
+        \node[punktchain] (linkmodel) {Link Model\\ \autoref{sec:linkmodel}};
 
-%     \filldraw[fill=white!20] (9-10.south) rectangle (10-12) node[midway] {LMAC};    
+        \begin{scope}[start branch=venstre,every join/.style={->, thick, shorten <=1pt}, ]
+            \node[punktchain,rounded corners, on chain=going left, join=by {<-}] (gpslogs) {GPS Logs};
+            \node[punktchain,rounded corners, on chain=going below] (hardware) {Radio Hardware\\Parameters};
+            \node[punktchain, on chain=going below, opacity=0] (hidden-left1) {};
+            \node[punktchain,rounded corners, on chain=going below] (communication-log) {Communication Logs};
+            \node[punktchain, on chain=going below, opacity=0] (hidden-left2) {};
 
-%     \filldraw[fill=white!20] (10-10.east) rectangle (11-12.south west) node[midway] {$n$};
+            \node[punktchain,on chain=going below] (visualiser) {Visualiser\\ \autoref{sec:visualiser}};
 
-%     \draw [line width=0.45mm,->] (1-3.east) -- (1-5.west);
-%     \draw [line width=0.45mm,->] (1-9.east) -- (1-11.west);
+            %\node[punktchain, on chain=going below, opacity=0] (hidden-left3) {};
+            \node[punktchain, on chain=going below, opacity=0] (hidden-left4) {};
+            \node[punktchain, minimum height=6em, on chain=going below, opacity=0] (hidden-left5) {};
+            \node[punktchain,rounded corners, on chain=going below] (protocol-log) {Protocol Log};
+        \end{scope}
 
-%     \node [between=1-12 and 1-13] (1-12-5) {};
-%     \node [between=3-12 and 3-13] (3-12-5) {};
-%     \draw [line width=0.45mm,->] (1-12-5) -- (3-12-5.center) -- (3-7.center) -- (4-7.south);
+        \begin{scope}[start branch=hoejre,]
+            \node[punktchain,rounded corners, on chain=going right, join=by {->}] (gpslogs-rssi) {GPS Logs + RSSI};
+            %\node[punktchain, on chain=going below, join] (radiomodel) {Radio Simulator\\ \autoref{sec:pep}};
+        \end{scope}
 
-%     \draw [line width=0.45mm,<->] (10-3.center) -- (6-5.north); % 1
-%     \draw [line width=0.45mm,<->] (10-5.center) -- (6-6.north); % 2
-%     \draw [line width=0.45mm,<->] (10-7.center) -- (6-7.north); % 3    
-%     \draw [line width=0.45mm,<->] (8-11.center) -- (6-9.north); % n
+        \node[punktchain] (radiomodel) {Radio Simulator\\ \autoref{sec:pep}};
+        \node[punktchain, opacity=0] (hidden1) {};
+        \node[punktchain] (coordinator) {Coordinator\\ \autoref{sec:coordinator}};
+        \node[punktchain, opacity=0] (hidden2) {};
+        \node[punktchain] (radio-middleware) {Radio Middleware\\ \autoref{sec:interface}};
+        \node[punktchain, opacity=0] (hidden3) {};
+        \node[punktchain, minimum height=6em, minimum width=20em] (executable-code) {Executable Code\\ \ \\ \ \\ \ \\};
+        \node[below left=-0.3cm and 2.05cm of executable-code.center, rectangle, draw=black, very thick, minimum height=3em, minimum width=3em] (node1) {\Node{1}};
+        \node[below left=-0.3cm and 0cm of executable-code.center, rectangle, draw=black, very thick, minimum height=3em, minimum width=3em] (node2) {\Node{2}};
+        \node[below right=-0.3cm and 2.05cm of executable-code.center, rectangle, draw=black, very thick, minimum height=3em, minimum width=3em] (noden) {\Node{$n$}};
+        \node[between=node2 and noden] (nodedots) {\dots};
+        %\node[punktchain, opacity=0] (hidden4) {};
+        \node[punktchain] (protocol-code) {C++ Protocol Impl.\\ \autoref{sec:lmacc}};
+        %\node[punktchain] (visualiser) {Visualiser\\ \autoref{sec:visualiser}};
+
+        \draw[|-,-|,<-, thick,] (linkmodel.south) |-+(0,-1em)-| (hardware.north);
+        \draw[|-,-|,->, thick,] (hardware.east) to (radiomodel.west);
+        \draw[|-,-|,->, thick,] (generateddata.south) |-+(0,-1em)-| (gpslogs.north);
+        \draw[|-,-|,->, thick,] (fieldmeasurements.south) |-+(0,-1em)-| (gpslogs.north);
+        \draw[|-,-|,->, thick,] (fieldmeasurements.south) |-+(0,-1em)-| (gpslogs-rssi.north);
+
+        \draw[|-,-|,->, thick, transform canvas={xshift=-1.3cm}] (radiomodel.south) to (coordinator.north) node[align=right,above left=0.8cm and 0.5cm] {Probability for\\packet error $p$};
+        \draw[|-,-|,<-, thick, transform canvas={xshift=1.3cm}] (radiomodel.south) to (coordinator.north) node[align=left,above right=0.9cm and 0.5cm] {$P_p(n_r, m_t, \mathit{nodes}_i, \mathit{packetsize}, t)$};
+
+        \draw[|-,-|,->, thick, transform canvas={xshift=-1.3cm}] (coordinator.south) to (radio-middleware.north) node[align=right,above left=0.8cm and 0.5cm] {Received \\ packets};
+        \draw[|-,-|,<-, thick, transform canvas={xshift=1.3cm}] (coordinator.south) to (radio-middleware.north) node[align=left,above right=0.4cm and 0.5cm] {Transmit\\Listen\\Sleep\\Inform};
 
 
+        \draw[|-,-|,->, thick, transform canvas={xshift=-1.3cm}] (radio-middleware.south) to (executable-code.north) node[align=right,above left=0.8cm and 0.5cm] {Received \\ packets};
+        \draw[|-,-|,<-, thick, transform canvas={xshift=1.3cm}] (radio-middleware.south) to (executable-code.north) node[align=left,above right=0.4cm and 0.5cm] {Broadcast\\Receive\\Sleep\\Inform};
 
+        \draw[|-,-|,->, thick,] (protocol-code) to (executable-code);
+        \draw[|-,-|,->, thick,] (coordinator) to (communication-log);
+        \draw[|-,-|,->, thick,] (protocol-code) to (protocol-log);
 
-% \end{tikzpicture}
+        %\draw[|-,-|,->, thick,] (radiomodel.south) |-+(0,-1em)-| (coordinator.north);
 
-\todo[inline]{full page introduction figure}
+        %\begin{scope}[start branch=venstre,
+        %    %We need to redefine the join-style to have the -> turn out right
+        %    every join/.style={->, thick, shorten <=1pt}, ]
+        %    \node[punktchain, on chain=going left, join=by {<-}]
+        %        (risiko) {Risiko og gamble};
+        %  \end{scope}
+
+        %\node[punktchain, join] (intro) {Introduktion};
+        %\node[punktchain, join] (probf)      {Problemformulering};
+        %\node[punktchain, join] (investeringer)      {Investeringsteori};
+        %\node[punktchain, join] (perfekt) {Det perfekte kapitalmarked};
+        %\node[punktchain, join, ] (emperi) {Emperi};
+        %\node (asym) [punktchain ]  {Asymmetrisk information};
+        %\begin{scope}[start branch=venstre,
+        %        %We need to redefine the join-style to have the -> turn out right
+        %        every join/.style={->, thick, shorten <=1pt}, ]
+        %    \node[punktchain, on chain=going left, join=by {<-}]
+        %    (risiko) {Risiko og gamble};
+        %\end{scope}
+        %\begin{scope}[start branch=hoejre,]
+        %    \node (finans) [punktchain, on chain=going right] {Det finansielle system};
+        %\end{scope}
+        %\node[punktchain, join,] (disk) {Det imperfekte finansielle marked};
+        %\node[punktchain, join,] (makro) {Investeringsmæssige konsekvenser};
+        %\node[punktchain, join] (konk) {Konklusion};
+        % Now that we have finished the main figure let us add some "after-drawings"
+        %% First, let us connect (finans) with (disk). We want it to have
+        %% square corners.
+        %\draw[|-,-|,->, thick,] (finans.south) |-+(0,-1em)-| (disk.north);
+        % Now, let us add some braches. 
+        %% No. 1
+        %\draw[tuborg] let
+        %\p1=(risiko.west), \p2=(finans.east) in
+        %($(\x1,\y1+2.5em)$) -- ($(\x2,\y2+2.5em)$) node[above, midway]  {Teori};
+        %% No. 2
+        %\draw[tuborg, decoration={brace}] let \p1=(disk.north), \p2=(makro.south) in
+        %($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {Analyse};
+        %% No. 3
+        %\draw[tuborg, decoration={brace}] let \p1=(perfekt.north), \p2=(emperi.south) in
+        %($(2, \y1)$) -- ($(2, \y2)$) node[tubnode] {Problemfelt};
+    \end{tikzpicture}
+
+\end{figure}
+
+\clearpage

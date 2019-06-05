@@ -415,28 +415,55 @@
 \newcommand{\bibtodo}[1]{\todo[inline]{bibliographical remark: #1}}
 
 \tikzset{
-  between/.style args={#1 and #2}{
-      at = ($(#1)!0.5!(#2)$)
-    }
+    between/.style args={#1 and #2}{
+            at = ($(#1)!0.5!(#2)$)
+        }
 }
 
 \tikzset{
-  between base/.style args={#1 and #2}{
-      between=#1.base and #2.base
-    }
+    between base/.style args={#1 and #2}{
+            between=#1.base and #2.base
+        }
 }
 
 \pgfplotsset{
-  compat=1.15,
-  /pgf/declare function={
-        bopl(\x) = (67 * (ln(\x) / ln(57)) + 11.5);
-        cvpl(\x) = (48.5 * (ln(\x) / ln(77)) + 37.5);
-        ld(\x) = (55 * log10(\x) - 18.8);
-        gauss(\x, \a) = 1/(\a*sqrt(2*pi))*exp(-((x-\x)^2)/(2*\a^2));
-    },
+    compat=1.15,
+    /pgf/declare function={
+            bopl(\x) = (67 * (ln(\x) / ln(57)) + 11.5);
+            cvpl(\x) = (48.5 * (ln(\x) / ln(77)) + 37.5);
+            ld(\x) = (55 * log10(\x) - 18.8);
+            gauss(\x, \a) = 1/(\a*sqrt(2*pi))*exp(-((x-\x)^2)/(2*\a^2));
+        },
 }
 
 % % #1 = mean, #2 = standard deviation
 % \pgfmathdeclarefunction{gauss}{2}{%
 %   \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
 % }
+
+\tikzset{
+    >=stealth',
+    punktchain/.style={
+            rectangle,
+            % fill=black!10,
+            draw=black, very thick,
+            text width=10em,
+            minimum height=3em,
+            text centered,
+            on chain},
+    line/.style={draw, thick, <-},
+    element/.style={
+            tape,
+            top color=white,
+            bottom color=blue!50!black!60!,
+            minimum width=8em,
+            draw=blue!40!black!90, very thick,
+            text width=10em,
+            minimum height=3.5em,
+            text centered,
+            on chain},
+    every join/.style={->, thick,shorten >=1pt},
+    decoration={brace},
+    tuborg/.style={decorate},
+    tubnode/.style={midway, right=2pt},
+}
