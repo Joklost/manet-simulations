@@ -428,8 +428,10 @@
 \pgfplotsset{
   compat=1.15,
   /pgf/declare function={
-        bopl(\x) = (42.5 * log10(\x) + 2);
+        bopl(\x) = (67 * (ln(\x) / ln(57)) + 11.5);
         cvpl(\x) = (48.5 * (ln(\x) / ln(77)) + 37.5);
+        ld(\x) = (55 * log10(\x) - 18.8);
+        gauss(\x, \a) = 1/(\a*sqrt(2*pi))*exp(-((x-\x)^2)/(2*\a^2));
     },
 }
 
