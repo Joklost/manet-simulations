@@ -1,14 +1,8 @@
 #ifndef LMAC_MODELS_H
 #define LMAC_MODELS_H
 
-//#include <common/queue.h>
-#include <queue>
-
 // 100 000 us (100 ms)
-//constexpr auto SLOT_LENGTH = 20000us; // NOLINT(cert-err58-cpp)
 constexpr auto SLOT_LENGTH = 100000us; // NOLINT(cert-err58-cpp)
-constexpr auto DELAY = 68800000us; // NOLINT(cert-err58-cpp)
-//constexpr auto DELAY = 14s; // NOLINT(cert-err58-cpp)
 constexpr auto SLOTS = 32ul;
 constexpr auto FRAMES = 50ul;
 constexpr auto MAX_WAIT = 3ul;
@@ -59,16 +53,8 @@ struct State {
     octet gateway_distance{0xFF};
     std::bitset<SLOTS> occupied_slots{};
     std::unordered_map<short, Node> neighbourhood{};
-    std::bitset<SLOTS> neighbourhood_slots{};
     std::vector<octet> data_packet{};
-//    common::Queue<std::vector<octet>> packet_queue{};
 
-    std::queue<std::vector<octet>> packet_queue{};
-
-    /* Model 4: If nothing have been received in a frame, choose a new slot. */
-    bool nothing_received{true};
-    /* Model 6: Has yet to send its first message. */
-    bool sent_first_message{false};
     /* Model 8: If nothing has been heard for two frame lengths, the node is alone. */
     int disconnected_counter{};
 

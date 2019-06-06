@@ -25,9 +25,8 @@ int main(int argc, char *argv[]) {
         state.chosen_slot = 0;
         state.next_slot = 0;
         state.occupied_slots[0] = true;
-        hardware::logger->info("world_size:{}", world_size);
+        hardware::logger->info("#world_size:{}", world_size);
     }
-
 
     auto sensor = false;
     octet seq_num = 0;
@@ -76,7 +75,6 @@ int main(int argc, char *argv[]) {
             }
 
             if (state.next_phase == active) {
-                state.sent_first_message = false;
                 state.chosen_slot = state.next_slot;
                 state.next_slot = NO_CHOSEN_SLOT;
                 state.occupied_slots[state.chosen_slot] = true;
@@ -88,8 +86,6 @@ int main(int argc, char *argv[]) {
             /* Log state change. */
             state.log_state_change();
         }
-
-//        state.nothing_received = true;
 
         if (gateway) {
             hardware::logger->info("#frame:{}", frame);
@@ -111,10 +107,7 @@ int main(int argc, char *argv[]) {
                 } else {
                     /* We are in the active phase, as we have chosen a slot. */
                     if (sensor) {
-//                        const auto& packet = sensor_data;
-//                        state.packet_queue.push(packet);
                         state.data_packet = sensor_data;
-//                        state.packet_queue.push(sensor_data);
                         sensor_data[0] = ++seq_num;
                     }
 
@@ -122,17 +115,10 @@ int main(int argc, char *argv[]) {
                     short receiver = NO_RECEIVER;
                     octet gateway_distance;
                     octet data_size = 0;
-//                    std::vector<octet> packet{};
-//                    if (!state.packet_queue.empty()) {
-//                        packet = state.packet_queue.front();
-//                        state.packet_queue.pop();
-//                        data_size = packet.size();
-//                    }
 
                     if (gateway) {
                         state.gateway_distance = 0;
                     } else if (!state.data_packet.empty() && !state.neighbourhood.empty()) {
-//                        data_size = state.packet_queue.head().size();
                         data_size = state.data_packet.size();
 
                         /* Find receiver (for routing). */
@@ -152,10 +138,6 @@ int main(int argc, char *argv[]) {
 
                         std::uniform_int_distribution<unsigned long> selector(0ul, possible_receivers.size() - 1ul);
                         auto selected = selector(eng);
-                        if (selected >= possible_receivers.size()) {
-                            hardware::logger->info("#{} selected receiver >= possible_receivers. {}, {}", id, selected,
-                                                   possible_receivers.size());
-                        }
                         receiver = possible_receivers.at(selected);
                     }
 
@@ -168,19 +150,13 @@ int main(int argc, char *argv[]) {
                     /* Send initial synchronisation signal. */
                     hardware::sleep(3ms);
                     hardware::transmit(mpilib::serialise(ctrl));
-                    state.sent_first_message = true;
 
                     /* Send packet, if any. */
                     if (!state.data_packet.empty()) {
-//                        auto data_packet = state.packet_queue.pop();
                         hardware::sleep(10ms);
-//                        hardware::transmit(data_packet);
                         hardware::transmit(state.data_packet);
                         state.data_packet.clear();
                     }
-
-                    /* Model 3: Reset all neighbourhood information after sending. */
-//                    state.neighbourhood.clear();
                 }
             } else if (state.phase != wait) {
                 bool collision{};
@@ -211,7 +187,6 @@ int main(int argc, char *argv[]) {
                     }
                     node.selected_slot = ctrl.current_slot;
                     node.occupied_slots = ctrl.occupied_slots;
-//                    state.neighbourhood_slots |= node.occupied_slots;
 
                     if (ctrl.gateway_distance + 1 < state.gateway_distance) {
                         state.gateway_distance = ctrl.gateway_distance + 1;
@@ -230,29 +205,25 @@ int main(int argc, char *argv[]) {
                     if (state.phase == init) {
                         state.next_phase = wait;
                     } else if (state.phase == active) {
-//                        state.nothing_received = false;
-
                         if (ctrl.destination_id == id && ctrl.data_size > 0) {
                             /* Listen for packet. */
                             auto data = hardware::receive(70ms);
                             if (!data.empty()) {
                                 if (gateway) {
                                     seq_num = *data.begin();
-                                    hardware::logger->info("%{}: received data packet {}", id, seq_num);
+                                    hardware::logger->info("#{}: received data packet {}", id, seq_num);
                                 } else {
-//                                    state.packet_queue.push(data);
                                     state.data_packet = data;
                                 }
                             }
                         }
                     }
+                } else {
+                    if (expected_id != -1) {
+                        /* We expected to receive a packet from someone in this time slot. Possible collision. */
+                        collision = true;
+                    }
                 }
-//                else {
-//                    if (expected_id != -1) {
-//                        /* We expected to receive a packet from someone in this time slot. Possible collision. */
-//                        collision = true;
-//                    }
-//                }
 
                 if (collision) {
                     state.collision_slot = slot;
@@ -296,10 +267,6 @@ int main(int argc, char *argv[]) {
                     }
                     std::uniform_int_distribution<unsigned long> selector(0ul, available_slots.size() - 1ul);
                     auto selected = selector(eng);
-                    if (selected >= available_slots.size()) {
-                        hardware::logger->info("#{} selected slot >= available_slots. {}, {}", id, selected,
-                                               available_slots.size());
-                    }
                     auto slot = available_slots.at(selected);
                     state.next_phase = active;
                     state.next_slot = slot;
@@ -307,17 +274,8 @@ int main(int argc, char *argv[]) {
             }
         }
 
-//        else if (state.phase == active) {
-//            if (state.nothing_received) {
-//                state.next_phase = wait;
-//            }
-//        }
-
-        hardware::sleep(DELAY);
     }
 
-
-//    hardware::logger->info("chosen_slot={}, phase={}", state.chosen_slot, to_string(state.phase));
     hardware::deinit();
 
     return 0;
