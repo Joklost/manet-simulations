@@ -1,9 +1,6 @@
 \section{Reachi Experiments}\label{sec:linkmodel}
 \todo[inline]{introduce the data. WIP}
-To verify that our model for computing path loss gives proper results, we have received data from conducted
-experiments from the Reachi project. In total we have received data from four experiments. Three experiments
-was conducted with 33 devices, while the fourth with 330.
-% OMG SO BAAAAAD
+To verify that our model for computing path loss gives proper results, we have received data from conducted experiments from the Reachi project.
 
 \todo[inline]{talk about the problems with the data. WIP}
 When we detected odd behaviour, we started to investigate the logs. Specifically the logs from experiments
@@ -49,38 +46,84 @@ bucket has been computed and plotted.
 \end{figure}
 
 
+
+
+
+
+
+\newpage
+\section{Line of Sight Model (LoSModel)}
+\todo[inline]{ref to section where field experiments problems discussed}
+To facilitate the problems mentioned in \autoref{sec:reachi-data-experiments}, we have developed our own model for computing path loss. The model, called \gls{losmodel}, computes path loss based on the distance of the link and the percentage of the link that contains building as an obstruction. The idea is that large obstructions, like buildings, cause more severe loss of signal strength compared to a purely distance based approach. Our model only considers buildings as an obstruction, and is therefore to be taking as a proof of concept. \autoref{algo:losmodel:computepathloss} is a pseudo code implementation of the path loss computation.
+
+
+
+\subsection{\acrfull{cvpl} and \acrfull{bopl}}
+To compute the path loss of a link with buildings having more severe impact, we define the functions \gls{cvpl} and \gls{bopl}.
+% \begin{eq*}%\label{eq:losmodel:cvpl}
+%     \mathit{cvpl}(l) = (48.5 * (\ln(d(l)) / \ln(77)) + 37.5);
+% \end{eq*}
+
+% \begin{eq*}\label{eq:losmodel:bopl}
+%     \mathit{bopl}(l) = (67 * (\ln(d(l)) / \ln(57)) + 11.5);
+% \end{eq*}
+
+Both functions compute path loss based on distance. \gls{cvpl} computes path loss for distances with zero percent building, while \gls{bopl} computes path loss for 100\% building. Samples drawn from both functions have been plotted on \autoref{plot:reachi-experiments:cvpl-vs-bopl}. From looking at \autoref{plot:reachi-experiments:cvpl-vs-bopl} \gls{bopl} causes a more severe path loss compared to \gls{cvpl}.\medbreak
+
+To find the constants for both functions, data for comparison is needed. Links with a computed building percentage below five percent or above 80\% was collected from the Marikina log into their separate collections. The Marikina log was used because the experiment was conducted in a city, resulting in links with varying building percentages.
+
+For both collections the links was further separated based on distance of the links, with 20 meter intervals i.e. links with distance between 20 meters and 40 meters was separated together. The average \gls{rssi} for each separation was then computed and now ready to be used as comparison data. To approximate the constants for both functions, brute forcing was used on the following function:
+\begin{eq}
+    \alpha \cdot (\ln{x} / \ln{\delta}) + \beta
+\end{eq}
+
+$x$ is the distance, $\alpha,\ \beta \in \{-100,\dots, 100\}$ with $0.5$ increments and $\delta \in \{2, 100\}$ with increments of $1$. The samples drawn will then be compared with the computed samples \textbf{before} with the following score function:
+\begin{eq}
+    \mathlarger{compare(l_1, l_2) =|(l_1.rssi - l_d(d(l_1))) - (l_2.rssi - pl(d(l_2)))|}
+\end{eq}
+
+\begin{eq}
+    score(l_1, l_2) = \mathlarger{\sum}\limits_{l_1,\ l_2\ \in\ links} (compare(l_1, l_2))^2
+\end{eq}
+
+The result gives the following functions:
+%\begin{eq}
+%    cvpl(l) = 48.5 \cdot (\ln{(d(l)) / \ln{(77)}) + 37.5
+%\end{eq}
+%
+%\begin{eq}
+%    bopl(l) = 67 \cdot (\ln{(d(l))} / \ln{(57)) + 11.5
+%\end{eq}
+
+
+
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}%\label{plot:reachi-experiments:average-distance}
+    \begin{tikzpicture}
         \begin{axis}[
-                title=score - 350.722,
                 height=12cm, width=0.95\textwidth,
                 ylabel={RSSI},
                 xlabel={Distance in meters},
                 axis lines*=left,
-                xmin=0, xmax=380,
+                xmin=0, xmax=750,
                 enlargelimits=false,
-                ymin=-90, ymax=-30,
                 ymajorgrids=true,
                 xmajorgrids=true,
                 grid style=dashed,
-                samples=400
+                restrict y to domain=-120:0,
+                samples=700
             ]
 
-            \addplot[very thick, solid, cyan, mark=*] coordinates {(20, -32.56521739130435) (40, -50.607142857142854) (60, -52.15384615384615) (80, -64.85714285714286) (100, -49.5) (120, -65.76623376623377) (140, -69.38888888888889) (160, -72.05714285714286) (180, -69.3125) (200, -78.83333333333333) (220, -76.84) (240, -75.75) (260, -80.91666666666667) (280, -72.88888888888889) (300, -78.95238095238095) (320, -76.44444444444444) (340, -82.75) (380, -87.0)};
-            \addlegendentry{Marikina field measurements};
-
-            \addplot[domain=0:380, very thick, solid, red] {26 - bopl(x)};
+            \addplot[domain=0:1000, very thick, solid, cyan] {26 - bopl(x)};
             \addlegendentry{\gls{bopl}};
 
-
+            \addplot[domain=0:1000, very thick, solid, red] {26 - cvpl(x)};
+            \addlegendentry{\gls{cvpl}};
         \end{axis}
     \end{tikzpicture}
-    \caption{Field measurements with building percentage above 80\%}
-    \label{plot:reachi-experiments:marikina-log-above-80-pct}
+    \caption{Plot showing sampels drawn from \gls{cvpl} and \gls{bopl}}
+    \label{plot:reachi-experiments:cvpl-vs-bopl}
 \end{figure}
-
-
 
 
 \begin{figure}[H]
@@ -117,39 +160,39 @@ bucket has been computed and plotted.
 \end{figure}
 
 
-\section{Line of Sight Model (LoSModel)}
-\todo[inline]{ref to section where field experiments problems discussed}
-To facilitate the problems mentioned in \ref{sec:}, we have developed our own model for computing path loss.
-The model, called \gls{losmodel}, computes path loss based on the distance of the link and the percentage of
-the link that contains building. The idea is that large obstructions, like buildings, cause more severe loss
-of signal strength compared to pure distance. Our model only consider buildings as an obstruction, and is
-therefore to be taking as a proof of concept.\medbreak
 
-To do the computation, we introduce two deterministic functions for computing path loss. \gls{bopl} computes
-path loss for 100\% building obstruction. \gls{cvpl} computes path loss for 0\% building obstruction. They are
-combined with the following formula:
-\begin{eq}
-    pl(link, bp) = (cvpl(\theta(link)) * (100 - bp)) + (bopl(\theta(link)) * bp)
-\end{eq}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}%\label{plot:reachi-experiments:average-distance}
+        \begin{axis}[
+                title=score - 350.722,
+                height=12cm, width=0.95\textwidth,
+                ylabel={RSSI},
+                xlabel={Distance in meters},
+                axis lines*=left,
+                xmin=0, xmax=380,
+                enlargelimits=false,
+                ymin=-90, ymax=-30,
+                ymajorgrids=true,
+                xmajorgrids=true,
+                grid style=dashed,
+                samples=400
+            ]
+
+            \addplot[very thick, solid, cyan, mark=*] coordinates {(20, -32.56521739130435) (40, -50.607142857142854) (60, -52.15384615384615) (80, -64.85714285714286) (100, -49.5) (120, -65.76623376623377) (140, -69.38888888888889) (160, -72.05714285714286) (180, -69.3125) (200, -78.83333333333333) (220, -76.84) (240, -75.75) (260, -80.91666666666667) (280, -72.88888888888889) (300, -78.95238095238095) (320, -76.44444444444444) (340, -82.75) (380, -87.0)};
+            \addlegendentry{Marikina field measurements};
+
+            \addplot[domain=0:380, very thick, solid, red] {26 - bopl(x)};
+            \addlegendentry{\gls{bopl}};
 
 
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Field measurements with building percentage above 80\%}
+    \label{plot:reachi-experiments:marikina-log-above-80-pct}
+\end{figure}
 
 
-
-To compute the building percentage, one could utilize 3D models of area and develop a complex model for
-determining the building percentage. However such a solution is computationally expensive, and this projects
-scope is scalability. Therefore we propose a simpler solution. The idea is to generate an image of an area
-from a map and look at the colour of the pixel, then compute the percentage of total pixels of the link and
-the amount of pixels that were coloured as a building.
-
-
-\begin{eq}
-    \mathit{cvpl}(l) = (48.5 * (\ln(d(l)) / \ln(77)) + 37.5);
-\end{eq}
-
-\begin{eq}
-    \mathit{bopl}(l) = (67 * (\ln(d(l)) / \ln(57)) + 11.5);
-\end{eq}
 
 
 
@@ -158,11 +201,7 @@ the amount of pixels that were coloured as a building.
     \SetKwFunction{FLoSModelCompute}{ComputePathloss}
     \SetKwProg{Fn}{Function}{}{}
 
-    %Link = $(\mathit{id},\ n_1,\ n_2)$\;
-    %PixelPos = $(\mathit{x},\ \mathit{y})$\;\;
-    
-    %$\mathit{building\_colours}\ \leftarrow$ A set of colours that represent a building in the image\;
-    $\mathit{map} \leftarrow$ A map of an area\; %should contain link
+    $\mathit{map} \leftarrow$ A map of an area\;
     \;
     \Fn{\FLoSModelCompute{$l$}}{
         $n_1, n_2 \leftarrow \mathit{nodes}(l)$\;
@@ -186,40 +225,15 @@ the amount of pixels that were coloured as a building.
         \;
         $\mathit{pct} \leftarrow \mathit{buildings} / \mathit{pixels}$\;
         $\mathit{pl}_l \leftarrow (\mathit{cvpl}(l) \cdot 1 - pct) + (\mathit{bopl}(l) \cdot pct)$\;
-    
+
         \KwRet $\mathit{pl_l}$\;
-        
-        
-        % $\mathit{bearing} \leftarrow$ compute the bearing from the line created from pos1 and pos2\;
-        % $\mathit{tp} \leftarrow 0$\;
-        % $\mathit{bp} \leftarrow 0$\;\;
-
-        % $\mathit{x},\ \mathit{y}\ \leftarrow \mathit{pos_2}$\;
-        % \While{$\mathit{x} >= \mathit{pos_1.x}\ \KwAnd\ \mathit{y} >= \mathit{pos_1.y}$}{
-        %     $\mathit{colour} \leftarrow\ map.get\_colour(\mathit{x},\ \mathit{y})$\;
-        %     \If{$\mathit{colour} \in \mathit{building\_colours}$}{
-        %         $\mathit{bp} \leftarrow \mathit{bp}\ +\ 1$\;
-        %     }
-        %     $\mathit{x} \leftarrow \mathit{x}\ -\ 1$\;
-        %     $\mathit{y} \leftarrow \mathit{y} \-\ (1 \cdot \mathit{bearing})$\;
-        %     $\mathit{tp} \leftarrow \mathit{tp}\ +\ 1$\;
-        % }
-        % $\mathit{pct} \leftarrow (100 \cdot \mathit{bp})\ /\ \mathit{tp}$\;
-        % $\mathit{distance} \leftarrow\ d(link)$\;\;
-        % $\mathit{pl_{cv}} \leftarrow cvpl(\mathit{distance}) \cdot (100 - pct)$\;
-        % $\mathit{pl_{bo}} \leftarrow bopl(\mathit{distance}) \cdot pct$\;\;
-
-        % \KwRet $\mathit{pl_{cv}} + \mathit{pl_{bo}}$\;
     }
     \caption{The ComputePathloss function.}
-    \label{algo:}
+    \label{algo:losmodel:computepathloss}
 \end{algorithm}
 
+\bigbreak
 
-
-
-To develop the \gls{losmodel}, two deterministic functions had to be computed. \gls{cvpl}, a function for computing the path loss for a signal with nothing obstructing the signal. \gls{bopl}, a function for computing the path loss for a signal with obstructions like buildings. To accomplish that, data was collected from the Marikina log. Links created from the measurements with a building percentage of above 80\% and below 5\% was collected.
-The Marikina log was chosen, because the field measurements are from within a city thereby giving
 
 In \autoref{plot:reachi-experiments:marikina-log-above-80-pct} and \autoref{plot:reachi-experiments:marikina-log-below-5-pct}.
 
