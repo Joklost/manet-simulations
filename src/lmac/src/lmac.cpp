@@ -91,6 +91,10 @@ int main(int argc, char *argv[]) {
 
 //        state.nothing_received = true;
 
+        if (gateway) {
+            hardware::logger->info("#frame:{}", frame);
+        }
+
         for (auto slot = 0ul; slot < SLOTS; ++slot) {
             if (slot == state.chosen_slot) {
                 if (state.phase == init) {
