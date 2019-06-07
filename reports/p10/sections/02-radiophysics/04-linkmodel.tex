@@ -159,7 +159,7 @@ seen in \autoref{plot:reachi-experiments:marikina-log-above-80-pct}.
     \centering
     \begin{tikzpicture}
         \begin{axis}[
-                height=9cm, width=0.95\textwidth,
+                height=10cm, width=0.95\textwidth,
                 ylabel={RSSI},
                 xlabel={Distance in meters},
                 axis lines*=left,
@@ -183,8 +183,6 @@ seen in \autoref{plot:reachi-experiments:marikina-log-above-80-pct}.
     \label{plot:reachi-experiments:cvpl-vs-bopl}
 \end{figure}
 
-
-\newpage
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}
@@ -266,35 +264,6 @@ that we might experience lower precision for the $\mathit{bopl}(l)$ function.
 %as there was close to none links with 100\% building. Having a large set of links with 100\% building would
 %result in higher precision.
 
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-                title={score: 1410.2234, links: 17761, score/links: 0.0794},
-                height=12cm, width=0.95\textwidth,
-                ylabel={RSSI},
-                xlabel={Distance in meters},
-                axis lines*=left,
-                xmin=0, xmax=750,
-                enlargelimits=false,
-                ymin=-90, ymax=-20,
-                xtick={0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750},
-                ymajorgrids=true,
-                xmajorgrids=true,
-                grid style=dashed,
-            ]
-
-            \addplot[thick, solid, cyan, mark=*] coordinates {(20, -28.32345013477089) (40, -44.85830258302583) (60, -52.77323717948718) (80, -60.21201657458563) (100, -66.47435897435898) (120, -69.68905472636816) (140, -71.5976496922216) (160, -73.7866473149492) (180, -75.53428571428572) (200, -76.89289392378991) (220, -77.88135593220339) (240, -77.8035019455253) (260, -77.36784140969164) (280, -77.14030612244898) (300, -77.75299760191847) (320, -79.71686746987952) (340, -79.15481171548117) (360, -79.90728476821192) (380, -81.30909090909091) (400, -81.79746835443038) (420, -81.52272727272727) (440, -79.2) (460, -79.42105263157895) (480, -79.4375) (500, -79.0) (520, -77.91666666666667) (540, -83.0) (560, -81.27272727272727) (580, -83.57142857142857) (600, -86.0) (620, -83.4) (640, -86.5) (660, -81.42857142857143) (680, -79.0) (700, -82.71428571428571) (740, -77.0)};
-            \addlegendentry{Marikina field measurements};
-
-            \addplot[thick, solid, red, mark=triangle*] coordinates {(20,-33.04359925788497)(40,-48.19327731092437)(60,-54.03703703703704)(80,-58.16688567674113)(100,-60.96085858585859)(120,-63.43184421534937)(140,-65.41129831516353)(160,-67.02463054187191)(180,-68.64031007751937)(200,-69.87730061349693)(220,-71.07770961145194)(240,-72.32267441860465)(260,-73.50986842105263)(280,-74.37786259541984)(300,-75.32413793103449)(320,-76.22083333333333)(340,-76.95930232558139)(360,-77.8018018018018)(380,-78.84883720930233)(400,-79.06557377049181)(420,-79.03030303030303)(440,-79.25)(460,-80.21428571428571)(480,-80.8)(500,-82.42857142857143)(520,-83.2)(540,-83.55555555555556)(560,-83.77777777777777)(580,-84.16666666666667)(600,-82.0)(620,-84.0)(640,-83.0)(660,-83.6)(680,-84.0)(700,-84.0)(740,-85.0)};
-            \addlegendentry{Computed values};
-        \end{axis}
-    \end{tikzpicture}
-    \caption{Field measurements vs. computed values.}
-    \label{plot:reachi-experiments:marikina-log-vs-computed}
-\end{figure}
-
 Finally, a comparison of the computed \gls{rssi} values from \autoref{eq:plrssi} with the measurements from
 the Marikina log is shown in \autoref{plot:reachi-experiments:marikina-log-vs-computed}. The plot shows that
 the function is slightly off on the from about 75 meters to 300 meters, but compared to
@@ -327,6 +296,36 @@ highlight the same subset of the links, to make it easier to follow. \medbreak
 The complete source code for the C++ implementation can be found on GitHub:
 
 \url{https://github.com/Joklost/sims2}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                title={score: 1410.2234, links: 17761, score/links: 0.0794},
+                height=12cm, width=0.95\textwidth,
+                ylabel={RSSI},
+                xlabel={Distance in meters},
+                axis lines*=left,
+                xmin=0, xmax=750,
+                enlargelimits=false,
+                ymin=-90, ymax=-20,
+                xtick={0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750},
+                ymajorgrids=true,
+                xmajorgrids=true,
+                grid style=dashed,
+            ]
+
+            \addplot[thick, solid, cyan, mark=*] coordinates {(20, -28.32345013477089) (40, -44.85830258302583) (60, -52.77323717948718) (80, -60.21201657458563) (100, -66.47435897435898) (120, -69.68905472636816) (140, -71.5976496922216) (160, -73.7866473149492) (180, -75.53428571428572) (200, -76.89289392378991) (220, -77.88135593220339) (240, -77.8035019455253) (260, -77.36784140969164) (280, -77.14030612244898) (300, -77.75299760191847) (320, -79.71686746987952) (340, -79.15481171548117) (360, -79.90728476821192) (380, -81.30909090909091) (400, -81.79746835443038) (420, -81.52272727272727) (440, -79.2) (460, -79.42105263157895) (480, -79.4375) (500, -79.0) (520, -77.91666666666667) (540, -83.0) (560, -81.27272727272727) (580, -83.57142857142857) (600, -86.0) (620, -83.4) (640, -86.5) (660, -81.42857142857143) (680, -79.0) (700, -82.71428571428571) (740, -77.0)};
+            \addlegendentry{Marikina field measurements};
+
+            \addplot[thick, solid, red, mark=triangle*] coordinates {(20,-33.04359925788497)(40,-48.19327731092437)(60,-54.03703703703704)(80,-58.16688567674113)(100,-60.96085858585859)(120,-63.43184421534937)(140,-65.41129831516353)(160,-67.02463054187191)(180,-68.64031007751937)(200,-69.87730061349693)(220,-71.07770961145194)(240,-72.32267441860465)(260,-73.50986842105263)(280,-74.37786259541984)(300,-75.32413793103449)(320,-76.22083333333333)(340,-76.95930232558139)(360,-77.8018018018018)(380,-78.84883720930233)(400,-79.06557377049181)(420,-79.03030303030303)(440,-79.25)(460,-80.21428571428571)(480,-80.8)(500,-82.42857142857143)(520,-83.2)(540,-83.55555555555556)(560,-83.77777777777777)(580,-84.16666666666667)(600,-82.0)(620,-84.0)(640,-83.0)(660,-83.6)(680,-84.0)(700,-84.0)(740,-85.0)};
+            \addlegendentry{Computed values};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Field measurements vs. computed values.}
+    \label{plot:reachi-experiments:marikina-log-vs-computed}
+\end{figure}
+
 %Finally a comparison of the computed results from \autoref{eq:pl} compared with the measurements from the
 %Marikina log. Once again, links have been sorted into distance buckets and had the average \gls{rssi} for each
 %bucket computed. The computed \gls{rssi}, was computed with \autoref{eq:pl} on the links from the Marikina

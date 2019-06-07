@@ -28,15 +28,15 @@ using 128 cores, and that simulation time scales significantly with an increasin
 
 % We added extensions to the Visualiser tool, to visualise communication and protocol logs, in order to replay
 % a simulation.
-
+\clearpage
 \section{Future Work}
 Running simulations with a large number of nodes pose a significant scalability challenge, as shown in
 \autoref{sec:scalability}. The reason behind this is very likely the fact that we use a centralised
-Coordinator, to coordinate the communication between a large number of nodes, using an \gls{mpi}. \medbreak
+Coordinator, to coordinate the communication between a large number of nodes, using an \gls{mpi}. \smallbreak
 
 When visualising with the Visualiser tool, we would ideally like to visualise a greater number of nodes than
 what is currently supported, as visualising protocol and communication logs can be a significant help when
-debugging \gls{mac} protocol implementations. \medbreak
+debugging \gls{mac} protocol implementations. \smallbreak
 
 Finally, we would like to be able to create a better \gls{pathloss} model, by using more data to approximate
 the link model. The current version of the model is not very accurate when it comes to the \gls{pathloss} for

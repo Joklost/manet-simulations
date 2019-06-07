@@ -117,16 +117,6 @@ throughout both the real execution, and the simulation:
     \item[\T{3}{20}] The packet originating from \Node{3} (\T{3}{20}) was received by \Node{4} (\L{4}{20}).
 \end{description}
 
-With the invariants outlined above, we want to prove that the packet would be received with the same
-probability in a virtual-time execution, as it would in a real execution. Due to the asynchronous nature
-of executing a wireless communication protocol using an \gls{mpi}, it is not as simple as presenting a single
-slice of the execution. Instead, to illustrate snapshots of a given point in the execution of the Coordinator
-we introduce the concept of a cut: A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine.
-Everything above the first (\ProcessedLine) has already been processed by the Coordinator, and everything
-below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the
-content of the data structures within the Coordinator, where we see the order of currently queued actions in
-the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ set.
-
 \begin{figure}[H]
     \centering
     % Diagram
@@ -143,6 +133,16 @@ the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ s
     }
     \caption{Real execution of an arbitrary protocol with five nodes.}\label{tikz:coordinatormsc0}
 \end{figure}
+
+With the invariants outlined above, we want to prove that the packet would be received with the same
+probability in a virtual-time execution, as it would in a real execution. Due to the asynchronous nature
+of executing a wireless communication protocol using an \gls{mpi}, it is not as simple as presenting a single
+slice of the execution. Instead, to illustrate snapshots of a given point in the execution of the Coordinator
+we introduce the concept of a cut: A cut consist of two horizontal lines, \ProcessedLine\ and \SubmittedLine.
+Everything above the first (\ProcessedLine) has already been processed by the Coordinator, and everything
+below the second (\SubmittedLine) has not yet been submitted to the Coordinator. We use a cut to show the
+content of the data structures within the Coordinator, where we see the order of currently queued actions in
+the \textit{waiting} queue, as well as the actions in the $\mathit{transmits}$ set.
 
 \subsection{Simulated Execution}\label{sec:simulated-execution}
 Throughout this section we present a simulated, virtual-time, version of the real execution from
@@ -326,18 +326,6 @@ removed, and \KwNull is sent to the source of the \textit{listen} action. Second
 already been processed, and removed from the \textit{waiting} queue, even though the action could not have
 been processed before the \T{3}{16} action had been submitted. The \L{4}{14} action was removed from the
 \textit{waiting} queue early, as the node had received a packet when processing the \T{5}{12} action.
-\medbreak
-
-This holds in general, as no \textit{transmit} action can be fully within the time interval of any
-\textit{listen} action, if the \textit{listen} action is at the head of the \textit{waiting} queue. The
-\textit{listen} action would have been removed when processing earlier \textit{transmit} actions, as
-\textit{transmit} actions are ordered before \textit{listen} actions in the \textit{waiting} queue. Let us
-assume that a node $n$ submitted the \textit{listen} action $l$, and that $l$ is at the head of the
-\textit{waiting} queue. When processing the $l$ action, no actions from node $n$ before, or after, $l$ is
-present in the \textit{waiting} queue, as all previous actions have been processed. Additionally, no
-\textit{transmit} actions from any other node $m$ can be present on the \textit{waiting} queue, with end time
-less than, or equal to, the end time of the $l$ action, as these would already have been processed, due to the
-ordering of the priority queue.
 
 \begin{figure}[H]
     \caption{Processing a \textit{listen} action.}\label{tikz:coordinatormsc4}
@@ -358,6 +346,17 @@ ordering of the priority queue.
             \Big\}$
     \end{minipage}
 \end{figure}
+
+This holds in general, as no \textit{transmit} action can be fully within the time interval of any
+\textit{listen} action, if the \textit{listen} action is at the head of the \textit{waiting} queue. The
+\textit{listen} action would have been removed when processing earlier \textit{transmit} actions, as
+\textit{transmit} actions are ordered before \textit{listen} actions in the \textit{waiting} queue. Let us
+assume that a node $n$ submitted the \textit{listen} action $l$, and that $l$ is at the head of the
+\textit{waiting} queue. When processing the $l$ action, no actions from node $n$ before, or after, $l$ is
+present in the \textit{waiting} queue, as all previous actions have been processed. Additionally, no
+\textit{transmit} actions from any other node $m$ can be present on the \textit{waiting} queue, with end time
+less than, or equal to, the end time of the $l$ action, as these would already have been processed, due to the
+ordering of the priority queue.
 
 \subsubsection{Cut 5: \textit{sleep} action}
 The final cut is a snapshot of the Coordinator directly after the \T{2}{18} action has been submitted to the

@@ -246,6 +246,10 @@ Coordinator does is send the end time of the \textit{listen} action and \KwNull 
 received by the listening node. When the Coordinator responds to the source of the \textit{listen} action,
 the node is unblocked and may continue executing its protocol. \medbreak
 
+The complete source code for the C++ implementation can be found on GitHub:
+
+{\small \url{https://github.com/Joklost/manet-simulations/tree/master/src/coordinator}} \medbreak
+
 \begin{algorithm}[H]
     \DontPrintSemicolon
     \SetKwFunction{FCoordinator}{Coordinator}
@@ -315,7 +319,3 @@ the node is unblocked and may continue executing its protocol. \medbreak
     \caption{The Coordinator procedure.}
     \label{algo:mpicoordinator}
 \end{algorithm}
-
-The complete source code for the C++ implementation can be found on GitHub:
-
-{\small \url{https://github.com/Joklost/manet-simulations/tree/master/src/coordinator}}
