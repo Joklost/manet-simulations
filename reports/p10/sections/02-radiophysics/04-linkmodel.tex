@@ -1,7 +1,7 @@
 \section{Link Modelling}\label{sec:linkmodel}
 In this section, we propose a method for modelling and computing link \gls{pathloss} using building footprints
 between nodes of a link, on OpenStreetMap map tiles obtained through the Mapbox Maps Service
-API~\cite{website:mapbox}. The model computes the \gls{pathloss} based on the distance of the link, and the
+API~\cite{website:mapbox}. The model computes the \gls{pathloss} based on the distance of the link and the
 percentage of that distance that is in a building. Buildings and other environmental obstructions, which is
 part of the shadow fading \gls{pathloss} from \cite{paper:linkmodel}, should cause a higher \gls{pathloss}, as
 it is harder for the radio signal to propagate through buildings. \medbreak
@@ -55,7 +55,7 @@ link that are considered buildings on the map. The pseudo code description of th
 \end{algorithm}
 
 To compute the total \gls{pathloss}, we first define two functions: $\mathit{cvpl}(l)$ (\gls{cvpl}) and
-$\mathit{bopl}(l)$ (\gls{bopl}). Both functions compute the distance dependent \gls{pathloss}, similarly to
+$\mathit{bopl}(l)$ (\gls{bopl}). Both functions compute the distance-dependent \gls{pathloss}, similarly to
 the $\mathit{pl}_d$ function from \autoref{sec:reachi-experiments}, but rather than computing the total
 distance based \gls{pathloss}, we need to define a similar function for the distance with a clear view, and a
 similar function to the distance where buildings obstruct the signal. To do this, we define this as an
@@ -81,7 +81,7 @@ To solve the optimisation problem, we have chosen a greedy approach. First, to c
 the $\mathit{cvpl}(l)$ function, we compile a set of links $L$, where the computed building percentage is
 below 5 \%, and for the $\mathit{bopl}(l)$ function, we compile a set of links $L$ where the computed building
 percentage is above 80 \%. Ideally, we would like for the building percentage to be close to 100 \%, but the
-number of links in the Marikina log with more than 95 \% buildings is very low. With these sets, we attempted
+number of links in the Marikina log with more than 95 \% of buildings is very low. With these sets, we attempted
 to find the optimal values for $\alpha$, $\beta$, and $\delta$ by going through $\alpha, \beta \in \{-100,
 \dots, 100\}$ with increments of $0.5$, and $\delta \in \{2, \dots, 100\}$ with increments of $1$. This
 resulted in the following values for the $\mathit{cvpl}(l)$ and $\mathit{bopl}(l)$ functions:
@@ -133,7 +133,7 @@ resulted in the following values for the $\mathit{cvpl}(l)$ and $\mathit{bopl}(l
 %
 %\end{itemize}
 
-With these two functions defined, we are able to compute the total \gls{pathloss} for a link. The function
+With these two functions defined, we can compute the total \gls{pathloss} for a link. The function
 $p(l)$ denotes the points for the links, as required by the input to the CompBuildingPct function.
 %
 \begin{eq}\label{eq:pl} %%% REMEMBER %%%
@@ -149,11 +149,11 @@ Finally, with the $\mathit{pl}(l)$ function, we can compute the \gls{rssi} for t
 \subsection{Evaluation}
 
 The functions $\mathit{cvpl}(l)$ and $\mathit{bopl}(l)$ have been plotted
-on\autoref{plot:reachi-experiments:cvpl-vs-bopl}. $\mathit{bopl}$ do result in greater \gls{pathloss}, however
-the plot also reveals that up to 100 meters, $\mathit{bopl}(l)$ computes a better \gls{rssi} compared to
+on \autoref{plot:reachi-experiments:cvpl-vs-bopl}. $\mathit{bopl}$ do result in greater \gls{pathloss}, however,
+the plot also reveals that up to 100 meters, $\mathit{bopl}(l)$ compute a better \gls{rssi} compared to
 $\mathit{cvpl}(l)$. To further examine this, each function has been plotted with their training set.
 $\mathit{cvpl}(l)$ on \autoref{plot:reachi-experiments:marikina-log-below-5-pct} and $\mathit{bopl}(l)$ can be
-seen on \autoref{plot:reachi-experiments:marikina-log-above-80-pct}.
+seen in \autoref{plot:reachi-experiments:marikina-log-above-80-pct}.
 
 \begin{figure}[H]
     \centering

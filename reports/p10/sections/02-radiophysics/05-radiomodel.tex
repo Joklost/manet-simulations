@@ -10,12 +10,12 @@ interference from nearby transmitting nodes. The computations in this section ar
 The first step for computing the probability for packet error is to compute the level of background noise
 affecting the wireless communication, the noise power $P_{N,\mathit{dB}}$. This noise is calculated with the
 thermal noise and noise figure $P_{N,\mathit{dB}} = \mathit{thermalnoise}\ +\ \mathit{noisefigure}$. For the
-Reachi devices we assume that the $\mathit{thermalnoise} = -119.66$ \acrshort{db} and the
+Reachi devices, we assume that the $\mathit{thermalnoise} = -119.66$ \acrshort{db} and the
 $\mathit{noisefigure} = 4.2$ \acrshort{db}. Next, we need to add the noise from interfering transmissions
 happening at the same time. This is done by adding the sum of the \gls{rssi} from interfering transmitters to
 the noise power $P_{N,\mathit{dB}}$, giving us the noise power with interference $P_{NI,\mathit{dB}}$ on the
 specific link between a receiving node $n_r$ and a transmitting node $n_t$ at a given time $t$. The set of
-currently transmitting and interfering nodes are denoted by $\mathit{nodes}_i$ and the the function
+currently transmitting and interfering nodes are denoted by $\mathit{nodes}_i$ and the function
 $\mathit{RSSI}_{\mathit{dBm}}(n, m, t)$ denotes the \gls{rssi}, in \acrshort{dbm}, on the link between nodes
 $n$ and $m$ at time $t$. We assume the \gls{rssi} on a link to be reciprocated, which means that
 $\mathit{RSSI}_{\mathit{dBm}}(n, m, t) = \mathit{RSSI}_{\mathit{dBm}}(m, n, t)$.
@@ -78,7 +78,7 @@ With which we can compute the bit error probability:
     P_b(n_2, n_1, \mathit{nodes}_i, t) = \frac{1}{2}erfc \left( \sqrt{ \left( \frac{10^{\frac{10.291}{10}}}{2} \right)} \right) = 0.000537
 \end{eq}
 
-Finally we can compute the packet error probability using the bit error probability:
+Finally, we can compute the packet error probability using the bit error probability:
 \begin{eq}
     P_p(n_2, n_1, \mathit{nodes}_i, t, 20) = 1 - \left( 1 - 0.000537 \right) ^{20 \cdot 8} = 0.082
 \end{eq}
@@ -93,7 +93,7 @@ close to 100.0 \%. Recall that for the link between $n_1$ and $n_2$ at time $t$,
 $-63.750$ \acrshort{dbm}, which is significantly better than the $-103.0$ \acrshort{dbm} we see in
 \autoref{plot:radiomodel:no-interference} for a close to zero probability, but with just a single interfering
 transmitter, the probability for packet error increases to 8.2 \%, which corresponds to what we see in
-\autoref{plot:radiomodel:one-interference}, where and \gls{rssi} of approximately $-62.0$ \acrshort{dbm} is 
+\autoref{plot:radiomodel:one-interference}, where an \gls{rssi} of approximately $-62.0$ \acrshort{dbm} is 
 required for a probability for packet error close to zero, with a single interfering transmitter.
 
 \begin{figure}[H]

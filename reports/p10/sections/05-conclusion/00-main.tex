@@ -1,26 +1,26 @@
 \chapter{Conclusion}\label{ch:conclusion}
-In this report, we introduce a C++ library for writing, and running, simulations of the \gls{mac} protocols
-behind the mesh communication in a \gls{manet} using a \gls{mpi}. Our library consists of X parts: A hardware
+In this report, we introduce a C++ library for writing and running, simulations of the \gls{mac} protocols
+behind the mesh communication in a \gls{manet} using an \gls{mpi}. Our library consists of X parts: A hardware
 interface header file, used for writing implementations of \gls{mac} protocols, that emulate the physical part
 of a device in a \gls{manet}, a Coordinator, facilitating and coordinating the communication between the
 emulated devices, and finally the link model, where we can annotate network topology \gls{gps} logs with links
 between nodes, based on a model for link \gls{pathloss}, where we approximate the \gls{pathloss} for a link
 using building footprints between the nodes of a link, on OpenStreetMap map tiles. With the annotated
-\gls{gps} logs, we are able to simulate wireless radio communication, through the Coordinator, where we can
+\gls{gps} logs, we can simulate wireless radio communication, through the Coordinator, where we can
 simulate packet errors and collisions caused by interfering transmissions or bad links. \smallbreak
 
 % Conclude on building method vs angle method.
 In \autoref{sec:reachi-experiments} and \autoref{sec:linkmodel}, we propose a link modelling method for
 approximating the \gls{pathloss} on a link by computing the percentage amount of building between the two
 nodes of a link, and show that the computed \gls{rssi} values are roughly equivalent to field measurements,
-that are move reliable than computing the \gls{pathloss} entirely based on the distance. \smallbreak
+that is more reliable than computing the \gls{pathloss} entirely based on the distance. \smallbreak
 
 % Arguments for correctness
 \autoref{sec:correctness} presents our arguments of correctness for the Coordinator and the hardware
 functions, analysing the different possible cases for when the Coordinator processes an action, starting with 
 a concrete example, and finishing with a generalisation of each of the scenarios. \smallbreak
 
-In \autoref{ch:experiments}, we present the \gls{lmac} protocol, and show how our C++ library can be used to
+In \autoref{ch:experiments}, we present the \gls{lmac} protocol and show how our C++ library can be used to
 simulate the protocol, and we present the results of our scalability experiments for the Coordinator. We do,
 however, face significant scalability problems, as we rely on a single centralised Coordinator, as shown in
 \autoref{sec:scalability}. Due to these scalability issues, we did not reach our goal of running simulations

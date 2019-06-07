@@ -12,14 +12,14 @@
 
 In \doublequote{Modeling and Efficient Verification of Broadcasting Actors}~\cite{DBLP:conf/fsen/YousefiGK15}
 the authors present an extension to the actor-based modelling language Rebeca~\cite{Sirjani2004ModelingAV},
-that enable broadcast communication between actors (nodes), in order to allow modelling of \gls{manet}s. The
+that enable broadcast communication between actors (nodes), to allow modelling of \gls{manet}s. The
 authors provide a framework to model \gls{manet}s for a static topology, with no support for mobility. The
 same authors further extend Rebeca to add key features of wireless ad hoc networking, such as mobility
 (dynamic topologies), local broadcasting within a transmission range, and energy consumption in
 \doublequote{Modeling and efficient verification of wireless ad hoc
 networks}~\cite{DBLP:journals/fac/YousefiGK17}. The modelling language lacks features such as lossy
 transmissions (packet loss) and non-deterministic behaviour, and generally abstracts away from wireless
-communication, in order to focus on modelling and verification of \gls{manet} protocols. Our approach is
+communication, to focus on modelling and verification of \gls{manet} protocols. Our approach is
 generally more un-restrictive, as we allow protocol implementations in C++, whereas the paper is restricted to
 a fixed formalism. One of the major advantages of using Rebeca is that the modelling language makes it
 possible model check and verify \gls{manet} protocol implementations, and explore the full state space for the
@@ -32,7 +32,7 @@ transmission and dynamic topologies. The authors utilise statistical model check
 performance of \gls{wsn} protocols, as well as checking the correctness of the protocols. This approach is
 somewhat similar to the approach in \cite{DBLP:conf/fsen/YousefiGK15} and
 \cite{DBLP:journals/fac/YousefiGK17}, but the protocols evaluated are instead modelled using the UPPAAL model
-checker, and does include non-deterministic behaviour. They show in the paper that their method is able to
+checker and does include non-deterministic behaviour. They show in the paper that their method can
 model and evaluate network topologies of up to 100 nodes by using statistical model checking in UPPAAL.
 \medbreak
 

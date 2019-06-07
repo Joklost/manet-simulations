@@ -13,8 +13,8 @@ When simulating radio communication it is essential that we factor in time. Time
 LMAC~\cite{paper:lmac_protocol} protocols that rely heavily on time slots to be accurate to a point where
 packets are not dropped because a node starts listening for a synchronisation packet too early or too late.
 Additionally, as we use an \acrshort{mpi} for the emulation of the radio hardware, we need to account for the
-asynchronous nature of the \acrshort{mpi}. For example, running a simulation with 50 nodes on a machine with 8
-cores, would start 51 individual processes, and the operating system would have to schedule accordingly,
+asynchronous nature of the \acrshort{mpi}. For example, simulating with 50 nodes on a machine with 8
+cores would start 51 individual processes, and the operating system would have to schedule accordingly,
 meaning that not every process (node) would be able to work at all times. Furthermore, as some protocols are
 designed to conserve power, as the radio hardware might be battery powered, the nodes will spend a large
 amount of time sleeping, which can create time periods where nothing happens during a simulation. To aid with
@@ -22,15 +22,15 @@ this, we introduce the notion of virtual time. Virtual time helps us with coordi
 between the nodes, as rather than communicating directly with each other using the \gls{mpi}, nodes
 communicate through the Coordinator. \smallbreak
 
-For our simulations, virtual time is, essentially, the real time a node spends during the execution of a
+For our simulations, virtual time is, essentially, the real-time a node spends during the execution of a
 \gls{mac} protocol, plus the time spent on transmitting, listening or sleeping. As we emulate the radio,
-transmitting or receiving packets is a matter of sending messages with the \gls{mpi}, and we have no need to
-power down the hardware to sleep. To track the virtual time, each node keeps a local real time clock,
-measuring the real time spent during the simulation, and a local time variable. Every time a node either
-transmits, listens, or sleeps for a duration, the time difference measured by the real time clock since the
+transmitting or receiving packets is a matter of sending messages with the \gls{mpi}, and we do not need to
+power down the hardware to sleep. To track the virtual time, each node keeps a local real-time clock,
+measuring the real-time spent during the simulation, and a local time variable. Every time a node either
+transmits, listens, or sleeps for a duration, the time difference measured by the real-time clock since the
 node last performed an action, as well as the duration of the transmission, listen, or sleep is added to the
 local time. This way, any action the node does can be completed almost instantly, and the node may continue
-executing the simulation, rather than, for example, have to sleep for 10 seconds in real time, where the
+executing the simulation, rather than, for example, have to sleep for 10 seconds in real-time, where the
 process does nothing.
 
 \subsection{Hardware Functions}\label{sec:hwfuncspseudo}
@@ -48,7 +48,7 @@ The hardware functions depend on the following local state. The local state is u
 
 \textit{id} $\leftarrow$ unique identifier \smallbreak
 
-In the hardware functions we utilise a special keyword \KwNow, which represents the real-time hardware clocks
+In the hardware functions, we utilise a special keyword \KwNow, which represents the real-time hardware clocks
 of a node. It is assumed that all clocks run at the same speed. The \textit{clock} variable is used to measure
 the real-time spent by the node between calls to hardware functions. Initially, we store the current time in
 the \textit{clock} variable, and use the \textit{clock} to compute the real-time difference between the
@@ -81,12 +81,12 @@ nodes are in the range $\{ 1, 2, 3, \ldots, N \}$ for $N$ nodes.
 The Transmit (\autoref{algo:hwfuncstransmit}) function transmits a data packet. The packet is sent
 to the Coordinator using the \gls{mpi}, and the Coordinator takes care of distributing the packet to
 neighbouring nodes listening for packets. The duration of a transmission is computed based on the
-\gls{baudrate} (the amount of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as
+\gls{baudrate} (the number of bits the hardware can transmit per second~\cite{website:baudrate-mathworks}) as
 well as the size of the packet, using \autoref{eq:transmission-time} found in \autoref{sec:hardwarephysics}.
 % or our hardware, we assume a \gls{baudrate} $f_s = 34800$ Hz, 
 
 After computing the duration, the transmit action is sent to the Coordinator, the \textit{localtime} variable
-is set to the end time and the clock is set to \KwNow, before the function returns. \medbreak
+is set to the end time and the clock is set to \KwNow before the function returns. \medbreak
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -168,13 +168,13 @@ Coordinator. As no response is expected of the Coordinator, the function sets th
 
 The Inform function is equivalent to the Sleep function in the sense that it behaves like a call to the Sleep
 function with the duration set to 0. The function is included in the case none of the other hardware
-functions are applicable, e.g., in the case where the node is performing longer computations. Regularly
+functions is applicable, e.g., in the case where the node is performing longer computations. Regularly
 informing the Coordinator of a nodes \textit{localtime} will allow the Coordinator to continually process actions from
 other nodes.
 
 \subsection{Coordinator}\label{sec:coordinatorpseudo}
 The pseudo code of the Coordinator is separated into three parts, where each of the parts is repeatedly
-executed in sequence, until the protocol terminates. The first part takes care of receiving actions from
+executed in sequence until the protocol terminates. The first part takes care of receiving actions from
 nodes, the second part maintains and cleans the $\mathit{transmits}$ set of \textit{transmit} actions, and the
 third part processes, and removes, actions from the $\mathit{waiting}$ queue. \medbreak
 
@@ -189,11 +189,11 @@ type of the action, and is one of either \textit{transmit}, \textit{listen}, \te
 \textit{inform}. The $\mathit{source}$ element is the unique identifier of the source node that submitted the
 action to the Coordinator. The $\mathit{start}$ and $\mathit{end}$ elements are timestamps for points of time
 in the execution, where $\mathit{start} \leq \mathit{end}$. Finally, the $\mathit{packet}$ element is the data
-packet sent during a transmission, or \KwNull for any action where $\mathit{type} \neq \mathit{transmit}$.
+packet sent during transmission or \KwNull for any action where $\mathit{type} \neq \mathit{transmit}$.
 \medbreak
 
 Whenever an action is submitted to the Coordinator (\autoref{algo:mpicoordinator:action-await}), the action is
-enqueued in the $\mathit{waiting}$ queue, and added to the \textit{discovered} set. The $\mathit{waiting}$
+enqueued in the $\mathit{waiting}$ queue and added to the \textit{discovered} set. The $\mathit{waiting}$
 queue is a priority queue of Action objects, where the actions are ordered by their end time, with
 \textit{transmit} actions before \textit{listen} actions, in case of a tie. The \textit{discovered} set is
 a set used to track all actions submitted to the Coordinator. The ordering of \textit{sleep} and
@@ -205,12 +205,12 @@ the last action received from that node. After receiving an action, the Coordina
 part. \medbreak
 
 The $\mathit{transmits}$ set is used to gather any \textit{transmit} actions that may cause interference when
-processing \textit{transmit} actions in the third part of the Coordinator. In order to make sure that the size
+processing \textit{transmit} actions in the third part of the Coordinator. To make sure that the size
 of the $\mathit{transmits}$ set does not grow indefinitely, we remove \textit{transmit} actions that will not
 interfere with future \textit{transmit} actions. To do this we check that the $\mathit{waiting}$ queue
 contains at least one action from each node (\autoref{algo:mpicoordinator:ifactions}). Next, we find the
-earliest start time of all actions in the $\mathit{waiting}$ queue. With this we can remove any
-\textit{transmit} actions where the end time is strictly less that then earliest start time found in the
+earliest start time of all actions in the $\mathit{waiting}$ queue. With this, we can remove any
+\textit{transmit} actions where the end time is strictly less than the earliest start time found in the
 $\mathit{waiting}$ queue (\autoref{algo:mpicoordinator:cleantransmits}). \medbreak
 
 Finally, in the third part of the Coordinator, we process actions from the \textit{waiting} queue. The
@@ -224,7 +224,7 @@ have to be present in the \textit{waiting} queue, to satisfy the condition of th
 When processing a \textit{transmit} action, the Coordinator first gathers all \textit{transmit} actions from
 the \textit{transmits} set, that interfere with the \textit{transmit} action being processed
 (\autoref{algo:mpicoordinator:foreachinterfere}). A \textit{transmit} actions causes interference with
-another, if at any point in time their time intervals intersect
+another if at any point in time their time intervals intersect
 (\autoref{algo:mpicoordinator:transmitintersects}). All applicable \textit{transmit} actions are stored in the
 \textit{interferers} set, to be used when computing the probability for packet error. Next, the Coordinator
 iterates through all \textit{listen} actions in the \textit{waiting} queue, and if the time interval of the
@@ -245,7 +245,7 @@ Processing a \textit{listen} action (\autoref{algo:mpicoordinator:unblock2}) is 
 Coordinator does is send the end time of the \textit{listen} action and \KwNull to the source of the
 \textit{listen} action. We do this as dequeuing a \textit{listen} action means that no transmission has been
 received by the listening node. When the Coordinator responds to the source of the \textit{listen} action,
-the node is unblocked, and may continue executing its protocol. \medbreak
+the node is unblocked and may continue executing its protocol. \medbreak
 
 \begin{algorithm}[H]
     \DontPrintSemicolon

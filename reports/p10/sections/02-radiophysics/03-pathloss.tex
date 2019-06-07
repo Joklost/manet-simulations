@@ -1,22 +1,22 @@
 \section{Link Path Loss}\label{sec:reachi-experiments}
 In this section, we present the method for simulating link \gls{pathloss} from \cite{paper:linkmodel}, as well
-as why the model does not work for our needs. For our own simulations, we want to simulate the performance of
+as why the model does not work for our needs. For our simulations, we want to simulate the performance of
 nodes in a \gls{manet}. The performance is, however, heavily dependent on network conditions and the
 capabilities of the technology~\cite[p.~10]{paper:linkmodel}. The author of \cite{paper:linkmodel} presents
-methods for evaluating the performance of a wireless network, and proceeds to introduce methods for simulating
+methods for evaluating the performance of a wireless network and proceeds to introduce methods for simulating
 \gls{pathloss} on a multi-link model, based on real-world performance measurements. \medbreak
 
 The author of \cite{paper:linkmodel} describes the \gls{pathloss} of a link to be the sum of two parts: A
-deterministic distance dependent part, that describes the mean signal attenuation at any given link distance,
+deterministic distance-dependent part, that describes the mean signal attenuation at any given link distance,
 and a stochastic shadow fading part, which is the \gls{pathloss} caused by terrain, buildings, vegetation and
-cars. With this \gls{pathloss} it is possible to simulate the \gls{rssi} on a given link, by subtracting the
+cars. With this \gls{pathloss}, it is possible to simulate the \gls{rssi} on a given link, by subtracting the
 \gls{pathloss} from the transmission power of the simulated radio.
 %
 \begin{eq}\label{eq:ld}
     \mathit{pl}_d(l) = 55 \log_{10}(d(l)) - 18.8
 \end{eq}
 
-The distance dependent \gls{pathloss} is computed using the $\mathit{pl}_d(l)$ function shown in
+The distance-dependent \gls{pathloss} is computed using the $\mathit{pl}_d(l)$ function shown in
 \autoref{eq:ld}~\cite[p.~25]{paper:linkmodel}, where the function $d(l)$ denotes the distance of a link in
 meters. Computing the shadow fading \gls{pathloss}, on the other hand, is not as trivial. The shadow fading
 part of the \gls{pathloss} is based on the correlation between angles of link pairs sharing a common nodes,
@@ -27,31 +27,31 @@ total number of nodes in the network. \medbreak
 Through personal communication with the author of \cite{paper:linkmodel}, we received access to logs from
 field experiments for the Reachi project. These field experiments were conducted in different locations with
 an early prototype of the Reachi device. The logs contain \gls{gps} coordinates, as well as \gls{rssi}
-information for detected neighbours of each node. Examining these logs has shown discrepancies between the
+information for detected neighbours of each node. Examining these logs have shown discrepancies between the
 \gls{pathloss} model from \cite{paper:linkmodel} and the measured \gls{rssi}.
 \autoref{plot:reachi-experiments:measurements-vs-ld} plots samples drawn from the $\mathit{pl}_d(l)$ function
 and measurements from a log containing field measurements from an experiment in Marikina, in the Phillippines.
 Since the log contained a total of 17761 links, the measurements are summarised based on the distance of the
-link, and each link was sorted into distance buckets with 20 meter intervals. The average \gls{rssi} for all
+link, and each link was sorted into distance buckets with 20-meter intervals. The average \gls{rssi} for all
 links in a bucket is plotted in \autoref{plot:reachi-experiments:measurements-vs-ld}. The plot shows that the
-\gls{rssi} computed with the distance dependent \gls{pathloss} does not fit with the measured \gls{rssi}.
+\gls{rssi} computed with the distance-dependent \gls{pathloss} does not fit with the measured \gls{rssi}.
 \medbreak
 
 As mentioned earlier, the shadow fading \gls{pathloss} is based on the correlation between angles of link
 pairs that share a common node. An assumption for this is that link pairs with a high correlation, where the
 angle between them is low, will have close to the same shadow fading~\cite{paper:linkmodel}. However, this
-does not seem to be the case. \autoref{plot:reachi-experiments:avg-rssi-angle-phili-rude} show a plot where we
+does not seem to be the case. \autoref{plot:reachi-experiments:avg-rssi-angle-phili-rude} shows a plot where we
 compare the Marikina log from earlier, with another field experiment log from Rude Skov. For both logs, pairs
 of links sharing a common node were sorted, based on the angle between them, into buckets of 5 \degree
-intervals, and we computed the average \gls{rssi} for these buckets, after removing the distance dependent
+intervals, and we computed the average \gls{rssi} for these buckets, after removing the distance-dependent
 \gls{pathloss}. This means that only the shadow fading part of the \gls{pathloss} is included in the
-\gls{rssi} plotted in \autoref{plot:reachi-experiments:avg-rssi-angle-phili-rude}. Under the assumption that a
+\gls{rssi} plotted in \autoref{plot:reachi-experiments:avg-rssi-angle-phili-rude}. Under the assumption that
 highly correlated link pairs should result in less shadow fading \gls{pathloss}, the traces on
 \autoref{plot:reachi-experiments:avg-rssi-angle-phili-rude} should increase gradually as the angle increases.
 This is not the case. \medbreak
 
 Because of this, and the fact that computing the shadow fading path loss is not feasible for a very large
-number of nodes, we instead propose our own model for approximating the shadow fading \gls{pathloss}.
+number of nodes, we instead propose our model for approximating the shadow fading \gls{pathloss}.
 
 %As mentioned above, the angle based approach relies on the assumption that link pairs with a high correlation,
 %i.e. low angle between them, will have close to the same shadow fading. We have however not been able to

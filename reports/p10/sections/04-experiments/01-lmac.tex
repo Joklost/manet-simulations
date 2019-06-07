@@ -1,11 +1,11 @@
 \section{LMAC}\label{sec:lmacc}
 \gls{lmac}~\cite{paper:lmac_protocol}\cite{paper:lmac_verification} is a \gls{tdma} protocol designed to be
-lightweight and energy efficient, in order to prolong the lifetime of a network. In the protocol, time is
-divided in to frames, that consist of a fixed number of time slots. Each node in a network controls a single
+lightweight and energy efficient, to prolong the lifetime of a network. In the protocol, time is
+divided into frames, that consist of a fixed number of time slots. Each node in a network controls a single
 time slot in each frame, and if a node has any data to transmit, the node waits for its time slot to come up,
-which means that a node is able to transmit the data without causing collision, or interference for other
+which means that a node can transmit the data without causing a collision, or interference for other
 nodes. Additionally, whenever a nodes time slot comes up, the node transmits a short synchronisation packet
-in the beginning of the time slot. For every other time slot, the node listens for the synchronisation packet
+at the beginning of the time slot. For every other time slot, the node listens for the synchronisation packet
 from other nodes, to maintain synchronisation and keep neighbourhood information up-to-date. The structure of
 a synchronisation can be found in \autoref{fig:bytefield:lmac-control-packet}. \medbreak
 
@@ -13,19 +13,19 @@ The \gls{lmac} protocol consists of four phases:
 
 \begin{description}[style=nextline]
     \item[Initialisation] Each node initially starts in the Initialisation phase. In this phase, the node has
-          yet to choose a time slot, so instead it listens for synchronisation packets in every time slot.
+          yet to choose a time slot, so instead, it listens for synchronisation packets in every time slot.
           When a synchronisation packet has been received and a neighbouring node has been detected, the node
           synchronises, and the node knows the current slot number. After a synchronisation packet has been
           received, the node switches to the Wait phase at the beginning of the next frame. A single node
           chosen as the gateway node starts the Initialisation phase by picking a time slot and proceeding to
           the active phase.
-    \item[Wait] Node in the Wait phase wait a random amount of frames (up to a pre-defined limit) between
-          receiving the synchronisation packet, and moving to the Discover phase.
+    \item[Wait] A node in the Wait phase waits for a random amount of frames (up to a pre-defined limit) between
+          receiving the synchronisation packet and moving to the Discover phase.
     \item[Discover] In the Discover phase, the node collects first order neighbourhood information from
           neighbouring active nodes, by listening for synchronisation packets throughout one frame, and
           recording the occupied time slots. Once a frame worth of neighbourhood information has been
           recorded, the node chooses a random, available, time slot, and proceeds to the Active phase.
-    \item[Active] Finally, a node in the Active phase is able to transmit a data packet in its chosen time
+    \item[Active] Finally, a node in the Active phase can transmit a data packet in its chosen time
           slot, while listening in other time slots to accept data from neighbouring nodes. The node still
           uses the synchronisation packet to keep neighbourhood information up-to-date, and attempts to
           detect, and report, possible collisions in the network. When a node in the Active phase is informed
@@ -62,9 +62,9 @@ looks through its neighbourhood information to find a neighbouring node that is 
 pick this node as the destination for its message, and include the destination in the synchronisation packet.
 Should multiple neighbours nodes be equally close to the gateway, a destination will randomly be picked
 between them. If a destination, and a data size, is included in the synchronisation packet, and the
-destination is equal to the nodes id, the node will listen for a data packet, in the time slot, after having
+destination is equal the id of the node, the node will listen for a data packet, in the time slot, after having
 received the synchronisation packet. Additionally, it is only possible for a node to transmit a single data
-message per frame, and the maximum size of a data packet is 256 bytes.
+message per frame and the maximum size of a data packet is 256 bytes.
 
 %https://youtu.be/p_hQJd0pMXk
 
@@ -139,7 +139,7 @@ if (!state.data_packet.empty()) {
 \autoref{code:recvmessage} shows another snippet of the \gls{lmac} protocol implementation, where a node in
 either the Initialisation, Discover, or Active phase is listening for synchronisation packets. When a node
 receives the synchronisation packet, the node updates its local state, and the neighbourhood information, with
-any new information received in the synchronisation packet. If a packet as destined for the node, and the node
+any new information, received in the synchronisation packet. If a packet as destined for the node, and the node
 is in the Active phase, the node listens for the data packet, and stores it for later transmission.
 \smallbreak
 

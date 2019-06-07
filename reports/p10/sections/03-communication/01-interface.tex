@@ -5,7 +5,7 @@ radio hardware. The Transmit function takes a packet of arbitrary data as input,
 packet to nearby listening nodes. The duration of the transmission is computed based on the size of the
 packet, using \autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}. The Listen function takes a
 duration as input, and the node listens for a packet, for the duration. If a packet is received, the node
-stops listening, and returns the packet immediately. If nothing is received while listening, the function will
+stops listening and returns the packet immediately. If nothing is received while listening, the function will
 return \KwNull. 
 
 %\todo[inline]{Say what is the hardware the we are now implementing. Say what the concrete values for the hardware is.}
@@ -90,10 +90,10 @@ pre-defined delay is a global value, known by all nodes.
 The Receive function takes a \textit{duration} as input, and begins listening for the duration
 (\autoref{algo:2phase-receive:listen1}). The \textit{duration} input is how long a node wants to listen for a
 packet. A node stops listening the moment a packet has been received, or after the duration if nothing was
-received. The Listen function either returns a packet of data, if anything was received, or \KwNull. The
+received. The Listen function either returns a packet of data if anything was received or \KwNull. The
 Receive function checks if the received data is a header packet (\autoref{algo:2phase-receive:isheader}), and
 returns \KwNull if the received packet was not a header packet. Otherwise, the size of the incoming packet is
 extracted from the header packet, and the expected transmission time is calculated using
-\autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}, after which the functions starts listening,
+\autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}, after which the functions start listening,
 but adds two times the delay to the listening duration, to ensure that the entire packet can be received in
 the listening window. Finally, the function returns either the received packet, if any, or \KwNull.
