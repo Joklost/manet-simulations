@@ -1,5 +1,5 @@
 \section{Radio Simulation}\label{sec:radiomodel}
-%\bibtodo{slight changes from original}
+\bibtodo{slight changes from original}
 To simulate loss of packets during radio communication, we introduce the packet error probability. The packet
 error probability is the probability for any form of error occurring during the transmission and reception of
 a packet through wireless radio communication. The probability for packet error is calculated using the
@@ -49,8 +49,7 @@ We use the \gls{snir} $\gamma_{\mathit{dB}}$ to compute the bit error probabilit
 \end{eq}
 
 Finally, with the bit error probability $P_b$, we can compute the packet error probability $P_p$. The packet
-error probability is the probability that we experience a bit error for any of the bits in the transmitted
-packet. The \textit{packetsize} parameter is in bytes.
+error probability is the probability that we experience a bit error for any of the bits in the transmitted packet. The \textit{packetsize} parameter is in bytes.
 
 \begin{eq}\label{eq:pep}
     P_p(n_r, m_t, \mathit{nodes}_i, \mathit{packetsize}, t) = 1 - \left( 1 - P_b(n_r, m_t, \mathit{nodes}_i,
