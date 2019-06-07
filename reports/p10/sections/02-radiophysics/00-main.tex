@@ -1,5 +1,4 @@
 \chapter{Radio Physics}\label{ch:radio-physics}
-\todo[inline]{title? introduce sections in chapter}
 %\bibtodo{from original report}
 The goal of this chapter is to be able to estimate the probability, based on the topology of a wireless
 network, of how likely it is that packet loss will happen during transmission between two nodes.
@@ -18,15 +17,22 @@ network, of how likely it is that packet loss will happen during transmission be
 
 \autoref{figure:manetwithter} shows a sample wireless network topology for a \acrfull{manet}. The network
 consists of mobile devices (nodes), and the communication between these (links). Nodes are
-\doublequote{linked} with other nodes when they can communicate wirelessly. Wireless communication
-relies on the transmission and reception of electromagnetic waves~\cite[p.~10]{paper:linkmodel} (radio
-signals), and the strength, or quality, of a wireless link, is described by the signal loss occurring when
-propagating the signal from transmitter to receiver, and is measured by the \gls{rssi} (a negative value,
-where a value close to 0 is better). In \cite{paper:linkmodel}, the term \gls{pathloss} is used to describe
-this signal loss and is determined in part by the physical distance between transmitter and receiver, but
-also by physical objects and terrain, like buildings or forests. A major consideration for mobile networks is
-that the topology is dynamic. Nodes move around, causing links to disappear, or new links to appear, thus mast
-changing the topology of the network.
+\doublequote{linked} with other nodes when they can communicate wirelessly. Wireless communication relies on
+the transmission and reception of electromagnetic waves~\cite[p.~10]{paper:linkmodel} (radio signals), and the
+strength, or quality, of a wireless link, is described by the signal loss occurring when propagating the
+signal from transmitter to receiver, and is measured by the \gls{rssi} (a negative value, where a value close
+to 0 is better). In \cite{paper:linkmodel}, the term \gls{pathloss} is used to describe this signal loss and
+is determined in part by the physical distance between transmitter and receiver, but also by physical objects
+and terrain, like buildings or forests. A major consideration for mobile networks is that the topology is
+dynamic. Nodes move around, causing links to disappear, or new links to appear, thus changing the topology of
+the network.\smallbreak
+
+\autoref{sec:visualiser} introduces the Visualiser and presents the proposed extensions.
+\autoref{sec:hardwarephysics} introduces a series radio specific terms we use throughout the thesis.
+\autoref{sec:reachi-experiments} presents the link \gls{pathloss} model from \cite{paper:linkmodel}, and
+\autoref{sec:linkmodel} introduces an alternative \gls{pathloss} model based on building footprints between
+nodes in a links, by using OpenStreetMap map tiles. Finally, \autoref{sec:radiomodel} presents the method for
+simulating packet loss and transmission interference.
 
 %\autoref{sec:linkmodel} will elaborate
 %further on the \gls{pathloss} of a link, as well as present a method for simulating the \gls{pathloss} for a
