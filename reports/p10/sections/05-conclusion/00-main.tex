@@ -1,5 +1,5 @@
 \chapter{Conclusion}\label{ch:conclusion}
-In this report, we introduce a C++ library for writing and running, simulations of the \gls{mac} protocols
+In this thesis, we introduce a C++ library for writing and running, simulations of the \gls{mac} protocols
 behind the mesh communication in a \gls{manet} using an \gls{mpi}. Our library consists of X parts: A hardware
 interface header file, used for writing implementations of \gls{mac} protocols, that emulate the physical part
 of a device in a \gls{manet}, a Coordinator, facilitating and coordinating the communication between the
@@ -23,13 +23,14 @@ a concrete example, and finishing with a generalisation of each of the scenarios
 In \autoref{ch:experiments}, we present the \gls{lmac} protocol and show how our C++ library can be used to
 simulate the protocol, and we present the results of our scalability experiments for the Coordinator. We do,
 however, face significant scalability problems, as we rely on a single centralised Coordinator, as shown in
-\autoref{sec:scalability}. Due to these scalability issues, we did not reach our goal of running simulations
-with up to 1000 nodes.
+\autoref{sec:scalability}. Our experiments show that we can simulate 100 nodes in about 45 minutes, while
+using 128 cores, and that simulation time scales significantly with an increasing number of nodes.
 
 % We added extensions to the Visualiser tool, to visualise communication and protocol logs, in order to replay
 % a simulation.
 
 \section{Future Work}
+The 
 \todo[inline]{scalability improvements (coordinator optimisation)}
 \todo[inline]{distributed coordinator}
 % Scalability improvements / optimisation for the Coordinator

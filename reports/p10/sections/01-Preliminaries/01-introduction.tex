@@ -8,14 +8,14 @@ nature of \gls{manet}s, common applications consist of enabling communication in
 natural disasters, or for military conflicts.\smallbreak
 
 % Outline the goal
-The goal of this project is to simulate wireless network protocols for communication in a mobile setting.
+The goal of this thesis is to simulate wireless network protocols for communication in a mobile setting.
 Ideally, the capabilities of a wireless network protocol are tested in a real-life scenario, using physical
 devices for radio communication. This poses interesting challenges such as scalability, and repeatability.
 Scaling a real-life test requires a significant amount of effort and investment of both money and time, and
 repeating the same test over and over becomes near impossible, the larger the scale. Our goal is to be able to
-perform repeatable experiments in a controlled topology environment with up to 1000 devices.\smallbreak
+perform repeatable experiments in a controlled topology environment.\smallbreak
 
-Our project proposes a \gls{mpi} C++ library for writing, and running, simulations of the network protocol
+Our thesis proposes a \gls{mpi} C++ library for writing, and running, simulations of the network protocol
 behind the mesh communication in a \gls{manet}, modelling link \gls{pathloss} to simulate packet loss and
 collisions caused by interfering transmitters, where the physical devices, and the communication between
 these, are emulated entirely using software. With our library, it is be possible to write a C++ implementation
@@ -25,7 +25,7 @@ hardware interface, and perform simulations with these, where each physical devi
 CPUs on the MCC compute cluster at AAU~\cite{website:mccaau}. \smallbreak
 
 % Outline contributions
-The primary contribution of this project is the Coordinator that facilitate wireless communication between the
+The primary contribution of this thesis is the Coordinator that facilitate wireless communication between the
 emulated physical devices. The Coordinator allows us to simulate wireless communication in virtual time, where
 the Coordinator can skip periods of inactivity, reducing the time required to run real-time
 simulations. In addition to this, we propose a method for modelling and computing link \gls{pathloss} using

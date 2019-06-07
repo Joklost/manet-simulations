@@ -14,11 +14,12 @@ the number of nodes, while also scaling the number of CPUs to match the size of 
 \end{table}
 
 In the first experiment, we simulate the \gls{lmac} protocol with 60 nodes in a generated random walk
-topology, over a 5-minute real-time period. The results of this experiment can be seen in
-\autoref{table:lmac-experiment1}. The experiment demonstrated that scaling the number of CPUs will
-significantly improve the time required to run the simulation, but it also shows that the simulation does not
-scale very well with a larger number of nodes, as even when running the simulation with 64 cores available,
-simulating the experiment takes way longer than the 5-minute \gls{gps} log we simulate.
+topology, over a 5-minute real-time period with approximately 300 links at all times, throughout the log. The
+results for this experiment can be seen in \autoref{table:lmac-experiment1}. The experiment demonstrate that
+scaling the amount of CPUs will significantly improve the time required to run the simulation, but it also
+show that the simulation does not scale very well with a larger number of nodes, as even when running the
+simulation with 64 cores available, simulating the experiment takes way longer than the 5-minute \gls{gps} log
+we simulate.
 % 5-minute simulation, 60 nodes, random walk topology
 % 16 cores : 41:49
 % 32 cores : 34:52
@@ -27,19 +28,26 @@ simulating the experiment takes way longer than the 5-minute \gls{gps} log we si
 \begin{table}[H]
     \begin{tabular}{|l|c|c|c|}
         \hline
-        Nodes & 100       & 300         & 600   \\ \hline
-        Cores & 128       & 320         & 576   \\ \hline
-        Time  & 45:43 min & 6:51:53 hrs & \dots \\ \hline
+        Nodes & 100          & 300           & 600           \\ \hline
+        Links & $\approx$450 & $\approx$1200 & $\approx$2400 \\ \hline
+        Cores & 128          & 320           & 576           \\ \hline
+        Time  & 45:43 min    & 6:51:53 hrs   & \dots         \\ \hline
     \end{tabular}
     \caption{5-minute random walk topology.}\label{table:lmac-experiment2}
 \end{table}
 
 The second experiment further shows the scalability issues of the Coordinator. In this experiment, we
 attempted to simulate the \gls{lmac} protocol while scaling the number of nodes in the network, as well as the
-number of CPUs available. The results of this experiment can be seen in \autoref{table:lmac-experiment2}. A
-5-minute real-time simulation with just 100 nodes took over 45 minutes with 128 cores, and a 300 node
-experiment, with 320 cores took almost seven hours. After this result, we decided not to continue the
-experiment.
+amount of CPUs available. The results for this experiment can be seen in \autoref{table:lmac-experiment2}. A
+5-minute real-time simulation with 100 nodes, and approximately 450 links, took over 45 minutes with 128
+cores, and a 300 node experiment, with approximately 1200 links, took almost seven hours using 320 core. After
+this result, we decided not to continue the experiment. \medbreak
+
+% Where do we think the bottleneck is?
+
+The annotated random-walk \gls{gps} logs can be found on GitHub:
+
+{\footnotesize \url{https://github.com/Joklost/manet-simulations/tree/master/src/coordinator/logs}}
 
 % 5-minute simulation, random walk topology
 % 100 nodes : 45:43

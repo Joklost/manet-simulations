@@ -1,19 +1,27 @@
 \section{Radio Hardware}\label{sec:hardwarephysics}
-\todo[inline]{rssi, transmission time (baudrate), reachi constants}
-\todo[inline]{hardware section with transmission power, pathloss, rssi and so on rssi = txpower-pathloss}
+In this section, we introduce a series of terms, such as \gls{rssi}, transmission power, \acrshort{dbm}, and
+\gls{pathloss}, that we utilise throughout the thesis.
 
-Transmission power is 
-
-\gls{rssi} is the perceived signal strength of a link.
-
-\gls{pathloss} is the signal loss inflicted by the propagation of an electromagnetic wave from transmitter to
-receiver.
-
+\begin{itemize}
+    \item \acrshort{dbm} is a logarithmic scale, measuring power of a wireless radio
+          signal~\cite{website:rssi-metageek}.
+    \item \gls{rssi} is the perceived signal strength of a link, in
+          \acrshort{dbm}~\cite{website:rssi-metageek}.
+    \item \gls{pathloss} is the signal loss inflicted by the propagation of a radio signal from transmitter to
+          receiver~\cite[p.~10]{paper:linkmodel}.
+    \item Transmission power is the actual amount of power a transmitter uses to transmit packets, in
+          \acrshort{dbm}. \gls{rssi} can be computed by subtracting \gls{pathloss} from the transmission
+          power~\cite{paper:linkmodel}. For the Reachi devices, the transmission power is 26
+          \acrshort{dbm}~\cite{paper:linkmodel}.
+    \item The \gls{baudrate} is the rate at which information can be transferred as a wireless
+          signal~\cite{website:baudrate-mathworks}, and is equivalent to bits per second. For the Reachi
+          devices, the \gls{baudrate} is 34800 Hz~\cite{paper:linkmodel}.
+\end{itemize}
 
 \autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds,
-based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\mathit{packet}| = 20$
-bytes would take $\mathit{transmissiontime}(|\mathit{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s =
-34800$ Hz.
+based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\mathit{packet}| =
+20$ bytes would take $\mathit{transmissiontime}(|\mathit{packet}|) = 4597$ microseconds, with \gls{baudrate}
+$f_s = 34800$ Hz.
 %
 \begin{eq}\label{eq:transmission-time}
     \mathit{transmissiontime}(\mathit{packetsize}) = \frac{1000000}{f_s} \cdot \left( \mathit{packetsize} \cdot 8

@@ -32,14 +32,15 @@
         A \gls{manet} is a decentralised wireless network where nodes communicate directly with each other
         using radio and require \gls{mac} protocols to provide energy efficient communication. This aim of
         this project is to simulate the \gls{mac} protocols and to provide an alternative to real-life
-        testing. The goal is to be able to perform repeatable experiments in a controlled topology environment
-        with up to 1000 nodes. We propose a C++ library for writing and running, simulations of \gls{manet}s,
-        using \acrshort{mpi}. With this library, it is possible to write C++ implementations of communication
-        and \gls{mac} protocols, for \gls{manet}s, such as ALOHA or LMAC, and perform repeatable experiments,
+        testing. The goal is to be able to perform repeatable experiments in a controlled topology
+        environment. We propose a C++ library for writing and running, simulations of \gls{manet}s, using
+        \acrshort{mpi}. With this library, it is possible to write C++ implementations of communication and
+        \gls{mac} protocols, for \gls{manet}s, such as ALOHA or LMAC, and perform repeatable experiments,
         where our library emulate the physical radio hardware and simulate radio communication between the
         emulated hardware. We propose a method for modelling link \gls{pathloss} using building footprints
-        between nodes, on OpenStreetMap map tiles, modelling using real-life field measurements.
-        \todo[inline]{add experiments summary}
+        between nodes, on OpenStreetMap map tiles, modelling using real-life field measurements. Our
+        experiments show that we can simulate 100 nodes in about 45 minutes, while using 128 cores, and that
+        simulation time scales significantly with an increasing number of nodes.
         
         %that requires no pre-existing
         %infrastructure to function. Nodes communicate in the network using radio, and require networking protocols to
