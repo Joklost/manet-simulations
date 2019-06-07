@@ -1,10 +1,10 @@
 \section{Correctness}\label{sec:correctness}
-In this section, we present our correctness proof for the \gls{mpi} interface and the Coordinator. We start
-the section by introducing a set of three invariants for the Coordinator, and show why they hold in
+In this section, we present our correctness arguments for the \gls{mpi} interface and the Coordinator. We
+start the section by introducing a set of three invariants for the Coordinator, and show why they hold in
 \autoref{sec:coordinator-invariants}. Next, we go over the methodology for our proof in
-\autoref{sec:correctnessmethods} and an example of a real execution. In
-\autoref{sec:simulated-execution} we show how a simulated execution of an arbitrary protocol behaves similarly
-to a real execution. Finally, we summarise the proof in \autoref{sec:summary}.
+\autoref{sec:correctnessmethods} and an example of a real execution. In \autoref{sec:simulated-execution} we
+show how a simulated execution of an arbitrary protocol behaves similarly to a real execution. Finally, we
+summarise the proof in \autoref{sec:summary}.
 
 \subsection{Invariants}\label{sec:coordinator-invariants}
 
@@ -394,4 +394,7 @@ now the start time of the \S{1}{15} action.
 \end{figure}
 
 \subsection{Summary}\label{sec:summary}
-\todo[inline]{finish with a conclusion, summarise that we have analysed all the cases and generalised the scenarios.}
+%\todo[inline]{finish with a conclusion, summarise that we have analysed all the cases and generalised the scenarios.}
+Throughout this section we have presented arguments of correctness for the Coordinator and the four hardware
+functions, by analysing each of the five scenarios for the Coordinator processing an action, starting with a
+concrete example, based on the accompanying figure, and finishing each of the scenarios with a generalisation.

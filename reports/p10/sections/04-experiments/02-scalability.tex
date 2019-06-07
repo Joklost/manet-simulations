@@ -1,1 +1,48 @@
 \section{Scalability}\label{sec:scalability}
+We conducted two scalability experiments with the \gls{lmac} protocol from \autoref{sec:lmacc}. The first
+experiment is to show how simulations with the centralised Coordinator performs, with a fixed amount of nodes,
+when scaling the amount of CPUs available for the simulation. In the second experiment, we attempt to scale
+the number of nodes, while also scaling the number of CPUs to match the size of the network.
+
+\begin{table}[H]
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        Cores & 16        & 32        & 64        \\ \hline
+        Time  & 41:49 min & 34:52 min & 19:28 min \\ \hline
+    \end{tabular}
+    \caption{5-minute random walk topology, 60 nodes.}\label{table:lmac-experiment1}
+\end{table}
+
+In the first experiment, we simulate the \gls{lmac} protocol with 60 nodes in a generated random walk
+topology, over a 5-minute real-time period. The results for this experiment can be seen in
+\autoref{table:lmac-experiment1}. The experiment demonstrate that scaling the amount of CPUs will
+significantly improve the time required to run the simulation, but it also show that the simulation does not
+scale very well with a larger number of nodes, as even when running the simulation with 64 cores available,
+simulating the experiment takes way longer than the 5-minute \gls{gps} log we simulate.
+% 5-minute simulation, 60 nodes, random walk topology
+% 16 cores : 41:49
+% 32 cores : 34:52
+% 64 cores : 19:28
+
+\begin{table}[H]
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        Nodes & 100       & 300  & 600   \\ \hline
+        Cores & 128       & 320  & 576   \\ \hline
+        Time  & 45:43 min & X hr & \dots \\ \hline
+    \end{tabular}
+    \caption{5-minute random walk topology.}\label{table:lmac-experiment2}
+\end{table}
+\todo[inline]{fill in result}
+The second experiment further shows the scalability issues of the Coordinator. In this experiment, we
+attempted to simulate the \gls{lmac} protocol while scaling the number of nodes in the network, as well as the
+amount of CPUs available. The results for this experiment can be seen in \autoref{table:lmac-experiment2}. A
+5-minute real-time simulation with just 100 nodes took over 45 minutes with 128 cores, and a 300 node
+experiment, with 320 cores took more than six hours. After this result, we decided not to continue the
+experiment.
+
+% 5-minute simulation, random walk topology
+% 100 nodes : 45:43
+% 300 nodes :
+% 600 nodes :
+% 1000 nodes : 

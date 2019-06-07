@@ -1,43 +1,51 @@
-\section{Hardware Interface}\label{sec:interface}
-\bibtodo{some of 3.1.1 from old report has been included here}
-In this section we introduce the hardware interface we use to emulate the radio hardware for a wireless node.
-When emulating radio communication it is essential that we factor in time. 
-%, and the fact that a radio is part of an embedded system with limited memory and processing
-%capabilities~\citationneeded. 
-Time is a large part of a \gls{mac} protocol, as is the case with the Slotted
-ALOHA~\cite{Roberts:1975:APS:1024916.1024920} and LMAC~\cite{paper:lmac_protocol} protocols that rely heavily
-on time slots to be accurate to a point where packets are not dropped because a node starts listening for a
-synchronisation packet too early or too late. Additionally, as we use an \acrshort{mpi} for the emulation of
-the radio hardware, we need to account for the asynchronous nature of the \acrshort{mpi}. For example, running
-a simulation with 50 nodes on a machine with 8 cores, would start 51 individual processes, and the operating
-system would have to schedule accordingly, meaning that not every process (node) would be able to work at all
-times. Furthermore, as some protocols are designed to conserve power, as the radio hardware might be batter
-powered, the nodes will spend a large amount of time sleeping, which can create time periods where nothing
-happens during a simulation. To aid with this, we introduce the notion of virtual time. Virtual time helps us
-with coordinating the communication between the nodes, as rather than communicating directly with each other
-using the \gls{mpi}, nodes communicate through the Coordinator.
+\section{Abstract Hardware}\label{sec:interface}
+To simulate the physical radio hardware in our simulations, we define a hardware interface consisting of three
+hardware functions, Transmit, Listen, and Sleep, meant to emulate the functionality of radio hardware. 
 
-\subsection{Virtual Time}\label{sec:virtual-time}
-For our simulations, virtual time is, essentially, the real time a node spends during the execution of a
-\gls{mac} protocol, plus the time spent on transmitting, listening or sleeping. As we emulate the radio,
-transmitting or receiving packets is a matter of sending messages with the \gls{mpi}, and we have no need to
-power down the hardware to sleep. To track the virtual time, each node keeps a local real time clock,
-measuring the real time spent during the simulation, and a local time variable. Every time a node either
-transmits, listens, or sleeps for a duration, the time difference measured by the real time clock since the
-node last performed an action, as well as the duration of the transmission, listen, or sleep is added to the
-local time. This way, any action the node does can be completed almost instantly, and the node may continue
-executing the simulation, rather than, for example, have to sleep for 10 seconds in real time, where the
-process does nothing.
+\todo[inline]{Say what is the hardware the we are now implementing. Say what the concrete values for the hardware is.}
+%
 
-%\todo[inline]{describe interface}
-%\todo[inline]{talk about structure, explain local time, asynchronous mpi}
-%\todo[inline]{introduce two-phase interface for hardware, include hardware functions}
+%Additionally, the hardware interface includes a fourth function, Inform. This function is not 
 
-\subsection{Broadcasting and Receiving}\label{sec:2pcomm}
-As mentioned in \autoref{sec:hardwarephysics}, the time required for transmitting a packet is dependent on the
-size of the packet. To aid with the timing of transmitting and listening, we introduce a two-phase system. The
-two-phase system consists of two functions, Broadcast (\autoref{algo:2phase-broadcast}) and Receive
-(\autoref{algo:2phase-receive}). 
+%. The hardware
+%interface consists of four functions: Transmit, Listen, 
+%Pseudo code descriptions of the four functions can be found in \autoref{sec:hwfuncspseudo}.
+
+%To emulate physical radio hardware, we first need to define an
+% explain the physical reachi hardware? NeoCortec NC1000 modules, Texas Instruments CC1110 radio chipset
+\begin{description}[style=nextline,font=\normalfont]
+    \item[Transmit(\textit{packet})] The Transmit function takes a packet of arbitrary data as input, and the
+          node transmits the packet to nearby listening nodes. The duration of the transmission is computed
+          based on the size of the packet, using \autoref{eq:transmission-time} from
+          \autoref{sec:hardwarephysics}.
+    \item[Listen(\textit{duration})] The Listen function takes a duration as input, and the node listens for a
+          packet. If a packet is received, the node stops listening, and returns the packet immediately. If
+          nothing is received while listening, the function will return \KwNull. 
+    \item[Sleep(\textit{duration})] The Sleep function takes a duration, and puts the node to sleep for the
+          duration. 
+    %\item[Inform()] The Inform function
+\end{description}
+
+\subsection{Hardware}\label{sec:hardwarephysics}
+\todo[inline]{rssi, transmission time (baudrate), reachi constants}
+\todo[inline]{how does the hardware work? define \doublequote{our} hardware}
+
+\begin{eq}\label{eq:transmission-time}
+    \mathit{transmissiontime}(\mathit{packetsize}) = \frac{1000000}{f_s} \cdot \left( \mathit{packetsize} \cdot 8
+    \right)
+\end{eq}
+
+\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds,
+based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$
+bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s =
+34800$ Hz.
+
+
+\section{2-Phase Broadcast and Receive}\label{sec:2pcomm}
+As mentioned previously in \autoref{sec:interface}, the time required for transmitting a packet is dependent
+on the size of the packet. To aid with the timing of transmitting and listening, we introduce a two-phase
+system. The two-phase system consists of two functions, Broadcast (\autoref{algo:2phase-broadcast}) and
+Receive (\autoref{algo:2phase-receive}).
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -58,10 +66,11 @@ two-phase system consists of two functions, Broadcast (\autoref{algo:2phase-broa
 
 The Broadcast function takes a \textit{packet} of arbitrary data as input. With the packet of data, the
 function constructs a header packet that includes the size of the input \textit{packet}
-(\autoref{algo:2phase-broadcast:constructheader}). The header packet is transmitted via a call to the Transmit
-function, after which the function sleeps for a pre-defined \textit{delay}. This delay allows for any
-listening nodes to start listening for the actual packet, after receiving the header packet, before the actual
-packet is being transmitted. The pre-defined delay is a global value, known by all nodes.
+(\autoref{algo:2phase-broadcast:constructheader}). The size of the header packet is dependent on the design on
+the radio hardware. The header packet is transmitted via a call to the Transmit function, after which the
+function sleeps for a pre-defined \textit{delay}. This delay allows for any listening nodes to start listening
+for the actual packet, after receiving the header packet, before the actual packet is being transmitted. The
+pre-defined delay is a global value, known by all nodes.
 
 \begin{algorithm}[ht]
     \DontPrintSemicolon
@@ -78,29 +87,21 @@ packet is being transmitted. The pre-defined delay is a global value, known by a
         $\mathit{packetsize} \leftarrow$ extract size of packet from header \textit{data}\;
         $d^\prime \leftarrow \mathit{transmissiontime}(\mathit{packetsize})$\;
         $\mathit{packet} \leftarrow \text{Listen}(d^\prime + \mathit{delay} \cdot 2)$\;
-        %\textit{packet} $\leftarrow$ Listen($\mathit{duration}' + \mathit{delay} \cdot 2$)\;
-        %localtime $\leftarrow$ (\KwNow $-$ clock) $+$ localtime\;
-        %a $\leftarrow$ (listen, id, localtime, localtime $+$ duration, \KwNull)\;
-        %\KwSend a \KwTo coordinator\;
-        %localtime $\leftarrow$ \KwAwait end \KwFrom Coordinator\; \label{algo:hwfuncslisten:awaitend}
-        %packet $\leftarrow$ \KwAwait packet \KwFrom Coordinator\;
-        %\tcp{The packet returned from Coordinator may be \KwNull}
-        %clock $\leftarrow$ \KwNow\;
         \tcp{The \textit{packet} returned from Listen may be \KwNull}
         \KwRet \textit{packet}\;
     }
-    
+
     \caption{The Receive function.}
     \label{algo:2phase-receive}
 \end{algorithm}
 
 The Receive function takes a \textit{duration} as input, and begins listening for the duration
-(\autoref{algo:2phase-receive:listen1}). A node stops listening the moment a packet has been received, or
-after the duration if nothing was received. The Listen function either returns a packet of data, if anything
-was received, or \KwNull. The Receive function checks if the received data is a header packet
-(\autoref{algo:2phase-receive:isheader}), and returns \KwNull if the received packet was not a header packet.
-Otherwise, the size of the incoming packet is extracted from the header packet, and the expected transmission
-time is calculated using \autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}, after which the
-functions starts listening, but adds two times the delay to the listening duration, to ensure that the entire
-packet can be received in the listening window. Finally, the function returns either the received packet, if
-any, or \KwNull.
+(\autoref{algo:2phase-receive:listen1}). The \textit{duration} input is how long a node wants to listen for a
+packet. A node stops listening the moment a packet has been received, or after the duration if nothing was
+received. The Listen function either returns a packet of data, if anything was received, or \KwNull. The
+Receive function checks if the received data is a header packet (\autoref{algo:2phase-receive:isheader}), and
+returns \KwNull if the received packet was not a header packet. Otherwise, the size of the incoming packet is
+extracted from the header packet, and the expected transmission time is calculated using
+\autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}, after which the functions starts listening,
+but adds two times the delay to the listening duration, to ensure that the entire packet can be received in
+the listening window. Finally, the function returns either the received packet, if any, or \KwNull.

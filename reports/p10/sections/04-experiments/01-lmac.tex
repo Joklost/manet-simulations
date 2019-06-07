@@ -100,6 +100,66 @@ When the node enters the Active phase, the chosen slot is drawn on the node. \me
 In the routing visualisation in \autoref{fig:lmac-static-topology-routing-qr}, the bottom left node is chosen
 as the gateway node, and the top right node generates a single data message each frame. An arrow originates
 from a node whenever a message is sent from the node, with a green arrow denoting the synchronisation message,
-and the red arrow denoting a data message.
+and the red arrow denoting a data message. \medbreak
 
-\todo[inline]{include some code from the C++ implementation}
+% \autoref{code:sendmessage} shows a snippet of the \gls{lmac} implementation for the part of the code where the
+% protocol constructs and broadcast the synchronisation message, and a data message, if any has been received.
+
+% \begin{cpp}{Construct and send synchronisation and data messages.}{code:sendmessage}
+% ...
+% /* Create synchronisation signal. */
+% ControlPacket ctrl{id, state.chosen_slot,
+%                    state.occupied_slots, state.gateway_distance,
+%                    state.collision_slot, receiver, data_size};
+% state.collision_slot = NO_SLOT;
+
+% /* Send initial synchronisation signal. */
+% hardware::sleep(3ms);
+% hardware::broadcast(mpilib::serialise(ctrl));
+
+% /* Send packet, if any. */
+% if (!state.data_packet.empty()) {
+%     hardware::sleep(10ms);
+%     hardware::broadcast(state.data_packet);
+%     state.data_packet.clear();
+% }
+% ...
+% \end{cpp}
+
+% \autoref{code:recvmessage} shows another snippet of the \gls{lmac} protocol implementation
+
+% \begin{cpp}{Receive messages}{code:recvmessage}
+% ...
+% /* Listen for synchronisation signal. */
+% auto ctrl_data = hardware::receive(20ms);
+% if (!ctrl_data.empty()) {
+%     auto ctrl = mpilib::deserialise<ControlPacket>(ctrl_data);
+%     state.occupied_slots[ctrl.chosen_slot] = true;
+
+%     if (ctrl.gateway_distance + 1 < state.gateway_distance) {
+%         state.gateway_distance = ctrl.gateway_distance + 1;
+%     }
+
+%     ...
+
+%     if (state.phase == active) {
+%         if (ctrl.destination_id == id && ctrl.data_size > 0) {
+%             /* Listen for packet. */
+%             auto data = hardware::receive(70ms);
+%             if (!data.empty()) {
+%                 state.data_packet = data;
+
+%                 ...
+%             } 
+%         }
+%     }
+% }
+% ...    
+% \end{cpp}
+
+The complete source code for the C++ implementation can be found on GitHub:
+
+{\small \url{https://github.com/Joklost/manet-simulations/tree/master/src/lmac}}
+
+
+%\todo[inline]{include some code from the C++ implementation

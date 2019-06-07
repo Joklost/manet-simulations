@@ -1,0 +1,19 @@
+\pagestyle{empty} %disable headers and footers
+\pagenumbering{roman} %use roman page numbering
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{sections/00-Front-Matter/01-frontpage.tex}
+\input{sections/00-Front-Matter/02-colophon.tex}
+\input{sections/00-Front-Matter/03-titlepages.tex}
+\input{sections/00-Front-Matter/04-summary.tex}
+\input{sections/00-Front-Matter/05-preface.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\cleardoublepage
+\pdfbookmark[0]{Table of contents}{label:contents}
+\pagestyle{fancy} %enable headers and footers again
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+%mainmatter
+\pagenumbering{arabic} %use arabic page numbering in the mainmatter
