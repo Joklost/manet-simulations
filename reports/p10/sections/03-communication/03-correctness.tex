@@ -285,7 +285,7 @@ interfering \textit{transmit} actions in the \textit{transmits} set.
 \subsubsection{Cut 3: \textit{inform} action}
 The next cut is a snapshot of the Coordinator directly after the \T{4}{3} action has been processed and
 removed from the \textit{waiting} queue. The condition for processing actions remains satisfied, as there is
-still at least action from each node in the \textit{waiting} queue. At the head of the \textit{waiting} queue
+still at least one action from each node in the \textit{waiting} queue. At the head of the \textit{waiting} queue
 is the \textit{inform} action \I{5}{4}. Processing an \textit{inform} action is trivial, as no processing is
 needed for this action. The action is simply removed from the \textit{waiting} queue, and the Coordinator may
 move on to the next action, if the condition is still satisfied. This holds in general for any \textit{inform}
