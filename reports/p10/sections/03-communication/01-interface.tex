@@ -1,8 +1,14 @@
 \section{Abstract Hardware}\label{sec:interface}
-To simulate the physical radio hardware in our simulations, we define a hardware interface consisting of three
-hardware functions, Transmit, Listen, and Sleep, meant to emulate the functionality of radio hardware. 
+To simulate the physical radio hardware in our simulations, we define a hardware interface consisting of two
+basic hardware functions, Transmit, and Listen. The two hardware function to emulate the functionality of
+radio hardware. The Transmit function takes a packet of arbitrary data as input, and the node transmits the
+packet to nearby listening nodes. The duration of the transmission is computed based on the size of the
+packet, using \autoref{eq:transmission-time} from \autoref{sec:hardwarephysics}. The Listen function takes a
+duration as input, and the node listens for a packet, for the duration. If a packet is received, the node
+stops listening, and returns the packet immediately. If nothing is received while listening, the function will
+return \KwNull. 
 
-\todo[inline]{Say what is the hardware the we are now implementing. Say what the concrete values for the hardware is.}
+%\todo[inline]{Say what is the hardware the we are now implementing. Say what the concrete values for the hardware is.}
 %
 
 %Additionally, the hardware interface includes a fourth function, Inform. This function is not 
@@ -13,18 +19,18 @@ hardware functions, Transmit, Listen, and Sleep, meant to emulate the functional
 
 %To emulate physical radio hardware, we first need to define an
 % explain the physical reachi hardware? NeoCortec NC1000 modules, Texas Instruments CC1110 radio chipset
-\begin{description}[style=nextline,font=\normalfont]
-    \item[Transmit(\textit{packet})] The Transmit function takes a packet of arbitrary data as input, and the
-          node transmits the packet to nearby listening nodes. The duration of the transmission is computed
-          based on the size of the packet, using \autoref{eq:transmission-time} from
-          \autoref{sec:hardwarephysics}.
-    \item[Listen(\textit{duration})] The Listen function takes a duration as input, and the node listens for a
-          packet. If a packet is received, the node stops listening, and returns the packet immediately. If
-          nothing is received while listening, the function will return \KwNull. 
-    \item[Sleep(\textit{duration})] The Sleep function takes a duration, and puts the node to sleep for the
-          duration. 
-    %\item[Inform()] The Inform function
-\end{description}
+%\begin{description}[style=nextline,font=\normalfont]
+%    \item[Transmit(\textit{packet})] The Transmit function takes a packet of arbitrary data as input, and the
+%          node transmits the packet to nearby listening nodes. The duration of the transmission is computed
+%          based on the size of the packet, using \autoref{eq:transmission-time} from
+%          \autoref{sec:hardwarephysics}.
+%    \item[Listen(\textit{duration})] The Listen function takes a duration as input, and the node listens for a
+%          packet. If a packet is received, the node stops listening, and returns the packet immediately. If
+%          nothing is received while listening, the function will return \KwNull. 
+%    %\item[Sleep(\textit{duration})] The Sleep function takes a duration, and puts the node to sleep for the
+%    %      duration. 
+%    %\item[Inform()] The Inform function
+%\end{description}
 
 \subsection{Hardware}\label{sec:hardwarephysics}
 \todo[inline]{rssi, transmission time (baudrate), reachi constants}

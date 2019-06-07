@@ -27,22 +27,22 @@ simulating the experiment takes way longer than the 5-minute \gls{gps} log we si
 \begin{table}[H]
     \begin{tabular}{|l|c|c|c|}
         \hline
-        Nodes & 100       & 300  & 600   \\ \hline
-        Cores & 128       & 320  & 576   \\ \hline
-        Time  & 45:43 min & X hr & \dots \\ \hline
+        Nodes & 100       & 300         & 600   \\ \hline
+        Cores & 128       & 320         & 576   \\ \hline
+        Time  & 45:43 min & 6:51:53 hrs & \dots \\ \hline
     \end{tabular}
     \caption{5-minute random walk topology.}\label{table:lmac-experiment2}
 \end{table}
-\todo[inline]{fill in result}
+
 The second experiment further shows the scalability issues of the Coordinator. In this experiment, we
 attempted to simulate the \gls{lmac} protocol while scaling the number of nodes in the network, as well as the
 amount of CPUs available. The results for this experiment can be seen in \autoref{table:lmac-experiment2}. A
 5-minute real-time simulation with just 100 nodes took over 45 minutes with 128 cores, and a 300 node
-experiment, with 320 cores took more than six hours. After this result, we decided not to continue the
+experiment, with 320 cores took almost seven hours. After this result, we decided not to continue the
 experiment.
 
 % 5-minute simulation, random walk topology
 % 100 nodes : 45:43
-% 300 nodes :
+% 300 nodes : 6:51:53
 % 600 nodes :
 % 1000 nodes : 

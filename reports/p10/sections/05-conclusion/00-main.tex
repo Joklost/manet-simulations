@@ -11,12 +11,17 @@ using building footprints between the nodes of a link, on OpenStreetMap map tile
 simulate packet errors and collisions caused by interfering transmissions or bad links. \smallbreak
 
 % Conclude on building method vs angle method.
+\todo[inline]{Conclude on building method vs angle method.}
 
 % Arguments for correctness
+\autoref{sec:correctness} presents our arguments of correctness for the Coordinator and the hardware
+functions, analysing the different possible cases for when the Coordinator processes an action, starting with 
+a concrete example, and finishing with a generalisation of each of the scenarios. \smallbreak
 
-In \autoref{ch:experiments}, we show how our C++ library can be used to simulate the \gls{lmac} protocol, and
-we present the results of our scalability experiments for the Coordinator. We do, however, face significant
-scalability problems, as we rely on a single centralised Coordinator.
+In \autoref{ch:experiments}, we present the \gls{lmac} protocol, and show how our C++ library can be used to
+simulate the protocol, and we present the results of our scalability experiments for the Coordinator. We do,
+however, face significant scalability problems, as we rely on a single centralised Coordinator, as shown in
+\autoref{sec:scalability}.
 
 % We added extensions to the Visualiser tool, to visualise communication and protocol logs, in order to replay
 % a simulation.

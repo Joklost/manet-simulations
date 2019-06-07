@@ -4,8 +4,8 @@ lightweight and energy efficient, in order to prolong the lifetime of a network.
 divided in to frames, that consist of a fixed number of time slots. Each node in a network controls a single
 time slot in each frame, and if a node has any data to transmit, the node waits for its time slot to come up,
 which means that a node is able to transmit the data without causing collision, or interference for other
-nodes. Additionally, whenever a nodes time slot comes up, the node transmits a short synchronisation message
-in the beginning of the time slot. For every other time slot, the node listens for the synchronisation message
+nodes. Additionally, whenever a nodes time slot comes up, the node transmits a short synchronisation packet
+in the beginning of the time slot. For every other time slot, the node listens for the synchronisation packet
 from other nodes, to maintain synchronisation and keep neighbourhood information up-to-date. The structure of
 a synchronisation can be found in \autoref{fig:bytefield:lmac-control-packet}. \medbreak
 
@@ -13,27 +13,27 @@ The \gls{lmac} protocol consists of four phases:
 
 \begin{description}[style=nextline]
     \item[Initialisation] Each node initially starts in the Initialisation phase. In this phase, the node has
-          yet to choose a time slot, so instead it listens for synchronisation messages in every time slot.
-          When a synchronisation message has been received and a neighbouring node has been detected, the node
-          synchronises, and the node knows the current slot number. After a synchronisation message has been
+          yet to choose a time slot, so instead it listens for synchronisation packets in every time slot.
+          When a synchronisation packet has been received and a neighbouring node has been detected, the node
+          synchronises, and the node knows the current slot number. After a synchronisation packet has been
           received, the node switches to the Wait phase at the beginning of the next frame. A single node
           chosen as the gateway node starts the Initialisation phase by picking a time slot and proceeding to
           the active phase.
     \item[Wait] Node in the Wait phase wait a random amount of frames (up to a pre-defined limit) between
-          receiving the synchronisation message, and moving to the Discover phase.
+          receiving the synchronisation packet, and moving to the Discover phase.
     \item[Discover] In the Discover phase, the node collects first order neighbourhood information from
-          neighbouring active nodes, by listening for synchronisation messages throughout one frame, and
+          neighbouring active nodes, by listening for synchronisation packets throughout one frame, and
           recording the occupied time slots. Once a frame worth of neighbourhood information has been
           recorded, the node chooses a random, available, time slot, and proceeds to the Active phase.
-    \item[Active] Finally, a node in the Active phase is able to transmit a data message in its chosen time
+    \item[Active] Finally, a node in the Active phase is able to transmit a data packet in its chosen time
           slot, while listening in other time slots to accept data from neighbouring nodes. The node still
-          uses the synchronisation message to keep neighbourhood information up-to-date, and attempts to
+          uses the synchronisation packet to keep neighbourhood information up-to-date, and attempts to
           detect, and report, possible collisions in the network. When a node in the Active phase is informed
           of a collision in its chosen time slot, the node will give up its time slot, and proceed to the Wait
           phase. A collision happens when two or more nodes have chosen the same time slot. Nodes that are
           part of a collision is unable to detect the collision, and they need to be informed by their
           neighbours. When a node has detected a collision, the time slot in question is included in the
-          synchronisation message that will be sent from the node in its next time slot, to inform all
+          synchronisation packet that will be sent from the node in its next time slot, to inform all
           neighbours of the collision.
 \end{description}
 
@@ -51,20 +51,20 @@ The \gls{lmac} protocol consists of four phases:
         \bitbox{8}{Data Size)}
     \end{bytefield}
 
-    \caption{The synchronisation message structure in \gls{lmac}~\cite[p.~2]{paper:lmac_protocol}.}
+    \caption{The synchronisation packet structure in \gls{lmac}~\cite[p.~2]{paper:lmac_protocol}.}
     \label{fig:bytefield:lmac-control-packet}
 \end{figure}
 
 In \gls{lmac}, each node keeps track of its \textit{hop-distance} to the pre-defined gateway
-node~\cite{paper:lmac_protocol} and includes this hop-distance in the synchronisation message as the
+node~\cite{paper:lmac_protocol} and includes this hop-distance in the synchronisation packet as the
 \doublequote{DtG}, or distance to gateway, field. When an Active node has a data packet to transmit, the node
 looks through its neighbourhood information to find a neighbouring node that is closest to the gateway,
-pick this node as the destination for its message, and include the destination in the synchronisation message.
+pick this node as the destination for its message, and include the destination in the synchronisation packet.
 Should multiple neighbours nodes be equally close to the gateway, a destination will randomly be picked
-between them. If a destination, and a data size, is included in the synchronisation message, and the
-destination is equal to the nodes id, the node will listen for a data message, in the time slot, after having
-received the synchronisation message. Additionally, it is only possible for a node to transmit a single data
-message per frame, and the maximum size of a data message is 256 bytes.
+between them. If a destination, and a data size, is included in the synchronisation packet, and the
+destination is equal to the nodes id, the node will listen for a data packet, in the time slot, after having
+received the synchronisation packet. Additionally, it is only possible for a node to transmit a single data
+message per frame, and the maximum size of a data packet is 256 bytes.
 
 %https://youtu.be/p_hQJd0pMXk
 
@@ -72,94 +72,103 @@ message per frame, and the maximum size of a data message is 256 bytes.
 
 \begin{figure}[ht]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[b]{0.32\textwidth}
         \centering
         \qrcode[hyperlink]{https://youtu.be/EbsL2zhTlgc}
-        \caption{Static grid topology synchronisation.}
+        \caption{Grid topology synchronisation.}
         \label{fig:lmac-static-topology-synchronisation-qr}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
+    \begin{subfigure}[b]{0.32\textwidth}
         \centering
         \qrcode[hyperlink]{https://youtu.be/p_hQJd0pMXk}
-        \caption{Static grid topology routing.}
+        \caption{Grid topology routing.}
         \label{fig:lmac-static-topology-routing-qr}
     \end{subfigure}
-
-    \caption{\gls{lmac} static grid topology synchronisation and routing.}
+    \hfill
+    \begin{subfigure}[b]{0.32\textwidth}
+        \centering
+        \qrcode[hyperlink]{https://www.youtube.com/watch?v=-GQ5qWEalQ8}
+        \caption{Dynamic topology synchronisation.}
+        \label{fig:lmac-dynamic-topology-synchronisation-qr}
+    \end{subfigure}
+    \caption{\gls{lmac} topology synchronisation and routing.}
     \label{fig:lmac-visualisation}
 \end{figure}
 
-\autoref{fig:lmac-visualisation} contains YouTube links to two visualisations of the \gls{lmac} protocol,
+\autoref{fig:lmac-visualisation} contains YouTube links to three visualisations of the \gls{lmac} protocol,
 where \autoref{fig:lmac-static-topology-synchronisation-qr} visualises node synchronisation and network
-stabilisation, and \autoref{fig:lmac-static-topology-routing-qr} visualises the routing from a data generation
-node to the gateway node. Nodes are coloured per their phase, with white nodes being in the Initialisation
-phase, red nodes in the Wait phase, blue nodes in the Discover phase, and green nodes in the Active phase.
-When the node enters the Active phase, the chosen slot is drawn on the node. \medbreak
+stabilisation, \autoref{fig:lmac-static-topology-routing-qr} visualises the routing from a data generation
+node to the gateway node, and \autoref{fig:lmac-dynamic-topology-synchronisation-qr} visualises part of the
+node synchronisation of a larger network. Nodes are coloured per their phase, with white nodes being in the
+Initialisation phase, red nodes in the Wait phase, blue nodes in the Discover phase, and green nodes in the
+Active phase. When the node enters the Active phase, the chosen slot is drawn on the node. \medbreak
 
 In the routing visualisation in \autoref{fig:lmac-static-topology-routing-qr}, the bottom left node is chosen
-as the gateway node, and the top right node generates a single data message each frame. An arrow originates
-from a node whenever a message is sent from the node, with a green arrow denoting the synchronisation message,
-and the red arrow denoting a data message. \medbreak
+as the gateway node, and the top right node generates a single data packet each frame. An arrow originates
+from a node whenever a message is sent from the node, with a green arrow denoting the synchronisation packet,
+and the red arrow denoting a data packet. \medbreak
 
-% \autoref{code:sendmessage} shows a snippet of the \gls{lmac} implementation for the part of the code where the
-% protocol constructs and broadcast the synchronisation message, and a data message, if any has been received.
+% https://www.youtube.com/watch?v=-GQ5qWEalQ8
 
-% \begin{cpp}{Construct and send synchronisation and data messages.}{code:sendmessage}
-% ...
-% /* Create synchronisation signal. */
-% ControlPacket ctrl{id, state.chosen_slot,
-%                    state.occupied_slots, state.gateway_distance,
-%                    state.collision_slot, receiver, data_size};
-% state.collision_slot = NO_SLOT;
+\autoref{code:sendmessage} shows a snippet of the \gls{lmac} implementation for the part of the code where a
+node in the Active phase constructs and broadcast the synchronisation packet, and a data packet, if any has
+been received, in its chosen time slot. If the node has a data packet to send, it computes the receiver with
+the lowest hop-distance to the gateway, and adds it to the synchronisation packet, along with the size of the 
+data packet.
 
-% /* Send initial synchronisation signal. */
-% hardware::sleep(3ms);
-% hardware::broadcast(mpilib::serialise(ctrl));
+\begin{cpp}{Construct and send synchronisation and data packets.}{code:sendmessage}
+...
+/* Create synchronisation signal. */
+ControlPacket ctrl{id, state.chosen_slot,
+                   state.occupied_slots, state.gateway_distance,
+                   state.collision_slot, receiver, data_size};
+state.collision_slot = NO_SLOT;
+/* Send initial synchronisation signal. */
+hardware::sleep(3ms);
+hardware::broadcast(mpilib::serialise(ctrl));
+/* Send packet, if any. */
+if (!state.data_packet.empty()) {
+    hardware::sleep(10ms);
+    hardware::broadcast(state.data_packet);
+    state.data_packet.clear();
+}
+...
+\end{cpp}
 
-% /* Send packet, if any. */
-% if (!state.data_packet.empty()) {
-%     hardware::sleep(10ms);
-%     hardware::broadcast(state.data_packet);
-%     state.data_packet.clear();
-% }
-% ...
-% \end{cpp}
-
-% \autoref{code:recvmessage} shows another snippet of the \gls{lmac} protocol implementation
-
-% \begin{cpp}{Receive messages}{code:recvmessage}
-% ...
-% /* Listen for synchronisation signal. */
-% auto ctrl_data = hardware::receive(20ms);
-% if (!ctrl_data.empty()) {
-%     auto ctrl = mpilib::deserialise<ControlPacket>(ctrl_data);
-%     state.occupied_slots[ctrl.chosen_slot] = true;
-
-%     if (ctrl.gateway_distance + 1 < state.gateway_distance) {
-%         state.gateway_distance = ctrl.gateway_distance + 1;
-%     }
-
-%     ...
-
-%     if (state.phase == active) {
-%         if (ctrl.destination_id == id && ctrl.data_size > 0) {
-%             /* Listen for packet. */
-%             auto data = hardware::receive(70ms);
-%             if (!data.empty()) {
-%                 state.data_packet = data;
-
-%                 ...
-%             } 
-%         }
-%     }
-% }
-% ...    
-% \end{cpp}
+\autoref{code:recvmessage} shows another snippet of the \gls{lmac} protocol implementation, where a node in
+either the Initialisation, Discover, or Active phase is listening for synchronisation packets. When a node
+receives the synchronisation packet, the node updates its local state, and the neighbourhood information, with
+any new information received in the synchronisation packet. If a packet as destined for the node, and the node
+is in the Active phase, the node listens for the data packet, and stores it for later transmission.
+\smallbreak
 
 The complete source code for the C++ implementation can be found on GitHub:
 
 {\small \url{https://github.com/Joklost/manet-simulations/tree/master/src/lmac}}
 
-
-%\todo[inline]{include some code from the C++ implementation
+\begin{cpp}{Receive synchronisation and data packets.}{code:recvmessage}
+...
+/* Listen for synchronisation signal. */
+auto ctrl_data = hardware::receive(20ms);
+if (!ctrl_data.empty()) {
+    auto ctrl = mpilib::deserialise<ControlPacket>(ctrl_data);
+    state.occupied_slots[ctrl.chosen_slot] = true;
+    if (ctrl.gateway_distance + 1 < state.gateway_distance) {
+        state.gateway_distance = ctrl.gateway_distance + 1;
+    }
+    /* Update neighbourhood information. */
+    ...
+    if (state.phase == active) {
+        if (ctrl.destination_id == id && ctrl.data_size > 0) {
+            /* Listen for packet. */
+            auto data = hardware::receive(70ms);
+            if (!data.empty()) {
+                state.data_packet = data;
+                ...
+            } 
+        }
+    }
+}
+...    
+\end{cpp}
