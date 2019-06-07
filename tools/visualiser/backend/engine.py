@@ -82,7 +82,13 @@ def parse_gps(data, with_rssi: bool = False):
     parsed = []
     edges = {} if with_rssi else None
     for i in range(len(raw)):
+        if '#' in raw[i] or not raw[i].strip():
+            continue
+
         entry = raw[i].split(",")
+        if entry[-1] == "":
+            del entry[-1]
+
         if len(entry) < 4:
             return file_error(i, 'less than four entries'), None, None
         id = 0

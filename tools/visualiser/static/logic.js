@@ -7,8 +7,9 @@ let current_data = null;
 let pause = true;
 
 let rainbow = new Rainbow();
+//rainbow.setSpectrum('red', 'darkorange', 'orange', 'yellow', 'yellowgreen', 'green', 'lime');
 rainbow.setSpectrum('red', 'yellow', 'green');
-rainbow.setNumberRange(-110, 0);
+rainbow.setNumberRange(-128, 26);
 
 let protocol_replay_data;
 let node_text_state;
@@ -160,7 +161,13 @@ $(document).ready(function () {
                         dx *= 5;
                         dy *= 5;
                         p.triangle(midx - dx, midy - dy, midx + cs, midy + ss, midx - cs, midy - ss);
-                        // add some top here!
+
+                        if (edge.hasOwnProperty('rssi') && edge.status > 0) {
+                           p.strokeWeight(1);
+                           p.stroke('#000000');
+                        }
+                        p.text(edge.rssi, midx - dx, midy - dy, midx + cs, midy + ss, midx - cs, midy - ss);
+                        //// add some top here!
                     }
                 }
 

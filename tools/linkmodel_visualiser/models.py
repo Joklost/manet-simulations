@@ -7,14 +7,42 @@ import math
 
 class Link:
     def __init__(self, lat1: str, lon1: str, lat2: str, lon2: str, rssi: str, timestamp: str, node1_id: str,
-                 node2_id: str, remove_distance: bool):
+                 node2_id: str, remove_distance: bool, los: float = None):
         self.timestamp = float(timestamp)
         self.node1_id = int(node1_id)
         self.node2_id = int(node2_id)
         self.node1 = [float(lat1), float(lon1)]
         self.node2 = [float(lat2), float(lon2)]
         self.distance = self._distance_between() * 1000
-        self.rssi = (26 - Link.l_d(self.distance)) - float(rssi) if remove_distance else float(rssi)
+
+        # if remove_distance:
+        #     fading = 0
+        #     if los and not los == 0:
+        #         fading += Link.los_fading(self.distance * los)
+        #         fading += Link.l_d_org(self.distance * (100 - los))
+        #     else:
+        #         fading += Link.l_d_org(self.distance)
+        #
+        #     self.rssi = float(rssi) + fading
+        # else:
+        #     self.rssi = float(rssi)
+        self.rssi = (26 - Link.l_d_org(self.distance)) - float(rssi) if remove_distance else float(rssi)
+
+    @staticmethod
+    def los_fading(dist):
+        return 0.0 if dist == 0 else 0.008839017600881068 * math.log10(dist) + -8.127120163683704
+
+    @staticmethod
+    def los_fading_v2(dist):
+        return 0.0 if dist == 0 else 28.63263632987809 * math.log10(dist) + 0.003980704079352521
+
+    @staticmethod
+    def l_d(distance) -> float:
+        return 0.0 if distance == 0 else 25 * math.log10(distance) + 45
+
+    @staticmethod
+    def l_d_org(distance) -> float:
+        return 0.0 if distance == 0 else 55 * math.log10(distance) - 18.8
 
     def __eq__(self, other):
         return ((self.node1[0] == other.node1[0] and self.node1[1] == other.node1[1]
@@ -30,10 +58,6 @@ class Link:
                 or self.node1 == other.node2
                 or self.node2 == other.node1
                 or self.node2 == other.node2)
-
-    @staticmethod
-    def l_d(distance) -> float:
-        return 0.0 if distance == 0 else 25 * math.log10(distance) + 45
 
     def reverse_link(self, link) -> bool:
         return link.node1 == self.node2 and link.node2 == self.node1

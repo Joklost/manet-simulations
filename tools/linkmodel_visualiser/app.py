@@ -22,6 +22,7 @@ def create_linkpairs(file: str, as_pair: bool = True, lower_bound=-1000, upper_b
     data = {}
     link_pairs: Dict[float, List[LinkPair]] = {}
     all_links: List[Link] = []
+    total_bi_directional_links = 0
 
     with open(file, 'r') as f:
         for line in f:
@@ -77,12 +78,21 @@ def create_linkpairs(file: str, as_pair: bool = True, lower_bound=-1000, upper_b
             if as_pair:
                 link_pairs[float(timestamp)] = []
                 for i, l1 in enumerate(links):
-                    for l2 in links[i + 1:]:
+                    bi_directional = False
+                    for l2 in links:
+                        if l1 == l2:
+                            continue
+
                         if l1.has_common_node(l2):
+                            bi_directional = True
                             link_pairs[float(timestamp)].append(LinkPair(l1, l2))
+
+                    if not bi_directional:
+                        total_bi_directional_links += 1
             else:
                 all_links += links
 
+    print(f'Amount of none bi-directional links: {total_bi_directional_links}')
     return link_pairs if as_pair else all_links
 
 
@@ -95,7 +105,7 @@ def _str_angle_bucket(interval: int = 5) -> List[str]:
 
 
 def _str_distance_bucket(upper_bound: int, lower_bound: int = 0, interval: int = 20) -> List[str]:
-    return [f'0-{interval}'] + [f'{i - interval + 1}-{i}' for i in range(lower_bound * 2, upper_bound, interval)]
+    return [f'0-{interval}'] + [f'{i - interval + 1}-{i}' for i in range(interval, upper_bound + interval, interval)]
 
 
 def parse_to_angle_bucket_individual_rssi_distance(data: Dict[float, List[LinkPair]], as_average: bool = False) \
@@ -144,18 +154,16 @@ def parse_linkpairs_to_angle_bucket_sorted(data, interval=None) -> Tuple[int, Di
 
 def build_average_rssi_for_distance_plot(log: str):
     measured_log = create_linkpairs(log, as_pair=False)
-    bar_y = []
-    scatter_y = []
-    x = []
+    bar_y, x, dist_x = [], [], []
 
     count = 0
     prev = 0
-    max_dist = max([val.distance for val in measured_log])
+    max_dist = max([val.distance for val in measured_log]) + 20
     for dist in range(0, int(max_dist), 20):
         bucket = [link.rssi for link in measured_log if prev < link.distance <= dist]
+        prev = dist
 
         if len(bucket) < 1:
-            prev = dist
             continue
 
         count += len(bucket)
@@ -163,19 +171,24 @@ def build_average_rssi_for_distance_plot(log: str):
 
         bar_y.append(avg_rssi)
         x.append(f'{prev + 1}-{dist}')
-        prev = dist
+        dist_x.append(dist)
 
     # print(list(zip(range(len(bar_y)), bar_y)))
     # print(list(zip(range(len(bar_y)), [26 - Link.l_d(dist) for dist in range(1, int(max_dist), 20)])))
 
-    data = [go.Bar(
+    print(x)
+    print(dist_x)
+    print(list(zip(dist_x, bar_y)))
+    print(list(zip(dist_x, [26 - Link.l_d_org(dist) for dist in dist_x])))
+    print()
+
+    data = [go.Scatter(
         x=x,
         y=bar_y,
-        name='Average RSSI',
-        width=0.2
+        name='Average RSSI'
     ), go.Scatter(
         x=x,
-        y=[26 - Link.l_d(dist) for dist in range(1, int(max_dist), 20)],
+        y=[26 - Link.l_d_org(dist) for dist in dist_x],
         name='Distance function'
     )]
 
@@ -190,7 +203,7 @@ def build_average_rssi_for_distance_plot(log: str):
         )
     )
     fig = go.Figure(data=data, layout=layout)
-    plotly.offline.plot(fig, filename=f'plots/The_average_RSSI_in_each_distance_bucket_sep{log_name}.html')
+    plotly.offline.plot(fig, filename=f'plots/The_average_RSSI_in_each_distance_bucket_{log_name}.html')
 
 
 def build_angle_bucket_stochastic_minus_distance_fading_increase_plot(log: str):
@@ -206,7 +219,7 @@ def build_angle_bucket_stochastic_minus_distance_fading_increase_plot(log: str):
         x.append(_str_angle_bucket()[i])
         y.append(sum(fixed[angle]) / len(fixed[angle]))
 
-    data = [go.Bar(
+    data = [go.Scatter(
         x=x,
         y=y
     )]
@@ -222,7 +235,7 @@ def build_angle_bucket_stochastic_minus_distance_fading_increase_plot(log: str):
         )
     )
     fig = go.Figure(data=data, layout=layout)
-    plotly.offline.plot(fig, filename=f'plots/average_RSSI_minus_distance_fading_for_angle_buckets_{log_name}.html')
+    plotly.offline.plot(fig, filename=f'plots/scatter_average_RSSI_minus_distance_fading_for_angle_buckets_{log_name}.html')
 
 
 def build_normal_dist_for_angle_bucket(log: str):
@@ -324,7 +337,7 @@ def build_histogram_for_stochastic_in_angle_buckets(log: str):
         title=f'{log_name} - Raw - Sample size: {count}'
     )
     hist_fig = go.Figure(data=hist_data, layout=hist_layout)
-    hist_div = plotly.offline.plot(hist_fig, include_plotlyjs=True, output_type='div')
+    hist_div = plotly.offline.plot(hist_fig, t)
 
     table_trace = [go.Table(
         header=dict(
@@ -347,7 +360,7 @@ def build_histogram_for_stochastic_in_angle_buckets(log: str):
         f.write(table_div)
 
 
-def build_scatter_for_least_square_losmodel(log: str):
+def compute_least_square(log: str):
     measured_log = create_linkpairs(log, as_pair=False, remove_distance=True)
     plot_data = create_linkpairs(log, as_pair=False)
 
@@ -359,51 +372,314 @@ def build_scatter_for_least_square_losmodel(log: str):
 
     for dist in range(0, max_dist, 20):
         bucket = [link.rssi for link in measured_log if prev < link.distance <= dist]
-        plot_bucket = [link.rssi for link in plot_data if prev < link.distance <= dist]
-
+        #     plot_bucket = [link.rssi for link in plot_data if prev < link.distance <= dist]
+        #
         if len(bucket) < 1:
             prev = dist
             continue
-
+        #
         y.append(sum(bucket) / len(bucket))
-        plot_y.append(sum(plot_bucket) / len(plot_bucket))
+        #     plot_y.append(sum(plot_bucket) / len(plot_bucket))
         x.append(dist)
+        prev = dist
 
-    losmodel = helpers.compute_least_squared_regression(x, y)
-    print([losmodel(d) for d in x])
+    # x = [link.rssi for link in measured_log]
+    # y = [val for val in range(max_dist)]
+    losmodel, m, c = helpers.compute_least_squared_regression(x, y)
     # helpers.compute_total_least_squared_regression(x, y)
     #
-    # print(log)
-    # print(m)
-    # print(c)
-    # print(y)
-    # print(x)
-    #
+    print(log)
+    print(f'm={m}')
+    print(f'c={c}')
+
+
+def build_scatter_for_least_square_losmodel_v2(log: str):
+    # losmodel_links = helpers.load_losmodel_computed_rssi_data('losmodel_link_data.json')
+    # losmodel_links_new = helpers.load_losmodel_computed_rssi_data('losmodel_link_data_new.json')
+    # losmodel_links_less_5 = helpers.load_losmodel_computed_rssi_data('losmodel_link_data_less_5.json')
+    measurement_raw_phili = create_linkpairs(log, as_pair=False, remove_distance=False)
+    measurement_raw_rude = create_linkpairs('../gpslogs/rude_skov_gps_rssi.txt', as_pair=False, remove_distance=False)
+    measurement_distance = create_linkpairs(log, as_pair=False, remove_distance=True)
+
+    data_sets = [
+        ['phili measurements', measurement_raw_phili],
+        ['rude measurements', measurement_raw_rude],
+        ['measurements distance', measurement_distance],
+    ]
+
+    los_y = []
+    los_y_new = []
+    los_less_5 = []
+    raw_y = []
+    x = []
+    y = []
+    raw_rude = []
+
+    plot_data = []
+
+    max_dist = int(max([val.distance for val in measurement_raw_phili])) + 20
+    for name, data in data_sets:
+        scatter, y, x = [], [], []
+        prev = 0
+
+        for i, dist in enumerate(range(0, max_dist, 20)):
+            bucket = [link.rssi for link in data if prev < link.distance <= dist]
+            prev = dist
+
+            if len(bucket) < 1:
+                continue
+
+            y.append(sum(bucket) / len(bucket))
+            x.append(_str_distance_bucket(max_dist)[i])
+
+        plot_data.append(go.Scatter(
+            x=x,
+            y=y,
+            name=name
+        ))
+
+    for i, dist in enumerate(range(0, max_dist, 20)):
+        bucket = [link.rssi for link in measurement_distance if prev < link.distance <= dist]
+        # bucket_rude = [link.rssi for link in measurement_distance_rude if prev < link.distance <= dist]
+        raw_bucket = [link.rssi for link in measurement_raw_phili if prev < link.distance <= dist]
+        # los_bucket = [link.rssi for link in losmodel_links if prev < link.distance <= dist]
+        # los_bucket_new = [link.rssi for link in losmodel_links_new if prev < link.distance <= dist]
+        # los_bucket_less_5 = [link.rssi for link in losmodel_links_less_5 if prev < link.distance <= dist]
+
+        if len(bucket) < 1 or len(raw_bucket) < 1:
+            # if len(bucket) < 1 or len(raw_bucket) < 1 or len(los_bucket) < 1 or len(los_bucket_less_5) < 1:
+            prev = dist
+            continue
+
+        prev = dist
+
+        # print(f'min: {min(los_bucket)}, max: {max(los_bucket)}')
+        # print(sorted([f'{val}: {los_bucket.count(val)}' for val in los_bucket]))
+
+        y.append(sum(bucket) / len(bucket))
+        raw_y.append(sum(raw_bucket) / len(raw_bucket))
+        # raw_rude.append(sum(bucket_rude) / len(bucket_rude))
+        # los_y.append(sum(los_bucket) / len(los_bucket))
+        # los_y_new.append(sum(los_bucket_new) / len(los_bucket_new))
+
+        # los_less_5.append(sum(los_bucket_less_5) / len(los_bucket_less_5))
+        x.append(_str_distance_bucket(max_dist)[i])
+
+    plot_data.append(
+        go.Scatter(
+            x=[dist for dist in range(0, max_dist, 20)],
+            y=[26 - Link.l_d(val) for val in range(0, max_dist, 20)],
+            name='CVPL function'
+        )
+    )
+    plot_data.append(
+        go.Scatter(
+            x=[dist for dist in range(0, max_dist, 20)],
+            y=[26 - Link.l_d_org(val) for val in range(0, max_dist, 20)],
+            name='Original distance function'
+        )
+    )
+    plot_data.append(
+        go.Scatter(
+            x=[dist for dist in range(0, max_dist, 20)],
+            y=[26 - Link.los_fading_v2(val) for val in range(0, max_dist, 20)],
+            name='LoS function for distance buckets(interval=20)'
+        )
+    )
+
     data = [go.Scatter(
         x=x,
-        y=plot_y,
-        name='Average RSSI for distance bucket',
-        error_y=dict(
-            type='data',
-            array=[losmodel(i) for i in x],
-            visible=True
-        )
+        y=raw_y,
+        name='Measurements phili'
     ), go.Scatter(
-        x=[i for i in range(max_dist)],
-        y=[26 - Link.l_d(i) for i in range(max_dist)],
-        name='Distance function'
-    # )]
+        x=x,
+        y=[26 - Link.l_d(val) for val in range(0, max_dist, 20)],
+        name='CVPL function'
     ), go.Scatter(
-        x=[i for i in range(max_dist)],
-        y=[losmodel(i) for i in range(max_dist)],
-        name='LoSModel'
-    )]
+        x=x,
+        y=[26 - Link.l_d_org(val) for val in range(0, max_dist, 20)],
+        name='Original distance function'
+    ),
+
+        # go.Scatter(
+        # x=x,
+        # y=los_y,
+        # name='LoS computation for measurements'
+        # )
+        go.Scatter(
+            x=x,
+            y=[26 - Link.los_fading_v2(val) for val in range(0, max_dist, 20)],
+            name='LoS function for distance buckets(interval=20)'
+        ),
+        # go.Scatter(
+        # x=x,
+        # y=los_less_5,
+        # name='Link with less than 5% building'
+        # )
+        # , go.Scatter(
+        #     x=x,
+        #     y=raw_rude,
+        #     name='Measurement rudeskov'
+        # )
+        #     , go.Scatter(
+        #     x=x,
+        #     y=los_y_new,
+        #     name='LoS2 computation for measurements'
+        # ), go.Scatter(
+        #     x=x,
+        #     y=[26 - Link.los_fading_v2(val) for val in range(max_dist)],
+        #     name='LoS2 function for all links'
+        # )
+    ]
 
     layout = go.Layout(
-        title=parse_logfile_name(log)
+        xaxis=dict(
+            title='Distance buckets'
+        ), yaxis=dict(
+            title='RSSI'
+        )
+    )
+    f_name = parse_logfile_name(log)
+    plotly.offline.plot(go.Figure(data=plot_data, layout=layout),
+                        filename=f'plots/scatter_losmodel_comparison_to_measurements_{f_name}.html')
+
+
+def build_scatter_compare_field_cvpl_plus_bopl(log):
+    measurement_raw_phili = create_linkpairs(log, as_pair=False, remove_distance=False)
+    print(len(measurement_raw_phili))
+    computed = create_linkpairs('phili_computed_gps_rssi.txt', as_pair=False,
+                                remove_distance=False)
+
+    max_dist = int(max([val.distance for val in measurement_raw_phili])) + 20
+    prev, y, comp_y, x, s_x = 0, [], [], [], []
+
+    for i, dist in enumerate(range(0, max_dist, 20)):
+        bucket = [link.rssi for link in measurement_raw_phili if prev < link.distance <= dist]
+        computed_bucket = [link.rssi for link in computed if prev < link.distance <= dist]
+        prev = dist
+
+        if len(bucket) < 1 or len(computed_bucket) < 1:
+            continue
+
+        y.append(sum(bucket) / len(bucket))
+        comp_y.append(sum(computed_bucket) / len(computed_bucket))
+        x.append(dist)
+        s_x.append(_str_distance_bucket(max_dist)[i])
+
+    # print(list(zip(x, y)))
+    # print(list(zip(x, comp_y)))
+    # print(x)
+    # print(comp_y)
+
+    # print('{', end='')
+    # for ix, iy in zip(x, comp_y):
+    #     print(f'({ix},{iy})', end='')
+    # print('};', end='')
+
+    data = [go.Scatter(
+        x=s_x,
+        y=y,
+        name='measurements'
+    ), go.Scatter(
+        x=s_x,
+        y=comp_y,
+        name='computed values'
+    )]
+
+    score = sum([pow(abs(val1 - val2), 2) for val1, val2 in zip(y, comp_y)])
+    print(score / len(measurement_raw_phili))
+    layout = go.Layout(
+        title=f'Phillippines log - Comparison for measure versus computed rssi - Score: {round(score, 3)}',
+        xaxis=dict(title='Distance buckets'),
+        yaxis=dict(title='RSSI')
     )
     fig = go.Figure(data=data, layout=layout)
-    plotly.offline.plot(fig, filename='plots/scatter_least_squared_for_average_RSSI.html')
+    plotly.offline.plot(fig, filename='plots/scatter_bopl_plus_cvpl_vs_measurements.html', auto_open=False)
+
+
+def build_average_rssi_diff_angle_buckets():
+    measurements_phili = create_linkpairs('../gpslogs/phillippines_gps_rssi.txt', as_pair=True, remove_distance=True)
+    measurements_rude = create_linkpairs('../gpslogs/rude_skov_gps_rssi.txt', as_pair=True, remove_distance=True)
+
+    __, phili = parse_linkpairs_to_angle_bucket_sorted(measurements_phili)
+    __, rude = parse_linkpairs_to_angle_bucket_sorted(measurements_rude)
+
+    phili_y, phili_x, rude_y, rude_x = [], [], [], []
+    for i, angle in enumerate(_gen_angle_buckets()):
+        if len(phili[angle]) < 1:
+            continue
+
+        phili_y.append(sum(phili[angle]) / len(phili[angle]))
+        phili_x.append(angle)
+
+    for i, angle in enumerate(_gen_angle_buckets()):
+        if len(rude[angle]) < 1:
+            continue
+
+        rude_y.append(sum(rude[angle]) / len(rude[angle]))
+        rude_x.append(angle)
+
+    print('phili')
+    print('{', end='')
+    for ix, iy in zip(phili_x, phili_y):
+        print(f'({ix},{iy})', end='')
+    print('};', end='')
+
+    print()
+    print('rude')
+    print('{', end='')
+    for ix, iy in zip(rude_x, rude_y):
+        print(f'({ix},{iy})', end='')
+    print('};', end='')
+
+
+def plot_bopl_and_cvpl():
+    links_above_80 = helpers.load_losmodel_computed_rssi_data('losmodel_link_data_above_80.json')
+    link_less_5 = helpers.load_losmodel_computed_rssi_data('losmodel_link_data_less_5.json')
+    sets = [
+        ['building pct above 80', links_above_80, 'bopl', helpers.bopl],
+        ['building pct below 5', link_less_5, 'cvpl', helpers.cvpl],
+    ]
+
+    max_dist = int(max([val.distance for val in link_less_5])) + 20
+    divs = []
+    score = 0
+    for name, data, func_name, func in sets:
+        prev = 0
+        y, x, dist_x, traces = [], [], [], []
+        for i, dist in enumerate(range(0, max_dist, 20)):
+            bucket = [link.rssi for link in data if prev < link.distance <= dist]
+            prev = dist
+
+            if len(bucket) < 1:
+                continue
+
+            y.append(sum(bucket) / len(bucket))
+            x.append(_str_distance_bucket(max_dist)[i])
+            dist_x.append(dist)
+
+        traces.append(go.Scatter(x=x, y=y, name=name))
+        func_y = [26 - func(val) for val in dist_x]
+        score = sum([pow(abs(val1 - val2), 2) for val1, val2 in zip(y, func_y)])
+
+        traces.append(go.Scatter(
+            x=x,
+            y=func_y,
+            name=func_name,
+        ))
+        fig = go.Figure(data=traces, layout={'title': f'Function = {func_name}   -   score = {round(score, 3)}'})
+        divs.append(plotly.offline.plot(fig, output_type='div'))
+        print(name)
+        print('links = ', len(data))
+        print('score = ', score / len(data))
+        print(list(zip(dist_x, y)))
+        print(y)
+        print(dist_x)
+        print()
+
+    with open('constant_discovery_plot.html', 'w') as f:
+        for div in divs:
+            f.write(div)
 
 
 if __name__ == '__main__':
@@ -425,5 +701,18 @@ if __name__ == '__main__':
         # build bar plot for average rssi in a distance bucket
         # build_average_rssi_for_distance_plot(arg)
 
-        # build scatter plot for least square regression for LoSModel
-        build_scatter_for_least_square_losmodel(arg)
+        # compute_least_square(arg)
+
+        # build scatter plot for least square regression for LoSModel V2
+        # build_scatter_for_least_square_losmodel_v2(arg)
+
+        # helpers.write_links_to_log('phili_links.csv', create_linkpairs(arg, as_pair=False), with_rssi=True)
+
+        # build scatter plot of cvpl bople combo
+        build_scatter_compare_field_cvpl_plus_bopl(arg)
+
+        # average rssi diff for angle buckets
+        # build_average_rssi_diff_angle_buckets()
+
+        # plot the bopl and cvpl vs collected links
+        # plot_bopl_and_cvpl()
