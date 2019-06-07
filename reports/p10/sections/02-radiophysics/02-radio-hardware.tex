@@ -2,12 +2,20 @@
 \todo[inline]{rssi, transmission time (baudrate), reachi constants}
 \todo[inline]{hardware section with transmission power, pathloss, rssi and so on rssi = txpower-pathloss}
 
+Transmission power is 
+
+\gls{rssi} is the perceived signal strength of a link.
+
+\gls{pathloss} is the signal loss inflicted by the propagation of an electromagnetic wave from transmitter to
+receiver.
+
+
+\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds,
+based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\mathit{packet}| = 20$
+bytes would take $\mathit{transmissiontime}(|\mathit{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s =
+34800$ Hz.
+%
 \begin{eq}\label{eq:transmission-time}
     \mathit{transmissiontime}(\mathit{packetsize}) = \frac{1000000}{f_s} \cdot \left( \mathit{packetsize} \cdot 8
     \right)
 \end{eq}
-
-\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds,
-based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$
-bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s =
-34800$ Hz.
