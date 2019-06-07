@@ -272,7 +272,7 @@ the node is unblocked, and may continue executing its protocol. \medbreak
             \KwEnqueue $a$ \KwTo $\mathit{waiting}$\;
             \;
             \tcp{Part 2. Clean $\mathit{transmits}$ set.}
-            \If{each node has at least one Action \KwIn $\mathit{waiting}$}{ \label{algo:mpicoordinator:ifactions}
+            \If{each node has at least one Action \KwInn $\mathit{waiting}$}{ \label{algo:mpicoordinator:ifactions}
                 $\mathit{starttime}$ $\leftarrow$ earliest $\mathit{start}$ time of all actions \KwInn $\mathit{waiting}$\;
                 \ForEach{$t$ $\in$ $\mathit{transmits}$ \KwWhere $t$.$\mathit{end}$ < $\mathit{starttime}$}{ \label{algo:mpicoordinator:cleantransmits}
                     \KwRemove $t$ \KwFrom $\mathit{transmits}$\;
@@ -280,7 +280,7 @@ the node is unblocked, and may continue executing its protocol. \medbreak
             }
             \;
             \tcp{Part 3. Process $\mathit{waiting}$ actions.}
-            \While{each node has at least one Action \KwIn $\mathit{waiting}$}{ \label{algo:mpicoordinator:whileactions}
+            \While{each node has at least one Action \KwInn $\mathit{waiting}$}{ \label{algo:mpicoordinator:whileactions}
                 $a$ $\leftarrow$ \KwDequeue Action \KwFrom $\mathit{waiting}$\; \label{algo:mpicoordinator:dequeue}
 
                 \If{$a$.$\mathit{type}$ = \textit{transmit}}{ \label{line:action-transmit}

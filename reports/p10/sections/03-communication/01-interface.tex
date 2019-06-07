@@ -32,20 +32,6 @@ return \KwNull.
 %    %\item[Inform()] The Inform function
 %\end{description}
 
-\subsection{Hardware}\label{sec:hardwarephysics}
-\todo[inline]{rssi, transmission time (baudrate), reachi constants}
-\todo[inline]{how does the hardware work? define \doublequote{our} hardware}
-
-\begin{eq}\label{eq:transmission-time}
-    \mathit{transmissiontime}(\mathit{packetsize}) = \frac{1000000}{f_s} \cdot \left( \mathit{packetsize} \cdot 8
-    \right)
-\end{eq}
-
-\autoref{eq:transmission-time} computes the amount of time required to transmit a packet, in microseconds,
-based on the \gls{baudrate} $f_s$ and the size of a packet in bytes. For a packet where $|\text{packet}| = 20$
-bytes would take $\text{transmission-time}(|\text{packet}|) = 4597$ microseconds, with \gls{baudrate} $f_s =
-34800$ Hz.
-
 
 \section{2-Phase Broadcast and Receive}\label{sec:2pcomm}
 As mentioned previously in \autoref{sec:interface}, the time required for transmitting a packet is dependent

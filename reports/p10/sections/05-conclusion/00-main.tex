@@ -1,5 +1,4 @@
 \chapter{Conclusion}\label{ch:conclusion}
-\bibtodo{adapted from report}
 In this report, we introduce a C++ library for writing, and running, simulations of the \gls{mac} protocols
 behind the mesh communication in a \gls{manet} using a \gls{mpi}. Our library consists of X parts: A hardware
 interface header file, used for writing implementations of \gls{mac} protocols, that emulate the physical part
@@ -11,7 +10,10 @@ using building footprints between the nodes of a link, on OpenStreetMap map tile
 simulate packet errors and collisions caused by interfering transmissions or bad links. \smallbreak
 
 % Conclude on building method vs angle method.
-\todo[inline]{Conclude on building method vs angle method.}
+In \autoref{sec:reachi-experiments} and \autoref{sec:linkmodel}, we propose a link modelling method for
+approximating the \gls{pathloss} on a link by computing the percentage amount of building between the two
+nodes of a link, and show that the computed \gls{rssi} values are roughly equivalent to field measurements,
+that are move reliable than computing the \gls{pathloss} entirely based on the distance. \smallbreak
 
 % Arguments for correctness
 \autoref{sec:correctness} presents our arguments of correctness for the Coordinator and the hardware
@@ -27,6 +29,7 @@ however, face significant scalability problems, as we rely on a single centralis
 % a simulation.
 
 \section{Future Work}
-
+\todo[inline]{scalability improvements (coordinator optimisation)}
+\todo[inline]{distributed coordinator}
 % Scalability improvements / optimisation for the Coordinator
 % Distributed "Coordinator"
