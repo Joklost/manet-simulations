@@ -1,13 +1,7 @@
 \newpage
 \section{Linkmodel}
-\todo[inline]{ref to section where field experiments problems discussed}
 In this section, our own Linkmodel will be described.
 
-%To facilitate the problems mentioned in \autoref{sec:reachi-data-experiments}, we have developed our own model for computing path loss called. 
-
-
-
-\todo[inline]{overview of method}
 \subsection{Computing path loss}
 To facilitate to the problems discussed in \autoref{sec:reachi-experiments}, we have devised our own linkmodel to compute path loss. Our model computes path loss based on the distance of the link and the percentage of that distance that is in a building. Building and other obstructions in the environment cause more severe path loss, and as such should be considered to punish the signal more. Our model limits to only buildings. The idea is to generate a map of the area that the nodes are located in as an image, then when computing the path loss of a link, look up the colour of all pixels in a straight line between the nodes  of link and count how many is a building. This gives a percentage for how much of the distance is covered by buildings. An pseudo code implementation of the computation can be seen on \autoref{algo:linkmodel:compute-building-percentage}.
 
@@ -23,7 +17,7 @@ To facilitate to the problems discussed in \autoref{sec:reachi-experiments}, we 
         \;
         $\mathit{pixels} \leftarrow 0$\;
         $\mathit{buildings} \leftarrow 0$\;
-        \While{$\lambda\ \in \{0, 1\}$}{
+        \While{$\lambda \in \{0 \dots 1\}$}{
             $(x,\ y) \leftarrow \lambda \cdot (x_1,\ y_1) + (1 - \lambda)\cdot(x_2,y_2)$\;
             \If{position ($x$, $y$) is a building}{
                 $\mathit{buildings} \leftarrow \mathit{buildings} + 1$\;
@@ -38,8 +32,6 @@ To facilitate to the problems discussed in \autoref{sec:reachi-experiments}, we 
 \end{algorithm}
 
 
-Since ......... hvorfor split i 2\medbreak
-
 We define two functions, $\mathit{cvpl(distance)}$ and $ \mathit{bopl(distance)}$. Both functions compute path loss based on distance. \gls{cvpl} computes path loss for distances with zero percent building, while \gls{bopl} computes path loss for 100\% building. When computing the path loss both functions will be used, in the following equation:
 \todo[inline]{make me prettier}
 \begin{eq}\label{eq:pl}
@@ -51,31 +43,22 @@ We define two functions, $\mathit{cvpl(distance)}$ and $ \mathit{bopl(distance)}
 
 \subsection{Approximating the constants}
 \todo[inline]{rewrite as optimisation problem}
-To find the constants for both functions, we define the following optimisation problem:
+Finding the optimal constants for $\mathit{cvpl}$ and $\mathit{bopl}$ can defined as an optimisation problem. A set of links $L$ must be provided. The goal is to compute the difference from the computed \gls{rssi} to the measurements for all links in $L$.
+\medbreak
 
+The problem is defined as follows:
+\begin{itemize}
+    \item Input: A set of link $L$.
+    \item Output: Optimal parameters for $\alpha,\ \beta,\ \delta$.
+    \item Goal: Minimise the score function:\smallbreak
+    $\mathit{compRSSI}(l)= \alpha \cdot (log_\delta(d(l))) + \beta$\smallbreak
+    $\mathit{score}(\alpha, \beta, \delta) = \sum\limits_{l\ \in\ L} (\mathit{compRSSI}(l) - \mathit{measuredRSSI}(l))^2$
 
-To find the constants for both functions, data for comparison is needed. Links with a computed building percentage below five percent or above 80\% was collected from the Marikina log into their separate collections. The Marikina log was used because the experiment was conducted in a city, resulting in links with varying building percentages.
+\end{itemize}
 
-For both collections the links were further sorted based on distance of the links, with 20 meter intervals i.e. links with distances between 20 meters and 40 meters was sorted together. The average \gls{rssi} for each separation was then computed. Links with building percentage above 80\% will be used for $\mathit{bopl}$ and links below 5 percent for $\mathit{cvpl}$.
+$\mathit{compRSSI}(l)$ is derived from $l_d$~\cite{paper:linkmodel}. As mentioned in \cite[p.~12]{paper:linkmodel}, $l_d$\'s constants are approximated based on the type of environment.\medbreak
 
-
-
-Both $\mathit{cvpl}$ and $\mathit{bopl}$ will be derived from the following functions:
-\begin{eq}
-    \mathit{compRSSI}(l)= \alpha \cdot (\ln{d(l)} / \ln{\delta}) + \beta
-\end{eq}
-
-$\mathit{compRSSI}(l)$ is derived from $l_d$~\cite{paper:linkmodel}. As mentioned in \cite[p.~12]{paper:linkmodel}, the functions constants are approximated based on the type of environment the computations are to be done for, we however intend to approximate constants that fit the Reachi logs. Because of short of time, a brute forcing approach will be utilised. The parameters $\alpha,\ \beta \in \{-100 \dots 100\}$ with $0.5$ increments and $\delta\ \in \{2 \dots 100\}$ with $1$ increments. \medbreak
-
-To compare each iteration, the following score function will be used:
-\begin{eq}
-    \mathit{score}(\alpha, \beta, \delta) = \sum\limits_{l\ \in\ \mathit{links}} (\mathit{compRSSI}(l) - \mathit{measuredRSSI}(l))^2
-\end{eq}
-
-
-\bigbreak
-
-The result gives the following functions:
+To solve the optimisation problem, brute forcing will be utilised because of time restrictions. The set of links $L$, consisted of links with a computed building percentage below five percent or above 80\% was collected from the Marikina log into their separate collections. The Marikina log was used because the experiment was conducted in a city, resulting in links with varying building percentages. For both collections the links were further sorted based on distance of the links, with 20 meter intervals i.e. links with distances between 20 meters and 40 meters was sorted together. The average \gls{rssi} for each separation was then computed. Links with building percentage above 80\% was used for $\mathit{bopl}$ and links below 5 percent for $\mathit{cvpl}$. The parameters $\alpha,\ \beta \in \{-100 \dots 100\}$ with $0.5$ increments and $\delta\ \in \{2 \dots 100\}$ with $1$ increments. The result was the following functions:
 \begin{eq}
     \mathit{cvpl}(l) = 48.5 \cdot (\ln{(d(l))} / \ln{(77)}) + 37.5
 \end{eq}
@@ -84,11 +67,8 @@ The result gives the following functions:
     \mathit{bopl}(l) = 67 \cdot (\ln{(d(l))} / \ln{(57))} + 11.5
 \end{eq}
 
-TOTAL LINKS = 17761
 
-\newpage
 \subsection{Evaluation}
-intro stuff
 
 The functions $\mathit{cvpl}$ and $\mathit{bopl}$ have been plotted on \autoref{plot:reachi-experiments:cvpl-vs-bopl}. $\mathit{bopl}$ does indeed result in greater path loss, however the plot also reveals that op to 100 meters $\mathit{bopl}$ computes a better \gls{rssi} compared to $\mathit{cvpl}$. To further examine this, each function has been plotted with their training set. $\mathit{cvpl}$ on \autoref{plot:reachi-experiments:marikina-log-below-5-pct} and $\mathit{bopl}$ can be seen on \autoref{plot:reachi-experiments:marikina-log-above-80-pct}.
 
@@ -158,7 +138,7 @@ The functions $\mathit{cvpl}$ and $\mathit{bopl}$ have been plotted on \autoref{
     \centering
     \begin{tikzpicture}
         \begin{axis}[
-                title=score: 0.9302 - links: 377 ,
+                title=score: 501.4932 - links: 377 ,
                 height=10cm, width=0.95\textwidth,
                 ylabel={RSSI},
                 xlabel={Distance in meters},
@@ -183,11 +163,9 @@ The functions $\mathit{cvpl}$ and $\mathit{bopl}$ have been plotted on \autoref{
     \label{plot:reachi-experiments:marikina-log-above-80-pct}
 \end{figure}
 
-\todo[inline]{something about cvpl}
-The $\mathit{cvpl}$ had the best score of 0.0372. As the score is for each link,
+With the found optimal parameters for $\mathit{cvpl}$, the resulting was score was 501.4932 for 13481 links. The average score for a single link is then $0.0372 = 501.4932 / 13481$. We consider this as good score, and as can be seen on \autoref{plot:reachi-experiments:marikina-log-below-5-pct}, the function fits the measurements.\medbreak
 
-The $\mathit{bopl}$ however got worse result. The score per link was 0.9302 which is much larger compared to $\mathit{cvpl}$\'s score. It is important to note that there was only 377 links in the training set for the $\mathit{bopl}$ function, which is wastly less compared to the 13481 links for the $\mathit{cvpl}$ function. Another reason for the lower precisision of $\mathit{bopl}$ is that the training set does not only consist of links with 100\% building. This was however necessary as there was close to none links with 100\% building. Having a large set of links with 100\% building would result in higher precision.
-
+The $\mathit{bopl}$ however got worse result. The score per link was 0.9302 which is much larger compared to the score for $\mathit{cvpl}$. It is important to note that there was only 377 links in the training set for the $\mathit{bopl}$ function, which is wastly less compared to the 13481 links for the $\mathit{cvpl}$ function. Another reason for the lower precisision of $\mathit{bopl}$ is that the training set does not only consist of links with 100\% building, as we allowed for links with more than 80\%. This was however necessary as there was close to none links with 100\% building. Having a large set of links with 100\% building would result in higher precision.
 
 \begin{figure}[H]
     \centering
@@ -219,4 +197,4 @@ The $\mathit{bopl}$ however got worse result. The score per link was 0.9302 whic
 \end{figure}
 
 
-Finally a comparison of the computed results from \autoref{eq:pl} compared with the measurements from the Marikina log. Once again, links have sorted into distance buckets and had the average \gls{rssi} for each bucket computed. The computed values, was done with \autoref{eq:pl} on the links from the Marikina log, but the field measured \gls{rssi} was removed. The computed \gls{rssi} was added instead, and the same sorting into distance buckets was done with the computed log. The result can be seen on \autoref{plot:reachi-experiments:marikina-log-vs-computed}. The computed score, once again, for a single link was 0.0794. \autoref{plot:reachi-experiments:marikina-log-vs-computed} shows that the function is off on the range from about 75 meters to 300 meters. However when compared with \autoref{plot:reachi-experiments:measurements-vs-ld}, our does indeed give a better result.
+Finally a comparison of the computed results from \autoref{eq:pl} compared with the measurements from the Marikina log. Once again, links have been sorted into distance buckets and had the average \gls{rssi} for each bucket computed. The computed \gls{rssi}, was computed with \autoref{eq:pl} on the links from the Marikina log, but the field measured \gls{rssi} was removed. The computed \gls{rssi} was added instead, and the same sorting into distance buckets was done with the computed log. The result can be seen on \autoref{plot:reachi-experiments:marikina-log-vs-computed}. The computed score, once again, for a single link was 0.0794. \autoref{plot:reachi-experiments:marikina-log-vs-computed} shows that the function is off on the range from about 75 meters to 300 meters, however when compared with \autoref{plot:reachi-experiments:measurements-vs-ld} ours does indeed give a better result.
